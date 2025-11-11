@@ -1,8 +1,8 @@
 <template>
   <nav class="border-gray-200 bg-[#FFFFFF]">
-    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+    <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-        <img src="/src/assets/images/Logo.png" alt="Innova" class="w-32 h-auto"/>
+        <img src="/src/assets/images/Logo.png" alt="Innova" class="w-32 h-auto" />
       </a>
       <div class="ml-auto flex items-center gap-2">
         <a
@@ -45,53 +45,112 @@
     </div>
 
     <!-- FULLSCREEN МЕНЮ -->
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 bg-[#4286F7] text-white flex flex-col + flex-1">
-      <div class="flex items-center justify-between px-[95px] py-4">
-        <a href="#" class="flex items-center space-x-3">
-          <img src="/src/assets/images/Logo_menu.png" alt="Innova" class="w-32 h-auto" />
-        </a>
+    <div v-if="isOpen" class="fixed inset-0 bg-[#4286F7] text-white flex flex-col">
+      <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
+        <!--Логотип-->
+        <div href="#" class="flex items-sart space-x-3 w-1/2">
+          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[40px] h-auto" />
+          <div class="text-left">
+            <h1 class="text-[18px] font-rubik text-white font-semibold">Инноваторы</h1>
+            <p class="text-[13px] mt-[-3px] font-rubik text-white font-regular">Краснодар</p>
+          </div>
+        </div>
+        <!--Кнопки-->
         <div class="ml-auto flex gap-2">
           <a
             href="#"
-            class="block md:hidden mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white hover:bg-gray-100">
+            class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
+          >
             Войти
           </a>
           <a
             href="#"
-            class="block md:hidden mr-[15px] text-[#4286F7] bg-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+            class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
           >
             Регистрация
           </a>
         </div>
         <button
           @click="isOpen = false"
-          class="w-10 h-10 grid place-items-center border border-white rounded-lg text-white">
+          class="cursor-pointer w-10 h-10 grid place-items-center border border-white rounded-lg text-white"
+        >
           <span class="text-3xl leading-none py-[2px] mb-[4px]">×</span>
         </button>
       </div>
 
-      <div class="w-[1240px] ml-[95px] h-[1px] bg-gray-300 my-2"></div>
-      <!--Колонки-->
-      <div class="flex items-start justify-between m-2 flex-1">
-        <div class="text-[#9CB8FF] text-left ml-[95px] flex w-1/2 h-full flex-col justify-center sm:text-[40px]">
-          <h1 class="text-[100px] font-bold mb-[-8px]">Инноваторы</h1>
-          <p class="text-[32px] font-regular mt-0">Продукт СНО КУбГТУ</p>
+      <div class="container mx-auto">
+        <div class="w-full h-[1px] bg-gray-100 my-1 max-w-[calc(100%-3rem)] mx-auto lg:max-w-none lg:mx-0"></div>
+      </div>
+      <!--Инноваторы продукт СНО-->
+      <div class="flex items-start justify-start m-2 flex-1 sm:flex-none sm:justify-start sm:pl-4">
+        <div
+          class="hidden lg:inline-block h-full flex-col justify-between w-full md:ml-[87px] sm:ml-4 sm:mt-4 md:mt-[250px]"
+        >
+          <h1
+            class="md:transform md:rotate-90 md:text-[80px] lg:text-[100px] text-left lg:transform lg:rotate-0 font-bold text-[#9CB8FF]"
+          >
+            Инноваторы
+          </h1>
+          <p
+            class="md:rotate-90 md:text-[18px] md:mr-[72px] lg:text-[32px] text-left lg:transform lg:rotate-0 font-regular mt-[-8px] text-[#9CB8FF] whitespace-nowrap"
+          >
+            Продукт СНО КУбГТУ
+          </p>
+          <div class="flex space-x-8 mt-36">
+            <a href="#" target="_blank">
+              <img src="/src/assets/images/vk.png" alt="VK" class="w-12 h-12" />
+            </a>
+            <a href="#" target="_blank">
+              <img src="/src/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
+            </a>
+            <a href="#" target="_blank">
+              <img src="/src/assets/images/whatsApp.png" alt="whatsApp" class="w-12 h-12" />
+            </a>
+          </div>
         </div>
+
         <!-- Навигация по центру -->
         <nav
-          class="flex flex-col ml-auto justify-evenly text-[85px] pr-[95px] w-1/2">
+          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] sm:text-[55px] md:text-[70px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
+        >
           <a
             href="#"
             @click="isOpen = false"
-            class="hover:text-blue-400 ml-auto mb-2 text-[#FFBA26]"
-            >главная
-          </a>
+            class="hover:text-[#FFBA26] ml-auto mb-2 text-[#FFBA26]"
+            >главная</a
+          >
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">поиск</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</a>
+
+          <div class="flex justify-end w-full lg:hidden mt-5">
+            <a
+              href="#"
+              class="w-[240px] h-[64px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[20px] text-center text-[27px] px-5 py-2.5 focus:outline-none"
+            >
+              Регистрация
+            </a>
+          </div>
+          <div class="flex justify-end w-full space-x-8 mt-10 lg:hidde">
+            <a href="#" target="_blank">
+              <img src="/src/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
+            </a>
+            <a href="#" target="_blank">
+              <img
+                src="/src/assets/images/tg.png"
+                alt="Telegram"
+                class="w-10 h-10 block lg:hidden"
+              />
+            </a>
+            <a href="#" target="_blank">
+              <img
+                src="/src/assets/images/whatsApp.png"
+                alt="whatsApp"
+                class="w-10 h-10 block lg:hidden"
+              />
+            </a>
+          </div>
         </nav>
       </div>
     </div>
