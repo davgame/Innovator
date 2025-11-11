@@ -1,19 +1,24 @@
 <template>
   <nav class="border-gray-200 bg-[#FFFFFF]">
     <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
-      <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse">
-        <img src="/src/assets/images/Logo.png" alt="Innova" class="w-32 h-auto" />
-      </a>
+      <!--Логотип-->
+      <div href="#" class="flex items-sart space-x-3 w-1/2">
+        <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto" />
+        <div class="text-left">
+          <h1 class="text-[17px] mb-[-1px] font-rubik text-black font-bold">Инноваторы</h1>
+          <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
+        </div>
+      </div>
       <div class="ml-auto flex items-center gap-2">
         <a
           href="#"
-          class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+          class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
         >
           Войти
         </a>
         <a
           href="#"
-          class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+          class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
         >
           Регистрация
         </a>
@@ -49,23 +54,23 @@
       <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
-          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[40px] h-auto" />
+          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
           <div class="text-left">
-            <h1 class="text-[18px] font-rubik text-white font-semibold">Инноваторы</h1>
-            <p class="text-[13px] mt-[-3px] font-rubik text-white font-regular">Краснодар</p>
+            <h1 class="text-[17px] mb-[-1px] font-rubik text-white font-bold">Инноваторы</h1>
+            <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
           </div>
         </div>
         <!--Кнопки-->
         <div class="ml-auto flex gap-2">
           <a
             href="#"
-            class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
+            class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
           >
             Войти
           </a>
           <a
             href="#"
-            class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+            class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
           >
             Регистрация
           </a>
