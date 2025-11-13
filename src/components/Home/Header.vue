@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <!--Логотип-->
       <div href="#" class="flex items-sart space-x-3 w-1/2">
-        <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto" />
+        <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto"/>
         <div class="text-left">
           <h1 class="text-[17px] mb-[-1px] font-rubik text-black font-bold">Инноваторы</h1>
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
