@@ -1,6 +1,6 @@
 <template>
   <!-- Центрирование бейджа на странице -->
-  <div class="flex flex-col justify-center items-center min-h-screen my-98 sm:my-100 lg:my-160">
+  <div class="flex flex-col justify-center items-center my-170 sm:my-180 lg:my-165">
     <!-- Контейнер с градиентной рамкой -->
     <div
       class="p-[1.5px] rounded-full bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 animate-gradient w-fit mx-auto mt-[-600px] lg:mx-[130px] lg:mt-[-530px]"
@@ -70,14 +70,19 @@
             <div class="w-12 h-12 rounded-5xl flex items-center justify-center">
               <img src="/src/assets/images/plus.png" class="w-[22px] h-auto">
             </div>
-
         </div>
         <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
       </button>
     </div>
-    <div class="flex justify-center items-center ">
-      <img src="/src/assets/images/SUP.png" class=" sm:w-[700px] lg:w-[1150px] h-auto sm:mt-26 lg:mt-35 hidden sm:block">
-      <img src="/src/assets/images/SUP_mobile.svg" alt="" class="w-[250px] h-auto mt-20 block sm:hidden md:hidden lg:hidden">
+    <div class="flex justify-center items-center relative">
+      <!-- Синий фон -->
+      <!-- Основной контейнер с фоном -->
+      <div class="relative w-full">
+        <!-- Изображение -->
+        <img src="/src/assets/images/SUP.png" class="sm:w-[700px] lg:w-[1150px] h-auto sm:mt-26 lg:mt-35 hidden sm:block relative z-10">
+        <img src="/src/assets/images/SUP_mobile.svg" alt="" class="w-[250px] h-auto mt-20 block sm:hidden md:hidden lg:hidden relative z-10">
+
+      </div>
     </div>
   </div>
 </template>
