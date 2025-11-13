@@ -1,6 +1,6 @@
 <template>
   <!-- Центрирование бейджа на странице -->
-  <div class="flex flex-col justify-center items-center min-h-screen lg:my-160">
+  <div class="flex flex-col justify-center items-center min-h-screen my-98 sm:my-100 lg:my-160">
     <!-- Контейнер с градиентной рамкой -->
     <div
       class="p-[1.5px] rounded-full bg-gradient-to-r from-sky-400 via-indigo-500 to-fuchsia-500 animate-gradient w-fit mx-auto mt-[-600px] lg:mx-[130px] lg:mt-[-530px]"
@@ -45,7 +45,7 @@
     <div class="text-center leading-tight antialiased flex justify-center items-center">
       <div class="flex items-center">
         <h1
-          class="text-[25px] max-[340px]:text-[20px] sm:text-[35px] lg:text-[73px] mt-[22px] font-roboto text-[#2B2B2B] font-[650] tracking-[0.1px] my-4"
+          class="text-[25px] max-[340px]:text-[20px] xs:text-[30px] sm:text-[40px] lg:text-[73px] mt-[22px] font-roboto text-[#2B2B2B] font-[650] tracking-[0.1px] my-4"
         >
           Развиваем студенческую <br />
           науку Кубани
@@ -55,28 +55,29 @@
         <img
           src="/src/assets/images/zvezda.png"
           alt="Innova"
-          class="max-[340px]:hidden w-[20px] lg:w-[42px] h-auto mb-12 lg:mb-45"
+          class="max-[380px]:hidden w-[20px] lg:w-[42px] h-auto mb-14 lg:mb-45"
         />
       </div>
     </div>
-    <div class="mt-6">
+    <div class="mt-3 lg:mt-6">
       <!-- Отступ от текста -->
       <button
-        class="flex items-center px-12 py-2 border-2 border-blue-500 rounded-full text-blue-500 hover:bg-blue-50 transition"
+        class="flex items-center px-5 py-1 lg:px-12 lg:py-2 border-2 border-blue-500 rounded-full text-blue-500 hover:bg-blue-50 transition"
       >
         <div
-          class="w-15 h-15 bg-blue-500 text-white rounded-full flex items-center justify-center ml-[-40px]"
+          class="w-11 h-11 lg:w-15 lg:h-15 bg-blue-500 text-white rounded-full flex items-center justify-center ml-[-15px] lg:ml-[-40px]"
         >
             <div class="w-12 h-12 rounded-5xl flex items-center justify-center">
               <img src="/src/assets/images/plus.png" class="w-[22px] h-auto">
             </div>
 
         </div>
-        <span class="font-rubik font-[590] text-[25px] ml-6">Новый проект</span>
+        <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
       </button>
     </div>
     <div class="flex justify-center items-center ">
-      <img src="/src/assets/images/SUP.png" class="w-[1150px] h-auto mt-34">
+      <img src="/src/assets/images/SUP.png" class=" sm:w-[700px] lg:w-[1150px] h-auto sm:mt-26 lg:mt-35 hidden sm:block">
+      <img src="/src/assets/images/SUP_mobile.svg" alt="" class="w-[250px] h-auto mt-20 block sm:hidden md:hidden lg:hidden">
     </div>
   </div>
 </template>
