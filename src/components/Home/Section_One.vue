@@ -79,9 +79,8 @@
       <!-- Основной контейнер с фоном -->
       <div class="relative w-full">
         <!-- Изображение -->
-        <img src="/src/assets/images/SUP.png" class="sm:w-[700px] lg:w-[1150px] h-auto sm:mt-26 lg:mt-35 hidden sm:block relative z-10">
-        <img src="/src/assets/images/SUP_mobile.svg" alt="" class="w-[250px] h-auto mt-20 block sm:hidden md:hidden lg:hidden relative z-10">
-
+        <img src="/src/assets/images/SUP.png" class="sm:w-[700px] lg:w-[1150px] h-auto sm:mt-26 lg:mt-35 hidden sm:block relative z-20">
+        <img src="/src/assets/images/SUP_mobile.svg" alt="" class="w-[250px] h-auto mt-20 block sm:hidden md:hidden lg:hidden relative z-20">
       </div>
     </div>
   </div>

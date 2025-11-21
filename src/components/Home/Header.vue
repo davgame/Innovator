@@ -1,6 +1,6 @@
 <template>
   <nav class="border-gray-200 bg-[#FFFFFF]">
-    <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
+    <div class="flex fixed top-0 left-0 w-full bg-white shadow-2xs z-50 items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <!--Логотип-->
       <div href="#" class="flex items-sart space-x-3 w-1/2">
         <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto"/>
@@ -48,10 +48,14 @@
         </svg>
       </button>
     </div>
+    <!-- Добавляем отступ, чтобы контент не перекрывался меню -->
+    <div class="pt-[90px]">
+      <!-- Здесь основной контент страницы -->
+    </div>
 
     <!-- FULLSCREEN МЕНЮ -->
-    <div v-if="isOpen" class="fixed inset-0 bg-[#4286F7] text-white flex flex-col">
-      <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
+    <div v-if="isOpen" class="fixed inset-0 bg-[#4286F7] text-white flex flex-col z-[9999]">
+      <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px] no-scrollbar">
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
           <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
@@ -84,7 +88,7 @@
       </div>
 
       <div class="container mx-auto">
-        <div class="w-full h-[1px] bg-gray-100 my-1 max-w-[calc(100%-3rem)] mx-auto lg:max-w-none lg:mx-0"></div>
+        <div class="w-full h-[1px] bg-gray-100 my-1 max-w-[calc(100%-3rem)] lg:max-w-[calc(100%-1rem)] mx-auto"></div>
       </div>
       <!--Инноваторы продукт СНО-->
       <div class="flex items-start justify-start m-2 flex-1 sm:flex-none sm:justify-start sm:pl-4">
@@ -116,7 +120,7 @@
 
         <!-- Навигация по центру -->
         <nav
-          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] sm:text-[55px] md:text-[70px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
+          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[65px] sm:text-[65px] md:text-[70px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
         >
           <a
             href="#"
@@ -167,6 +171,15 @@
   .desktop-button {
     display: none;
   }
+}
+
+/* Скрываем скроллбар */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE и Edge */
+  scrollbar-width: none;      /* Firefox */
 }
 </style>
 
