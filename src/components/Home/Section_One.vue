@@ -13,22 +13,22 @@
         <div class="flex -space-x-2 sm:-space-x-3 max-[340px]:hidden">
           <img
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white object-cover"
-            src="https://randomuser.me/api/portraits/men/1.jpg"
+            src="/src/assets/images/People4.png"
             alt=""
           />
           <img
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white object-cover"
-            src="https://randomuser.me/api/portraits/women/2.jpg"
+            src="/src/assets/images/People3.png"
             alt=""
           />
           <img
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white object-cover"
-            src="https://randomuser.me/api/portraits/men/3.jpg"
+            src="/src/assets/images/People1.png"
             alt=""
           />
           <img
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white object-cover"
-            src="https://randomuser.me/api/portraits/men/4.jpg"
+            src="/src/assets/images/People2.png"
             alt=""
           />
         </div>
