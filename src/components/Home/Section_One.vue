@@ -62,7 +62,7 @@
     <div class="mt-3 lg:mt-6">
       <!-- Отступ от текста -->
       <button
-        class="flex items-center px-5 py-1 lg:px-12 lg:py-2 border-2 border-blue-500 rounded-full text-blue-500 hover:bg-blue-50 transition"
+        class="cursor-pointer flex items-center px-5 py-1 lg:px-12 lg:py-2 border-2 border-blue-500 rounded-full text-blue-500 hover:bg-blue-50 transition"
       >
         <div
           class="w-11 h-11 lg:w-15 lg:h-15 bg-blue-500 text-white rounded-full flex items-center justify-center ml-[-15px] lg:ml-[-40px]"
