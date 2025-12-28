@@ -2,10 +2,10 @@
   <nav class="border-gray-200 bg-[#FFFFFF]">
     <div class="flex fixed top-0 left-0 w-full bg-white shadow-2xs z-50 items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <!--Логотип-->
-      <div href="#" class="flex items-sart space-x-3 w-1/2">
+      <div href="#" class="flex items-start space-x-3 w-1/2">
         <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto"/>
         <div class="text-left">
-          <h1 class="text-[17px] mb-[-1px] font-rubik text-black font-bold">Инноваторы</h1>
+          <h1 class="text-[17px] font-rubik text-black font-bold">Инноваторы</h1>
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
         </div>
       </div>
@@ -18,7 +18,7 @@
         </a>
         <a
           href="#"
-          class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+          class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
         >
           Регистрация
         </a>
@@ -54,13 +54,17 @@
     </div>
 
     <!-- FULLSCREEN МЕНЮ -->
-    <div v-if="isOpen" class="fixed inset-0 bg-[#4286F7] text-white flex flex-col z-[9999]">
+    <Transition name="slide-menu">
+    <div
+      v-show="isOpen"
+      class="fixed inset-0 bg-[#4286F7] text-white flex flex-col transition-all duration-300 z-50"
+    >
       <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px] no-scrollbar">
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
           <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
           <div class="text-left">
-            <h1 class="text-[17px] mb-[-1px] font-rubik text-white font-bold">Инноваторы</h1>
+            <h1 class="text-[17px] font-rubik text-white font-bold">Инноваторы</h1>
             <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
           </div>
         </div>
@@ -88,7 +92,7 @@
       </div>
 
       <div class="container mx-auto">
-        <div class="w-full h-[1px] bg-gray-100 my-1 max-w-[calc(100%-3rem)] lg:max-w-[calc(100%-1rem)] mx-auto"></div>
+        <div class="w-full h-[1px]  bg-gray-100 my-1 max-w-[calc(100%-3rem)] lg:max-w-[calc(100%-1rem)] mx-auto"></div>
       </div>
       <!--Инноваторы продукт СНО-->
       <div class="flex items-start justify-start m-2 flex-1 sm:flex-none sm:justify-start sm:pl-4">
@@ -120,7 +124,7 @@
 
         <!-- Навигация по центру -->
         <nav
-          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[65px] sm:text-[65px] md:text-[70px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
+          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] md:text-[55px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
         >
           <a
             href="#"
@@ -163,10 +167,33 @@
         </nav>
       </div>
     </div>
+    </Transition>
   </nav>
 </template>
 
 <style scoped>
+  /* ВЫЕЗД МЕНЮ СПРАВА */
+.slide-menu-enter-from {
+  transform: translateX(100%);
+}
+
+.slide-menu-enter-to {
+  transform: translateX(0);
+}
+
+.slide-menu-leave-from {
+  transform: translateX(0);
+}
+
+.slide-menu-leave-to {
+  transform: translateX(100%);
+}
+
+.slide-menu-enter-active,
+.slide-menu-leave-active {
+  transition: transform 0.35s ease-in-out;
+}
+
 @media (max-width: 1023px) {
   .desktop-button {
     display: none;
@@ -184,8 +211,11 @@
 </style>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 // реактивная переменная для управления меню
 const isOpen = ref(false)
+watch(isOpen, (value) => {
+  document.body.style.overflow = value ? 'hidden' : ''
+})
 </script>

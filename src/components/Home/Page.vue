@@ -96,8 +96,12 @@
     </div>
   </div>
 </div>
-<div class="flex justify-center items-center transition h-screen w-full lg:mt-7">
-  <button class="desktop-button bg-white px-15 py-[22px] rounded-full font-rubik font-medium text-[20px] text-[#338AEF]">Смотреть еще</button>
+<div class="flex justify-center items-center w-full py-12 md:py-16 lg:py-20 px-8 mt-18  ">
+  <button class="cursor-pointer desktop-button bg-white bg-whitepx-12 py-5 rounded-full font-rubik font-medium text-base md:text-[18px] font-rubik text-[18px] text-[#338AEF]
+                  w-full max-w-[280px] md:max-w-[320px] lg:max-w-[250px] lg:mt-1 hover:bg-[#F2F2F2] hover:text-[#338AEF] transition duration-30
+                  border border-[#338AEF]">
+    Смотреть еще
+  </button>
 </div>
   </section>
 </template>
