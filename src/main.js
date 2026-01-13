@@ -1,8 +1,8 @@
 import { createApp,onMounted } from 'vue'
 import App from './App.vue'
-import router from './router'
 import './main.css';
 import { initFlowbite } from 'flowbite'
+import router from './router';
 
 const app = createApp(App)
 

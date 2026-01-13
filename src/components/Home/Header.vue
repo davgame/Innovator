@@ -49,7 +49,7 @@
       </button>
     </div>
     <!-- Добавляем отступ, чтобы контент не перекрывался меню -->
-    <div class="pt-[90px]">
+    <div class="pt-[45px]">
       <!-- Здесь основной контент страницы -->
     </div>
 
@@ -123,18 +123,18 @@
         </div>
 
         <!-- Навигация по центру -->
-        <nav
-          class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] md:text-[55px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
+        <nav class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] md:text-[55px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
         >
-          <a
-            href="#"
-            @click="isOpen = false"
-            class="hover:text-[#FFBA26] ml-auto mb-2 text-[#FFBA26]"
-            >главная</a
+          <router-link
+            to="/"
+            click.prevent="goToPage('/')"
+            class="hover:text-[#FFBA26] ml-auto mb-2"
           >
+            главная
+          </router-link>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">поиск</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
-          <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</a>
+          <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</a>
 
           <div class="flex justify-end w-full lg:hidden mt-5">
@@ -212,10 +212,51 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 
-// реактивная переменная для управления меню
+const router = useRouter()
 const isOpen = ref(false)
+
+// Флаг для предотвращения повторных навигаций
+let isNavigating = false
+
+const goToPage = (path) => {
+  // Если уже идет навигация - игнорируем
+  if (isNavigating) return
+
+  const currentPath = router.currentRoute.value.path
+
+  // Если мы УЖЕ на этой странице - просто закрываем меню
+  if (currentPath === path) {
+    isOpen.value = false
+    return
+  }
+
+  // Устанавливаем флаг навигации
+  isNavigating = true
+
+  // Сначала закрываем меню (запускаем анимацию)
+  isOpen.value = false
+
+  // Ждем завершения анимации закрытия меню
+  setTimeout(() => {
+    // Переходим на страницу
+    router.push(path)
+
+    // Сбрасываем флаг навигации
+    isNavigating = false
+  }, 350) // 350ms совпадает с длительностью анимации slide-menu
+}
+
+// Блокировка скролла при открытом меню
 watch(isOpen, (value) => {
   document.body.style.overflow = value ? 'hidden' : ''
+})
+
+// Закрытие меню при переходе по маршруту
+watch(() => router.currentRoute.value, () => {
+  if (isOpen.value) {
+    isOpen.value = false
+  }
 })
 </script>
