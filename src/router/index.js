@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/components/Home.vue'
 import FAQ from '@/components/FAQ/FAQ.vue' // путь зависит от структуры проекта
+import Contact from '@/components/Contact/Contact.vue'
 
 
 const router = createRouter({
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/faq',
       name: 'FAQ',
       component: FAQ
+    },
+    {
+      path: '/contact',
+      name: 'Contact',
+      component: Contact
     }
   ],
 })

@@ -135,7 +135,7 @@
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">поиск</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
-          <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</a>
+          <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</router-link>
 
           <div class="flex justify-end w-full lg:hidden mt-5">
             <a
