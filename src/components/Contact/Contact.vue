@@ -1,4 +1,5 @@
 <template>
+  <Header/>
   <div class="lg:block hidden bg-cover bg-center bg-no-repeat lg:py-12 py-3 bg-[url('/src/assets/images/Contact.png')] lg:w-auto w-30px h-auto"
   >
     <!-- Контент с текстом слева -->
@@ -42,7 +43,7 @@
             </a>
           </div>
       </div>
-      <!-- Аккордеон FAQ -->
+      <!-- Правая часть -->
       <div class="lg:w-2/3">
         <div class="max-w-5xl">
           <h1 class="lg:text-[62px] text-[22px] text-[#4A8AF7] font-normal my-[-15px] mb-3" style="font-family: 'Roboto', sans-serif;">45.0323232. ///.38.981664</h1>
@@ -88,9 +89,10 @@
 
 <script>
 import Footer from '../Home/Footer.vue';
+import Header from '../Home/Header.vue';
 
 export default {
-  components: { Footer },  // регистрация
+  components: { Footer, Header },  // регистрация
   data() {
     return { /* данные */ }
   },

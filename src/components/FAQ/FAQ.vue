@@ -1,4 +1,5 @@
 <template>
+  <Header/>
   <div
     class="lg:block hidden bg-cover bg-center bg-no-repeat lg:py-12 py-3 bg-[url('/src/assets/images/FAQ_header.png')] lg:w-auto w-30px h-auto"
   >
@@ -209,9 +210,10 @@
 
 <script>
 import Footer from '@/components/Home/Footer.vue';
+import Header from '../Home/Header.vue';
 
 export default {
-  components: { Footer },  // регистрация
+  components: { Footer, Header },  // регистрация
   data() {
     return { /* данные */ }
   },

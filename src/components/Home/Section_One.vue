@@ -71,7 +71,9 @@
               <img src="/src/assets/images/plus.png" class="w-[22px] h-auto">
             </div>
         </div>
-        <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
+        <RouterLink>
+          <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
+        </RouterLink>
       </button>
     </div>
     <div class="flex justify-center items-center relative">
@@ -85,3 +87,10 @@
     </div>
   </div>
 </template>
+
+
+<script setup>
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+
+</script>

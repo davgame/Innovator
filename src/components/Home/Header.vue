@@ -10,12 +10,12 @@
         </div>
       </div>
       <div class="ml-auto flex items-center gap-2">
-        <a
-          href="#"
+        <RouterLink
+          to="/authorization" @click="isOpen = false"
           class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
         >
           Войти
-        </a>
+        </RouterLink>
         <a
           href="#"
           class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
