@@ -71,7 +71,7 @@
               <img src="/src/assets/images/plus.png" class="w-[22px] h-auto">
             </div>
         </div>
-        <RouterLink>
+        <RouterLink to="/project" @click="isOpen = false">
           <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
         </RouterLink>
       </button>

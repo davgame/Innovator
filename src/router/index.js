@@ -3,6 +3,7 @@ import Home from '@/components/Home.vue'
 import FAQ from '@/components/FAQ/FAQ.vue' // путь зависит от структуры проекта
 import Contact from '@/components/Contact/Contact.vue'
 import SliderR from '@/components/Authorization/SliderR.vue'
+import Start from '@/components/SUP/Start.vue'
 
 
 const router = createRouter({
@@ -17,6 +18,11 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: Home
+    },
+    {
+      path: '/project',
+      name: 'Project',
+      component: Start
     },
     {
       path: '/faq',
