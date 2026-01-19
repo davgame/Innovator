@@ -135,9 +135,11 @@
       <p>Введите запрос и нажмите Enter или кнопку 🔍</p>
     </div>
     <!-- Кнопка "Подробнее" -->
-    <button class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300">
+     <router-link to="/Next_team" @click="isOpen = false">
+    <button class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
       Далее
     </button>
+    </router-link>
   </div>
 
 </template>
