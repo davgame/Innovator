@@ -4,7 +4,7 @@ import FAQ from '@/components/FAQ/FAQ.vue' // путь зависит от ст�
 import Contact from '@/components/Contact/Contact.vue'
 import SliderR from '@/components/Authorization/SliderR.vue'
 import Start from '@/components/SUP/Start.vue'
-import CreateTeame from '@/components/SUP/Create-Teame.vue'
+import CreateTeam from '@/components/SUP/Create-Team.vue'
 
 
 const router = createRouter({
@@ -28,7 +28,7 @@ const router = createRouter({
     {
       path: '/Next_team',
       name:'Next_time',
-      component:CreateTeame
+      component:CreateTeam
     },
     {
       path: '/faq',
