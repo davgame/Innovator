@@ -50,25 +50,25 @@
     />
   </div>
   <!-- Кнопка "Подробнее" -->
-    <router-link to="/Next_team" @click="isOpen = false">
+    <router-link to="/Pasport" @click="isOpen = false">
   <button @click="modalOpen = true" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium lg:mb-25 mb-24 py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
     Далее
   </button>
   </router-link>
   <!-- Кнопка "Подробнее" -->
-    <router-link to="/Next_team" @click="isOpen = false">
-  <button @click="showModal = true" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium lg:mb-3 mb-2 py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
+  <button @click="$router.back()" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium lg:mb-3 mb-2 py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
     Назад
   </button>
-  </router-link>
+
 </template>
 
 <script>
 import Header from '../Home/Header.vue'
 import AddUser from './Add-User.vue'
+import Pasport from './Pasport.vue';
 
 export default {
-  components: { Header, AddUser },
+  components: { Header, AddUser, Pasport },
 
   data() {
     return {

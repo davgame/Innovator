@@ -5,6 +5,7 @@ import Contact from '@/components/Contact/Contact.vue'
 import SliderR from '@/components/Authorization/SliderR.vue'
 import Start from '@/components/SUP/Start.vue'
 import CreateTeam from '@/components/SUP/Create-Team.vue'
+import Pasport from '@/components/SUP/Pasport.vue'
 
 
 const router = createRouter({
@@ -29,6 +30,11 @@ const router = createRouter({
       path: '/Next_team',
       name:'Next_time',
       component:CreateTeam
+    },
+    {
+      path: '/Pasport',
+      name:'Pasport',
+      component:Pasport
     },
     {
       path: '/faq',
