@@ -43,7 +43,7 @@
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
             </div>
           </div>
@@ -91,11 +91,11 @@
   </div>
     </div>
 
-      <div class="border border-[#A8A8A8]/28 max-w-xs"></div> <!-- РАЗДЕЛИТЕЛЬ -->
+    <div class="border border-[#A8A8A8]/28 max-w-xs"></div> <!-- РАЗДЕЛИТЕЛЬ -->
 
       <!--Вторая колонка-->
-      <div class="lg:w-1/3 px-3">
-    <div class="mb-6">
+      <div class="lg:w-[380px] px-3">
+    <div class="mb-3">
       <label class="block font-semibold text-[22px] text-gray-700 mb-4">
         Описание проекта
       </label>
@@ -106,7 +106,7 @@
         maxlength="1000"
         @input="checkText"
         :class="[
-          'w-92 h-68 px-4 py-3 border rounded-[30px] focus:ring-2 focus:border-blue-500 resize-none',
+          'w-92 h-68 px-4 py-3 border rounded-[30px] hover:border-blue-500 resize-none',
           hasError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
         ]"
         placeholder="Введите ваш текст здесь..."
@@ -125,8 +125,17 @@
       {{ errorMessage }}
     </div>
   </div>
+    <div class="border border-[#A8A8A8]/28 max-w-md ml-1.5"></div> <!-- РАЗДЕЛИТЕЛЬ -->
+            <!--Третья колонка-->
+    <div class="lg:w-[380px] px-3">
+      <p class="font-semibold text-[22px] text-[#32383E] mb-4">Теги проекта</p>
+      <div class="space-y-3 rounder-12 p-34 border border-gray-300 rounded-[30px]">
+
       </div>
+    </div>
+</div>
   </div>
+
 
     <!-- Кнопка "Подробнее" -->
   <router-link to="/Pasport" @click="isOpen = false">
