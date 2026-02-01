@@ -5,32 +5,32 @@
 
     <div class="w-full lg:flex lg:space-x-8 px-2 max-w-7xl mx-auto">
       <!--Первая колонка-->
-      <div class="lg:w-[380px]">
-        <p class="font-semibold text-[22px] text-[#32383E]">Руководитель проекта</p>
-        <div class="border border-[#CBCBCB] rounded-[61px] p-3 flex items-center space-x-2 mt-5 max-w-[370px]">
-          <img src="/src/assets/images/David.png" alt="" class="w-[72px] h-[72px] rounded-full">
+      <div class="lg:w-[380px] px-3">
+        <p class="font-semibold lg:text-[22px] text-[19px] text-[#32383E]">Руководитель проекта</p>
+        <div class="border border-[#CBCBCB] rounded-[61px] lg:p-3 p-2 flex items-center space-x-2 mt-5 lg:max-w-[370px] w-full px-2">
+          <img src="/src/assets/images/David.png" alt="" class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full">
           <div>
-            <h3 class="text-[#32383E] text-[20px] pl-4 font-medium">Шорвоглян Давид</h3>
-            <p class="text-[14px] text-[#4286F7] pl-4">Инженер</p>
+            <h3 class="text-[#32383E] lg:text-[20px] tex-[15px] lg:pl-4 pl-2 font-medium">Шорвоглян Давид</h3>
+            <p class="lg:text-[14px] text-[13px] text-[#4286F7] lg:pl-4 pl-2">Инженер</p>
           </div>
         </div>
 
         <!--Объединение-->
-        <p class="font-semibold text-[22px] text-[#32383E] mt-10">Объединение</p>
+        <p class="font-semibold lg:text-[22px] text-[19px] text-[#32383E] lg:mt-10 mt-7">Объединение</p>
         <div class="relative" ref="dropdownRef">
 
-          <div class="border border-[#CBCBCB] rounded-[61px] p-3 flex items-center space-x-2 mt-5 max-w-[370px] cursor-pointer hover:border-blue-400 transition-colors"
+          <div class="border border-[#CBCBCB] rounded-[61px] lg:p-3 p-2 flex items-center space-x-2 mt-5 lg:max-w-[370px] w-full px-2 cursor-pointer hover:border-blue-400 transition-colors"
           @click="toggleDropdown"
           >
             <!-- ИЗОБРАЖЕНИЕ КОТОРОЕ МЕНЯЕТСЯ ПРИ ВЫБОРЕ -->
             <img
               :src="selectedOrganization.image"
               :alt="selectedOrganization.name"
-              class="w-[72px] h-[72px] rounded-full">
+              class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full">
 
             <div class="flex-1">
                <!-- ТЕКСТ КОТОРЫЙ МЕНЯЕТСЯ ПРИ ВЫБОРЕ -->
-              <h3 class="text-[#32383E] text-[20px] pl-4 font-medium">{{ selectedOrganization.name }}</h3>
+              <h3 class="text-[#32383E] lg:text-[20px] tex-[15px] pl-4 font-medium">{{ selectedOrganization.name }}</h3>
               <p class="text-[14px] text-[#4286F7] pl-4">{{ selectedOrganization.type }}</p>
             </div>
 
@@ -89,16 +89,16 @@
       </div>
     </div>
   </div>
-    </div>
+</div>
 
-    <div class="border border-[#A8A8A8]/28 max-w-xs"></div> <!-- РАЗДЕЛИТЕЛЬ -->
+    <div class="hidden lg:block border border-[#A8A8A8]/28 max-w-xs"></div> <!-- РАЗДЕЛИТЕЛЬ -->
 
       <!--Вторая колонка-->
-      <div class="lg:w-[380px] px-3">
+      <div class="lg:w-[380px] lg:px-3 lg:mt-0 mt-12">
     <div class="mb-3">
-      <label class="block font-semibold text-[22px] text-gray-700 mb-4">
+      <p class="block font-semibold lg:text-[22px] text-[19px] text-gray-700 mb-4 lg:pl-0 pl-3">
         Описание проекта
-      </label>
+      </p>
 
       <textarea
         v-model="text"
@@ -106,14 +106,14 @@
         maxlength="1000"
         @input="checkText"
         :class="[
-          'w-92 h-68 px-4 py-3 border rounded-[30px] hover:border-blue-500 resize-none',
+          'lg:w-92 w-69 lg:h-68 h-58 px-4 py-3 border rounded-[30px] hover:border-blue-500 resize-none block mx-auto',
           hasError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
         ]"
         placeholder="Введите ваш текст здесь..."
       ></textarea>
 
       <!-- Индикатор символов -->
-      <div class="flex justify-between items-center mt-2">
+      <div class="flex justify-between items-center mt-2 lg:pl-0 pl-3 ">
         <div class="text-sm" :class="charCount > 1000 ? 'text-red-600' : 'text-gray-500'">
           Введено символов: <span class="font-medium">{{ charCount }}</span>/1000
         </div>
@@ -125,28 +125,158 @@
       {{ errorMessage }}
     </div>
   </div>
-    <div class="border border-[#A8A8A8]/28 max-w-md ml-1.5"></div> <!-- РАЗДЕЛИТЕЛЬ -->
-            <!--Третья колонка-->
-    <div class="lg:w-[380px] px-3">
-      <p class="font-semibold text-[22px] text-[#32383E] mb-4">Теги проекта</p>
-      <div class="space-y-3 rounder-12 p-34 border border-gray-300 rounded-[30px]">
+    <div class="hidden lg:block border border-[#A8A8A8]/28 max-w-md ml-1.5"></div> <!-- РАЗДЕЛИТЕЛЬ -->
 
+    <!--Третья колонка-->
+    <div class="lg:w-[380px] px-3 lg:mt-0 mt-12">
+      <p class="font-semibold lg:text-[22px] text-[19px] text-[#32383E] mb-4 ">Теги проекта</p>
+      <div class="border border-gray-300 rounded-[30px] p-6">
+
+          <!-- Выбранные теги -->
+        <div class="mb-2">
+        <div class="flex flex-wrap gap-3" ref="tagsContainer">
+          <!-- Отображение выбранных тегов -->
+          <div
+            v-for="(tag, index) in selectedTags"
+            :key="tag"
+            class="border border-[#4286F7] rounded-full px-4 py-1.5 flex items-center gap-2 bg-white"
+          >
+            <span class="text-[#4286F7] text-[16px]">{{ tag }}</span>
+            <button
+              @click="removeTag(index)"
+              class="text-gray-400 hover:text-red-500 text-[20px]"
+            >
+              ×
+            </button>
+          </div>
+
+          <!-- Кнопка добавления (показывается если меньше 5 тегов) -->
+          <button
+            v-if="selectedTags.length < 5"
+            @click="openModal"
+            class="border border-[#CBCBCB] rounded-full px-4 py-2 flex items-center gap-1 text-gray-400 hover:text-blue-500 hover:border-blue-400 transition-colors"
+          >
+            <span>+</span>
+            <span>Добавить тег</span>
+          </button>
+        </div>
+
+        <!-- Счетчик тегов -->
+        <div class="mt-2 text-sm text-gray-500">
+          Выбрано: {{ selectedTags.length }}/5 тегов
+        </div>
+      </div>
+
+      <!-- Модальное окно -->
+      <div
+        v-if="isModalOpen"
+        class="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50 p-4"
+        @click.self="closeModal"
+      >
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
+          <!-- Заголовок модального окна -->
+          <div class="border-b px-6 py-4 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800">Выберите теги</h3>
+            <button
+              @click="closeModal"
+              class="text-gray-400 hover:text-gray-600 text-2xl"
+            >
+              ×
+            </button>
+          </div>
+
+          <!-- Поиск тегов -->
+          <div class="p-6">
+            <div class="mb-4">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Поиск тегов..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <!-- Список доступных тегов -->
+            <div class="mb-6">
+              <h4 class="text-sm font-medium text-gray-500 mb-3">Доступные теги:</h4>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="tag in filteredTags"
+                  :key="tag"
+                  @click="toggleTag(tag)"
+                  :class="[
+                    'border rounded-full px-3 py-1.5 text-sm transition-colors',
+                    isTagSelected(tag)
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
+                  ]"
+                  :disabled="!isTagSelected(tag) && selectedTags.length >= 5"
+                >
+                  {{ tag }}
+                  <span v-if="isTagSelected(tag)" class="ml-1">✓</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Список всех тегов -->
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 mb-3">Все теги:</h4>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  v-for="tag in allTags"
+                  :key="tag"
+                  @click="toggleTag(tag)"
+                  :class="[
+                    'border rounded-full px-3 py-1.5 text-sm transition-colors',
+                    isTagSelected(tag)
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-300 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
+                  ]"
+                  :disabled="!isTagSelected(tag) && selectedTags.length >= 5"
+                >
+                  {{ tag }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки модального окна -->
+          <div class="border-t px-6 py-4 flex justify-end gap-3">
+            <button
+              @click="closeModal"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Отмена
+            </button>
+            <button
+              @click="applyTags"
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Применить ({{ tempSelectedTags.length }})
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+        <div class="px-3 lg:mt-0 mt-12 mb-15">
+          <div class="flex flex-col items-center gap-4 lg:fixed lg:bottom-10 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:z-40 lg:w-auto mt-auto lg:mt-0">
+            <!-- Кнопка "Далее" -->
+            <router-link to="/Pasport" @click="isOpen = false" class="w-full lg:w-auto">
+              <button @click="modalOpen = true" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
+                Далее
+              </button>
+            </router-link>
+
+            <!-- Кнопка "Назад" -->
+            <button @click="$router.back()" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full lg:w-auto text-center">
+              Назад
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 </div>
-  </div>
 
-
-    <!-- Кнопка "Подробнее" -->
-  <router-link to="/Pasport" @click="isOpen = false">
-  <button @click="modalOpen = true" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium lg:mb-25 mb-24 py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
-    Далее
-  </button>
-  </router-link>
-  <!-- Кнопка "Подробнее" -->
-  <button @click="$router.back()" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium lg:mb-3 mb-2 py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
-    Назад
-  </button>
 </template>
 
 <script setup>
@@ -258,6 +388,82 @@ function checkText() {
     errorMessage.value = `Превышен лимит в 1000 символов`
   }
 }
+
+
+// Состояние
+const isModalOpen = ref(false)
+const selectedTags = ref(['бизнес', 'web-сервис']) // Начальные теги
+const tempSelectedTags = ref([])
+const searchQuery = ref('')
+
+// Все доступные теги
+const allTags = ref([
+  'бизнес',
+  'web-сервис',
+  'develop',
+  'e-commerce',
+  'ux/ui',
+  'маркетинг',
+  'аналитика',
+  'дизайн',
+  'программирование',
+  'мобильная разработка',
+  'базы данных',
+  'безопасность',
+  'облачные технологии',
+  'искусственный интеллект',
+  'машинное обучение'
+])
+
+// Отфильтрованные теги по поиску
+const filteredTags = computed(() => {
+  if (!searchQuery.value) return allTags.value.slice(0, 8) // Первые 8 без поиска
+  return allTags.value.filter(tag =>
+    tag.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// Проверка, выбран ли тег
+const isTagSelected = (tag) => {
+  return tempSelectedTags.value.includes(tag)
+}
+
+// Открытие модального окна
+const openModal = () => {
+  tempSelectedTags.value = [...selectedTags.value]
+  isModalOpen.value = true
+  searchQuery.value = ''
+}
+
+// Закрытие модального окна
+const closeModal = () => {
+  isModalOpen.value = false
+}
+
+// Применение выбранных тегов
+const applyTags = () => {
+  selectedTags.value = [...tempSelectedTags.value]
+  closeModal()
+}
+
+// Добавление/удаление тега в модальном окне
+const toggleTag = (tag) => {
+  if (tempSelectedTags.value.includes(tag)) {
+    // Удаляем тег
+    tempSelectedTags.value = tempSelectedTags.value.filter(t => t !== tag)
+  } else {
+    // Добавляем тег, если не превышен лимит
+    if (tempSelectedTags.value.length < 5) {
+      tempSelectedTags.value.push(tag)
+    }
+  }
+}
+
+// Удаление тега из выбранных
+const removeTag = (index) => {
+  selectedTags.value.splice(index, 1)
+}
+
 </script>
 
 <style scoped>
@@ -303,5 +509,31 @@ function checkText() {
 /* Выделение выбранного элемента */
 .bg-blue-50 {
   background-color: rgba(59, 130, 246, 0.1);
+}
+
+
+/* Анимация для модального окна */
+.fixed {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Стили для disabled кнопок */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  border-color: #d1d5db;
+  background-color: transparent;
 }
 </style>
