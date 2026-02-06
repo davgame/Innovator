@@ -6,6 +6,8 @@ import SliderR from '@/components/Authorization/SliderR.vue'
 import Start from '@/components/Pasport/Start.vue'
 import CreateTeam from '@/components/Pasport/Create-Team.vue'
 import Pasport from '@/components/Pasport/Pasport.vue'
+import Panel from '@/components/SUP/Panel.vue'
+
 
 
 const router = createRouter({
@@ -45,6 +47,11 @@ const router = createRouter({
       path: '/contact',
       name: 'Contact',
       component: Contact
+    },
+    {
+      path: '/sup',
+      name: 'sup',
+      component: Panel
     }
   ],
 })

@@ -261,7 +261,7 @@
         <div class="px-3 lg:mt-0 mt-12 mb-15">
           <div class="flex flex-col items-center gap-4 lg:fixed lg:bottom-10 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:z-40 lg:w-auto mt-auto lg:mt-0">
             <!-- Кнопка "Далее" -->
-            <router-link to="/Pasport" @click="isOpen = false" class="w-full lg:w-auto">
+            <router-link to="/sup" @click="isOpen = false" class="w-full lg:w-auto">
               <button @click="modalOpen = true" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
                 Далее
               </button>
