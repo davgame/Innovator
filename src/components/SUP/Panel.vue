@@ -3,7 +3,7 @@
   <div class="h-screen w-80 bg-white border-r border-gray-200 flex flex-col">
 
     <!-- Шапка с названием компании и локацией -->
-    <div class="p-6 border-b border-gray-200">
+    <div class="p-7">
         <!--Логотип-->
       <div href="#" class="flex items-start space-x-3 w-1/2">
         <img src="/src/assets/images/SUP_Logo.svg" alt="Innova" class="w-[42px] h-auto"/>
@@ -16,7 +16,7 @@
 
     <!-- Поиск -->
     <div class="p-4 border-b border-gray-200">
-      <div class="relative">
+      <div class="relative mb-3">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Секция проектов -->
-    <div class="flex-1 overflow-y-auto p-4">
+    <div class="flex-1 overflow-y-auto p-4 mt-2">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-gray-800">Проекты</h2>
         <button
@@ -179,12 +179,16 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 
-// Данные проектов
+// Эмит событий
+const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])
+
+
+// Локальные данные проектов
 const projects = ref([
   {
     id: 1,
-    name: 'Android Banking app',
-    fullName: 'Android Banking app',
+    name: 'Android Banking App',
+    fullName: 'Android Banking App',
     category: 'Мобильное приложение',
     color: '#3B82F6',
     icon: 'A',
@@ -257,8 +261,8 @@ const projects = ref([
 
 // Состояния
 const searchQuery = ref('')
-const selectedProjectId = ref(1)
 const hoveredProjectId = ref(null)
+const selectedProjectId = ref(null) // Или оставить как ref(1)
 const menuOpenId = ref(null)
 const isRenaming = ref(false)
 const renamingProjectId = ref(null)
@@ -308,7 +312,6 @@ const handleMouseEnter = (projectId) => {
 }
 
 const handleMouseLeave = () => {
-  // Не скрываем кнопку, если меню открыто
   if (!menuOpenId.value) {
     hoveredProjectId.value = null
   }
@@ -366,7 +369,6 @@ const deleteProject = (projectId) => {
 
     projects.value.splice(projectIndex, 1)
 
-    // Если удаляем выбранный проект, выбираем первый доступный
     if (selectedProjectId.value === projectId) {
       selectedProjectId.value = projects.value.length > 0 ? projects.value[0].id : null
     }
@@ -376,6 +378,7 @@ const deleteProject = (projectId) => {
   }
 }
 
+// Создание нового проекта
 // Создание нового проекта
 const createNewBoard = () => {
   const newProject = {
@@ -389,16 +392,10 @@ const createNewBoard = () => {
   }
 
   projects.value.unshift(newProject)
-  selectProject(newProject)
+  selectProject(newProject) // Правильно!
   searchQuery.value = ''
 
-  emit('project-created', newProject)
-}
-
-// Выбор проекта
-const selectProject = (project) => {
-  selectedProjectId.value = project.id
-  emit('project-selected', project)
+  emit('project-created', newProject) // Правильно!
 }
 
 // Фильтрация проектов
@@ -421,18 +418,30 @@ const handleKeydown = (e) => {
   }
 }
 
-// Навешиваем обработчики
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
+
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 
-// Эмит событий
-const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])
+
+
+// Выбор проекта
+const selectProject = (project) => {
+  selectedProjectId.value = project.id
+  emit('project-selected', { ...project }) // Важно: создаем новый объект
+}
+
+// И в onMounted убедитесь что выбирается первый проект:
+onMounted(() => {
+  const firstProject = projects.value[0]
+  if (firstProject) {
+    selectProject(firstProject)
+  }
+})
+
 </script>
+
 
 <style scoped>
 /* Стиль скроллбара */

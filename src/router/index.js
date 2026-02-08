@@ -7,6 +7,7 @@ import Start from '@/components/Pasport/Start.vue'
 import CreateTeam from '@/components/Pasport/Create-Team.vue'
 import Pasport from '@/components/Pasport/Pasport.vue'
 import Panel from '@/components/SUP/Panel.vue'
+import SupPage from '@/components/SUP/SupPage.vue'
 
 
 
@@ -51,7 +52,7 @@ const router = createRouter({
     {
       path: '/sup',
       name: 'sup',
-      component: Panel
+      component: SupPage
     }
   ],
 })
