@@ -424,8 +424,6 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
 })
 
-
-
 // Выбор проекта
 const selectProject = (project) => {
   selectedProjectId.value = project.id

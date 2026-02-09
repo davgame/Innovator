@@ -18,7 +18,8 @@
     "flowbite": "^3.1.2",
     "lodash-es": "^4.17.22",
     "vue": "^3.5.18",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

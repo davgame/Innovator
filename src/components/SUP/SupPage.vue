@@ -55,8 +55,7 @@
 
       <!-- Контент -->
       <div class="flex-1 p-6 bg-white">
-
-
+          <Kanban/>
       </div>
     </div>
   </div>
@@ -66,6 +65,7 @@
 import { ref } from 'vue'
 import Panel from './Panel.vue'
 import Name_pg from './Name_pg.vue'
+import Kanban from './Kanban.vue'
 
 const currentProject = ref(null)
 
