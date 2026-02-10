@@ -140,8 +140,8 @@
 
     <!-- Версия внизу -->
     <div class="p-4 border-t border-gray-200">
-      <div class="text-xs text-gray-400 font-mono text-center">
-        V.01
+      <div class="text-xs text-gray-400 font-mono text-left px-4">
+        V.02
       </div>
     </div>
 
