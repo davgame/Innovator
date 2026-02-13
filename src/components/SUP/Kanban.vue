@@ -1,4 +1,11 @@
 <template>
+
+  <Task
+    :show="showTaskModal"
+    @close="showTaskModal = false"
+    @save="createTask"
+  />
+
   <!-- Модальное окно для добавления участников -->
   <add-user
     v-if="showMemberModal"
@@ -68,7 +75,9 @@
         </div>
       </div>
 
-      <button class="text-[#C0C0C0] text-[25px] border border-[#D7D7D7] bg-[#D9D9D9]/11 w-74 h-12 rounded-[12px] mb-7 cursor-pointer">
+      <button   class="text-[#C0C0C0] text-[25px] border border-[#D7D7D7] bg-[#D9D9D9]/11 w-74 h-12 rounded-[12px] mb-7 cursor-pointer"
+          @click="openCreateTask(column.id)"
+          >
         <p>+</p>
       </button>
 
@@ -103,9 +112,25 @@
               </button>
             </div>
 
-            <p class="text-xl font-medium">
+            <!-- Просмотр -->
+            <p
+              v-if="editingTaskId !== element.id"
+              class="text-xl font-medium cursor-text hover:bg-gray-100 rounded px-1"
+              @click="startEditTitle(element)"
+            >
               {{ element.title }}
             </p>
+
+            <!-- Редактирование -->
+            <input
+              v-else
+              v-model="tempTitle"
+              class="w-full text-xl font-medium border-b border-blue-400 outline-none bg-transparent"
+              @blur="saveTitle(element)"
+              @keyup.enter="saveTitle(element)"
+              @keyup.esc="cancelEdit"
+              autofocus
+            />
 
             <!-- Контекстное меню -->
             <ContextMenu
@@ -116,7 +141,7 @@
 
             <div class="flex justify-between items-center mt-2 mb-2">
               <span class="text-xs text-gray-500">Прогресс</span>
-              <span class="text-xs font-medium text-gray-700">{{ element.progress }}%</span>
+              <span class="text-xs font-medium text-gray-700">{{ calcProgress(element) }}%</span>
             </div>
 
             <!-- Прогресс бар -->
@@ -124,7 +149,7 @@
               <div
                 class="h-full rounded-full transition-all duration-300"
                 :class="getProgressColor(element.progress)"
-                :style="{ width: element.progress + '%' }"
+                :style="{ width: calcProgress(element) + '%' }"
               ></div>
             </div>
 
@@ -251,7 +276,52 @@ import { ref } from 'vue'
 import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
+import Task from './Task.vue'
 
+
+const calcProgress = (task) => {
+  if (!task.checklist?.length) return 0
+
+  const done = task.checklist.filter(i => i.done).length
+
+  return Math.round((done / task.checklist.length) * 100)
+}
+
+
+// Модалка задач
+const showTaskModal = ref(false)
+
+// В какую колонку добавляем
+const targetColumnId = ref(null)
+
+const openCreateTask = (columnId) => {
+  targetColumnId.value = columnId
+  showTaskModal.value = true
+}
+
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ ЗАДАЧИ
+const createTask = (task) => {
+  // Ищем колонку по статусу из задачи (1, 2, 3)
+  const column = columns.value.find(
+    col => col.id === task.status
+  )
+
+  if (!column) return
+
+  // Добавляем задачу в колонку со всеми данными
+  column.tasks.push({
+    id: task.id,
+    title: task.title,
+    progress: task.progress || 0,
+    tag: task.tag,
+    checklist: task.checklist || [],
+    members: task.members || []
+  })
+
+  // Закрываем модалку
+  showTaskModal.value = false
+  targetColumnId.value = null
+}
 
 const columns = ref([
   {
@@ -452,6 +522,33 @@ const editTask = (task) => {
   // Здесь будет логика редактирования
   closeContextMenu()
 }
+
+// Inline-редактирование названия задачи
+const editingTaskId = ref(null)
+const tempTitle = ref('')
+
+// Начать редактирование
+const startEditTitle = (task) => {
+  editingTaskId.value = task.id
+  tempTitle.value = task.title
+}
+
+// Сохранить
+const saveTitle = (task) => {
+  if (tempTitle.value.trim()) {
+    task.title = tempTitle.value.trim()
+  }
+
+  editingTaskId.value = null
+  tempTitle.value = ''
+}
+
+// Отмена
+const cancelEdit = () => {
+  editingTaskId.value = null
+  tempTitle.value = ''
+}
+
 
 </script>
 
