@@ -6,8 +6,8 @@ import SliderR from '@/components/Authorization/SliderR.vue'
 import Start from '@/components/Pasport/Start.vue'
 import CreateTeam from '@/components/Pasport/Create-Team.vue'
 import Pasport from '@/components/Pasport/Pasport.vue'
-import Panel from '@/components/SUP/Panel.vue'
 import SupPage from '@/components/SUP/SupPage.vue'
+import Error_404 from '@/components/Error/Error_404.vue'
 
 
 
@@ -53,6 +53,11 @@ const router = createRouter({
       path: '/sup',
       name: 'sup',
       component: SupPage
+    },
+    {
+      path: '/404',
+      name: '404',
+      component: Error_404
     }
   ],
 })
