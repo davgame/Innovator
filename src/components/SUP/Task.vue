@@ -3,32 +3,36 @@
     <div class="modal">
       <!-- Header -->
       <div class="header">
-        <button class="btn primary" @click="save">Сохранить</button>
-        <button class="btn" @click="close">Отмена</button>
+        <button class="primary rounded-[12px] w-30 h-11 font-medium" @click="save">Сохранить</button>
+        <button class=" border border-[#000000]/15 rounded-[12px] w-30 font-medium text-[#454545]" @click="close">Отмена</button>
+
       </div>
+      <div class="w-full h-px bg-[#D3D3D3]/80 mb-4"></div>
 
       <!-- Body -->
-      <h2>Новая задача</h2>
+      <h1 class="text-[25px] font-bold pb-4">Новая задача</h1>
 
       <input
         v-model="title"
         placeholder="Название задачи"
-        class="input"
+        class="border border-[#CBCBCB] focus:border-[#4286F7] focus:border-2 focus:outline-none pl-3 rounded-[13px] w-92 h-13"
       />
 
-      <div class="row">
-        <div>
+      <div class="flex mt-5">
+        <div class="w-28">
           <label>Статус</label>
-          <select v-model="status" class="input">
+          <select v-model="status" class=" w-42 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
+          background-position: right 0.5rem center; background-size: 1.5rem;">
             <option :value="1">Беклог</option>
             <option :value="2">В работе</option>
             <option :value="3">Готово</option>
           </select>
         </div>
 
-        <div>
+        <div class="ml-21 w-28">
           <label>Тег</label>
-          <select v-model="tag" class="input">
+          <select v-model="tag" class="w-42 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
+          background-position: right 0.5rem center; background-size: 1.5rem;">
             <option>Frontend</option>
             <option>Backend</option>
             <option>Design</option>
@@ -37,15 +41,15 @@
       </div>
 
       <!-- Подзадачи -->
-      <div class="mb-4">
-        <p class="text-sm text-gray-500 mb-2">
+      <div class="mt-5">
+        <p class="text-[20px] font-medium text-[#000000] mb-4">
           Подзадачи ({{ completedCount }}/{{ checklist.length }})
         </p>
 
         <div
           v-for="(item, i) in checklist"
           :key="item.id"
-          class="flex items-center gap-2 mb-2"
+          class="flex items-center gap-2 mb-4"
         >
           <input
             type="checkbox"
@@ -60,7 +64,7 @@
 
           <button
             @click="removeItem(i)"
-            class="text-red-400"
+            class="text-[#211f1f] hover:text-red-400"
           >
             ✕
           </button>
@@ -74,7 +78,7 @@
         </button>
       </div>
 
-            <!-- ПРОГРЕСС БАР -->
+      <!-- ПРОГРЕСС БАР -->
       <div class="progress-section" v-if="checklist.length > 0">
         <div class="flex justify-between items-center mb-2">
           <span class="text-sm text-gray-500">Прогресс выполнения</span>
@@ -210,10 +214,10 @@ watch(() => props.show, (newVal) => {
 /* Controls */
 .input,
 .textarea {
-  width: 100%;
+  width: 150%;
   padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .textarea {
@@ -223,16 +227,11 @@ watch(() => props.show, (newVal) => {
 
 .row {
   display: flex;
-  gap: 12px;
+  gap: 15px;
   margin: 16px 0;
+  border-radius: 15px;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  cursor: pointer;
-}
 
 .primary {
   background: #3b82f6;

@@ -8,6 +8,7 @@ import CreateTeam from '@/components/Pasport/Create-Team.vue'
 import Pasport from '@/components/Pasport/Pasport.vue'
 import SupPage from '@/components/SUP/SupPage.vue'
 import Error_404 from '@/components/Error/Error_404.vue'
+import Error_502 from '@/components/Error/Error_502.vue'
 
 
 
@@ -55,9 +56,14 @@ const router = createRouter({
       component: SupPage
     },
     {
-      path: '/404',
-      name: '404',
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
       component: Error_404
+    },
+        {
+      path: '/502',
+      name: '502',
+      component: Error_502
     }
   ],
 })
