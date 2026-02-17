@@ -132,9 +132,11 @@ export default {
       } else {
         this.selectedUsers.push(user)
       }
+      console.log('Текущие выбранные в модалке:', this.selectedUsers)
     },
 
     confirm() {
+      console.log('Confirm в Add-User, отправляем:', this.selectedUsers)
       this.$emit('confirm', this.selectedUsers)
       this.$emit('close')
     }

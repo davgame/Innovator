@@ -1,9 +1,17 @@
 <template>
 
+  <!--Создать задачу-->
   <Task
     :show="showTaskModal"
     @close="showTaskModal = false"
     @save="createTask"
+  />
+  <!--Редактировать задачу-->
+  <Edit_task
+    :show="showEditModal"
+    :taskData="editingTask"
+    @close="closeEditModal"
+    @save="updateTask"
   />
 
   <!-- Модальное окно для добавления участников -->
@@ -61,6 +69,7 @@
     <div
       v-for="column in columns"
       :key="column.id"
+      :data-column-id="column.id"
       class="w-82 rounded-2xl p-4 flex flex-col flex-shrink-0 bg-white min-h-0"
     >
       <!-- Заголовок -->
@@ -75,7 +84,7 @@
         </div>
       </div>
 
-      <button   class="text-[#C0C0C0] text-[25px] border border-[#D7D7D7] bg-[#D9D9D9]/11 w-74 h-12 rounded-[12px] mb-7 cursor-pointer"
+      <button class="text-[#C0C0C0] text-[25px] border border-[#D7D7D7] bg-[#D9D9D9]/11 w-74 h-12 rounded-[12px] mb-7 cursor-pointer"
           @click="openCreateTask(column.id)"
           >
         <p>+</p>
@@ -86,33 +95,16 @@
         v-model="column.tasks"
         group="tasks"
         item-key="id"
+        @end="onTaskMoved"
         class="flex-1 min-h-0 space-y-6 overflow-y-auto pr-2 transition-all"
         :class="column.tasks.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'"
       >
         <template #item="{ element }">
-          <div class="rounded-xl px-4 h-50 py-6 border-2 border-[#D7D7D7]/32 cursor-move transition relative">
+          <div class="rounded-xl px-4 h-42 py-6 border-2 border-[#D7D7D7]/32 cursor-move transition relative">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
-                <button class="bg-[#FFDFDD] w-22 h-7 text-[#C76269] text-[13px] rounded-[5px]">
-                  <p>UI Дизайн</p>
-                </button>
-                <button class="bg-[#F8FAF9] w-12 h-7 text-[#838886] text-[20px] rounded-[5px]">
-                  <p>+</p>
-                </button>
-              </div>
 
-              <!-- Кнопка с тремя точками -->
-              <button
-                @click.stop="toggleContextMenu(element)"
-                class="p-1 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Просмотр -->
+                 <!-- Просмотр -->
             <p
               v-if="editingTaskId !== element.id"
               class="text-xl font-medium cursor-text hover:bg-gray-100 rounded px-1"
@@ -131,6 +123,18 @@
               @keyup.esc="cancelEdit"
               autofocus
             />
+              </div>
+
+              <!-- Кнопка с тремя точками -->
+              <button
+                @click.stop="toggleContextMenu(element)"
+                class="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
+            </div>
 
             <!-- Контекстное меню -->
             <ContextMenu
@@ -224,7 +228,7 @@
         </div>
       </div>
 
-            <!-- ПУСТОЕ СОСТОЯНИЕ ДЛЯ КОЛОНКИ "В РАБОТЕ" (id = 2) -->
+        <!-- ПУСТОЕ СОСТОЯНИЕ ДЛЯ КОЛОНКИ "В РАБОТЕ" (id = 2) -->
        <div
         v-if="column.id === 2 && column.tasks.length === 0"
         class="flex flex-col items-center justify-center"
@@ -277,30 +281,92 @@ import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
+import Edit_task from './Edit_task.vue'
 
+// Обработчик перемещения задачи (убедитесь, что статус обновляется)
+// Обработчик перемещения задачи
+const onTaskMoved = (evt) => {
+  console.log('Задача перемещена:', evt)
 
-const calcProgress = (task) => {
-  if (!task.checklist?.length) return 0
+  try {
+    // Получаем ID колонок
+    const fromColumnId = evt.from.closest('[data-column-id]')?.getAttribute('data-column-id')
+    const toColumnId = evt.to.closest('[data-column-id]')?.getAttribute('data-column-id')
 
-  const done = task.checklist.filter(i => i.done).length
+    if (!fromColumnId || !toColumnId) return
 
-  return Math.round((done / task.checklist.length) * 100)
+    const fromId = parseInt(fromColumnId)
+    const toId = parseInt(toColumnId)
+
+    console.log(`Из колонки ${fromId} (${getColumnTitle(fromId)}) в колонку ${toId} (${getColumnTitle(toId)})`)
+
+    if (fromId !== toId) {
+      const fromColumn = columns.value.find(col => col.id === fromId)
+      if (!fromColumn || !fromColumn.tasks[evt.oldIndex]) return
+
+      const task = fromColumn.tasks[evt.oldIndex]
+
+      // ОБНОВЛЯЕМ СТАТУС ЗАДАЧИ
+      task.status = toId
+      console.log(`✅ Статус задачи обновлен на ${task.status} (${getColumnTitle(task.status)})`)
+    }
+  } catch (error) {
+    console.error('Ошибка при перемещении:', error)
+  }
 }
 
+// Функция открытия модалки для редактирования
+const editTask = (task) => {
+  console.log('✏️ Редактируем задачу:', task)
 
-// Модалка задач
-const showTaskModal = ref(false)
+  // НАХОДИМ ЗАДАЧУ В КОЛОНКАХ И ОПРЕДЕЛЯЕМ ЕЁ АКТУАЛЬНЫЙ СТАТУС
+  let foundTask = null
+  let columnId = null
 
-// В какую колонку добавляем
-const targetColumnId = ref(null)
+  for (const column of columns.value) {
+    const found = column.tasks.find(t => t.id === task.id)
+    if (found) {
+      foundTask = found
+      columnId = column.id
+      break
+    }
+  }
 
-const openCreateTask = (columnId) => {
-  targetColumnId.value = columnId
-  showTaskModal.value = true
+  if (foundTask) {
+    console.log(`✅ Задача найдена в колонке ${columnId} (${getColumnTitle(columnId)})`)
+
+    // СОЗДАЕМ КОПИЮ ЗАДАЧИ С ПРАВИЛЬНЫМ СТАТУСОМ
+    const taskCopy = {
+      id: foundTask.id,
+      title: foundTask.title,
+      status: columnId, // <-- ВАЖНО: используем ID колонки как статус!
+      tag: foundTask.tag || '',
+      progress: foundTask.progress || 0,
+      checklist: foundTask.checklist ? JSON.parse(JSON.stringify(foundTask.checklist)) : [],
+      members: foundTask.members ? JSON.parse(JSON.stringify(foundTask.members)) : [],
+      deadline: foundTask.deadline
+    }
+
+    console.log('🎯 Задача для редактирования со статусом:', taskCopy.status, '(', getColumnTitle(taskCopy.status), ')')
+    editingTask.value = taskCopy
+  } else {
+    // Если не нашли, используем переданную задачу
+    editingTask.value = JSON.parse(JSON.stringify(task))
+  }
+
+  showEditModal.value = true
+  closeContextMenu()
+}
+
+// Вспомогательная функция для получения названия колонки
+const getColumnTitle = (columnId) => {
+  const column = columns.value.find(c => c.id === columnId)
+  return column ? column.title : 'Неизвестно'
 }
 
 // ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ ЗАДАЧИ
 const createTask = (task) => {
+  const columnId = targetColumnId.value || task.status
   // Ищем колонку по статусу из задачи (1, 2, 3)
   const column = columns.value.find(
     col => col.id === task.status
@@ -308,11 +374,13 @@ const createTask = (task) => {
 
   if (!column) return
 
+
   // Добавляем задачу в колонку со всеми данными
   column.tasks.push({
     id: task.id,
     title: task.title,
     progress: task.progress || 0,
+    status: columnId, // ← ВАЖНО: добавляем status равный ID колонки
     tag: task.tag,
     checklist: task.checklist || [],
     members: task.members || []
@@ -350,6 +418,12 @@ const columns = ref([
 const showDatePicker = ref(false)
 const currentTaskForDate = ref(null)
 const tempSelectedDate = ref('')
+const targetColumnId = ref(null) // ЭТО БЫЛО ПРОПУЩЕНО!
+// Состояние модального окна
+const showMemberModal = ref(false)
+
+// Состояние для контекстного меню
+const activeContextMenu = ref(null)
 
 // Открытие календаря для задачи
 const openDatePicker = (task) => {
@@ -423,8 +497,7 @@ const getProgressColor = (progress) => {
 }
 
 
-// Состояние модального окна
-const showMemberModal = ref(false)
+
 // Данные о задаче, к которой добавляем участников
 const currentTaskForMembers = ref(null)
 
@@ -486,10 +559,6 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)]
   }
 
-
-// Состояние для контекстного меню
-const activeContextMenu = ref(null)
-
 // Открытие/закрытие контекстного меню
 const toggleContextMenu = (task) => {
   if (activeContextMenu.value === task.id) {
@@ -513,13 +582,6 @@ const deleteTask = (task, columnId) => {
       column.tasks.splice(taskIndex, 1)
     }
   }
-  closeContextMenu()
-}
-
-// Редактирование задачи
-const editTask = (task) => {
-  console.log('Редактировать задачу:', task)
-  // Здесь будет логика редактирования
   closeContextMenu()
 }
 
@@ -548,7 +610,127 @@ const cancelEdit = () => {
   editingTaskId.value = null
   tempTitle.value = ''
 }
+// Обновить задачу
+const updateTask = (updatedTask) => {
+  console.log('Обновленная задача:', updatedTask)
 
+  // Ищем задачу во всех колонках и обновляем
+  for (const column of columns.value) {
+    const index = column.tasks.findIndex(t => t.id === updatedTask.id)
+    if (index !== -1) {
+      column.tasks[index] = updatedTask
+      break
+    }
+  }
+
+  closeEditModal()
+}
+
+// Состояние для редактирования задачи
+const showTaskModal = ref(false)
+
+// Состояние для модалки редактирования задачи - ЭТО НУЖНО ДОБАВИТЬ!
+const showEditModal = ref(false)
+const editingTask = ref(null)
+
+// Функция открытия модалки для создания
+const openCreateTask = (columnId) => {
+  console.log('Открытие создания задачи для колонки:', columnId)
+  targetColumnId.value = columnId
+  showTaskModal.value = true
+}
+
+// Закрыть модалку
+const closeEditModal = () => {
+  showEditModal.value = false
+  editingTask.value = null
+}
+
+// Обновленная функция сохранения задачи
+const saveTask = (taskData) => {
+  if (editingTask.value) {
+    // РЕДАКТИРОВАНИЕ существующей задачи
+    // Ищем задачу во всех колонках
+    for (const column of columns.value) {
+      const taskIndex = column.tasks.findIndex(t => t.id === editingTask.value.id)
+      if (taskIndex !== -1) {
+        // Обновляем задачу
+        column.tasks[taskIndex] = {
+          ...column.tasks[taskIndex],
+          title: taskData.title,
+          status: taskData.status,
+          tag: taskData.tag,
+          checklist: taskData.checklist,
+          progress: taskData.progress
+        }
+        break
+      }
+    }
+  } else {
+    // СОЗДАНИЕ новой задачи
+    const column = columns.value.find(col => col.id === taskData.status)
+    if (column) {
+      column.tasks.push({
+        id: taskData.id,
+        title: taskData.title,
+        progress: taskData.progress || 0,
+        tag: taskData.tag,
+        checklist: taskData.checklist || [],
+        members: taskData.members || []
+      })
+    }
+  }
+
+  // Закрываем модалку
+  showTaskModal.value = false
+  editingTask.value = null
+  targetColumnId.value = null
+}
+
+// ========== РАБОТА С ПРОГРЕССОМ ==========
+
+// Функция для вычисления прогресса задачи на основе чеклиста
+const calcProgress = (task) => {
+  if (!task.checklist?.length) return 0
+  const done = task.checklist.filter(item => item.done).length
+  const progress = Math.round((done / task.checklist.length) * 100)
+
+  // Обновляем прогресс задачи
+  if (task.progress !== progress) {
+    task.progress = progress
+    // Сохранится автоматически через watch
+  }
+
+  return progress
+}
+
+// Обновление статуса чеклиста
+const toggleChecklistItem = (task, itemId) => {
+  const item = task.checklist.find(i => i.id === itemId)
+  if (item) {
+    item.done = !item.done
+    // Прогресс пересчитается через calcProgress при следующем рендере
+    // Или можно вызвать сразу:
+    task.progress = calcProgress(task)
+  }
+}
+
+// Добавление нового пункта в чеклист
+const addChecklistItem = (task, text) => {
+  if (!task.checklist) task.checklist = []
+  task.checklist.push({
+    id: Date.now(),
+    text: text,
+    done: false
+  })
+  calcProgress(task) // Пересчитываем прогресс
+}
+
+// Удаление пункта из чеклиста
+const removeChecklistItem = (task, itemId) => {
+  task.checklist = task.checklist.filter(i => i.id !== itemId)
+  calcProgress(task) // Пересчитываем прогресс
+}
 
 </script>
 

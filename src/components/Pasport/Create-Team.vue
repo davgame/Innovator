@@ -77,12 +77,39 @@ export default {
     }
   },
 
+ mounted() {
+    // Загружаем при монтировании, если есть сохраненные
+    const saved = localStorage.getItem('projectMembers')
+    if (saved) {
+      this.selectedUsers = JSON.parse(saved)
+      console.log('Загружены сохраненные пользователи:', this.selectedUsers)
+    }
+  },
+
   methods: {
     setUsers(users) {
-      this.selectedUsers = users
+      console.log('setUsers получил:', users)
+      this.selectedUsers = [...users] // Создаем копию массива
+
+      // Сразу сохраняем в localStorage
+      localStorage.setItem('projectMembers', JSON.stringify(this.selectedUsers))
+      console.log('Сохранено в localStorage:', this.selectedUsers)
     },
+
     removeUser(id) {
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== id)
+      // Обновляем localStorage при удалении
+      localStorage.setItem('projectMembers', JSON.stringify(this.selectedUsers))
+    },
+
+    saveUsersBeforeNavigate() {
+      // Принудительно сохраняем перед переходом
+      console.log('Сохраняем перед переходом:', this.selectedUsers)
+      localStorage.setItem('projectMembers', JSON.stringify(this.selectedUsers))
+
+      // Проверяем, что сохранилось
+      const saved = localStorage.getItem('projectMembers')
+      console.log('Проверка после сохранения:', JSON.parse(saved))
     }
   }
 }

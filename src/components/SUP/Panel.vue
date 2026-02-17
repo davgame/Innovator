@@ -5,7 +5,7 @@
     <!-- Шапка с названием компании и локацией -->
     <div class="p-7">
         <!--Логотип-->
-      <div href="#" class="flex items-start space-x-3 w-1/2">
+      <div class="flex items-start space-x-3 w-1/2">
         <img src="/src/assets/images/SUP_Logo.svg" alt="Innova" class="w-[42px] h-auto"/>
         <div class="text-left">
           <h1 class="text-[17px] font-rubik text-black font-bold">Инноваторы</h1>
@@ -178,10 +178,19 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router' // ← Добавить этот импорт!
 
 // Эмит событий
 const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])
 
+
+const router = useRouter() // ← Добавить эту строку!
+
+// Функция перехода на главную
+const goToHome = () => {
+  console.log('Переход на главную страницу')
+  router.push('/')
+}
 
 // Локальные данные проектов
 const projects = ref([

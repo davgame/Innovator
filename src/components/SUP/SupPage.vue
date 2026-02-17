@@ -45,7 +45,7 @@
     <Panel @project-selected="currentProject = $event" />
 
     <!-- Правая часть -->
-    <div class="flex-1 flex flex-col mt-35">
+    <div class="flex-1 flex flex-col mt-33">
       <!-- Заголовок проекта через Name_pg -->
       <Name_pg
         v-if="currentProject"

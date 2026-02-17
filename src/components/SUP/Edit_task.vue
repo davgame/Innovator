@@ -13,34 +13,32 @@
       <div class="header">
         <button class="primary rounded-[12px] w-30 h-11 font-medium cursor-pointer" @click="save">Сохранить</button>
         <button class=" border border-[#000000]/15 rounded-[12px] w-30 font-medium text-[#454545] hover:bg-[#F9F9F9] cursor-pointer" @click="close">Отмена</button>
-
       </div>
       <div class="w-full h-px bg-[#D3D3D3]/80 mb-4"></div>
 
       <!-- Body -->
-      <h1 class="text-[25px] font-bold pb-4">Новая задача</h1>
+      <h1 class="text-[25px] font-bold pb-4">Редактировать задачу</h1>
 
       <!-- Название задачи с крестиком ВНУТРИ -->
       <div class="relative">
           <input
             v-model="title"
             placeholder="Название задачи"
-            class="border border-[#CBCBCB] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 rounded-[13px] w-full h-13"
+            class="border border-[#CBCBCB] pl-3 pr-8 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 rounded-[13px] w-full h-13"
           />
           <button
           v-if="title.length > 0"
           @click="clearInput"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
         >
           <img src="/src/assets/images/cross_2.svg" alt="" class="w-3 h-3">
         </button>
       </div>
 
       <div class="flex mt-5 gap-4 w-full mb-4">
-      <div class="flex-1">
+        <div class="flex-1">
           <label>Статус</label>
-          <select v-model="status" class=" w-43 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
-          background-position: right 0.5rem center; background-size: 1.5rem;">
+          <select v-model="status" class="w-full h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5rem;">
             <option :value="1">Беклог</option>
             <option :value="2">В работе</option>
             <option :value="3">Готово</option>
@@ -49,8 +47,7 @@
 
         <div class="flex-1">
           <label>Тег</label>
-          <select v-model="tag" class="w-44 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
-          background-position: right 0.5rem center; background-size: 1.5rem;">
+          <select v-model="tag" class="w-full h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5rem;">
             <option>Frontend</option>
             <option>Backend</option>
             <option>Design</option>
@@ -67,23 +64,23 @@
         <div
           v-for="(item, i) in checklist"
           :key="item.id"
-          class="flex items-center gap-2 mb-4 border border-[#CBCBCB] w-full h-13 rounded-[13px] focus-within:border-[#4286F7] focus-within:border-2 transition-all duration-200"
+          class="flex items-center gap-2 mb-4 border border-[#CBCBCB] w-full h-13 rounded-[13px] focus-within:border-[#4286F7] focus-within:border-2 transition-all duration-200 px-3"
         >
           <input
             type="checkbox"
             v-model="item.done"
-            class="w-4 h-4 rounded-[12px] ml-3"
+            class="w-4 h-4 rounded-[12px] accent-[#4286F7]"
           />
 
           <input
             v-model="item.text"
             placeholder="Новая подзадача"
-            class="flex-1 outline-none px-2"
+            class="flex-1 outline-none bg-transparent"
           />
 
           <button
             @click="removeItem(i)"
-            class="text-[#211f1f] hover:text-red-400 mr-4"
+            class="text-gray-400 hover:text-red-400"
           >
             <img src="/src/assets/images/cross_2.svg" alt="" class="w-3 h-3">
           </button>
@@ -119,13 +116,18 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 
+/* Очистка поля ввода */
 const clearInput = () => {
   title.value = ''
 }
 
-/* Получаем пропс */
+/* Получаем пропсы */
 const props = defineProps({
-  show: Boolean
+  show: Boolean,
+  taskData: { // Добавляем пропс для данных задачи
+    type: Object,
+    default: null
+  }
 })
 
 /* Эвенты */
@@ -135,7 +137,6 @@ const emit = defineEmits(['close', 'save'])
 const title = ref('')
 const status = ref(1)
 const tag = ref('Frontend')
-const description = ref('')
 const checklist = ref([])
 
 /* ВЫЧИСЛЯЕМЫЕ СВОЙСТВА ДЛЯ ПРОГРЕССА */
@@ -161,31 +162,52 @@ const reset = () => {
   title.value = ''
   status.value = 1
   tag.value = 'Frontend'
-  description.value = ''
   checklist.value = []
 }
 
+/* Следим за пропсом taskData */
+watch(() => props.taskData, (newTask) => {
+  if (newTask) {
+    loadTaskData(newTask)
+  }
+}, { immediate: true })
+
+/* Следим за открытием модалки */
+watch(() => props.show, (newVal) => {
+  if (newVal && props.taskData) {
+    // Если открываем с данными, загружаем их
+    loadTaskData(props.taskData)
+  } else if (!newVal) {
+    // Если закрываем, сбрасываем форму
+    reset()
+  }
+}, { immediate: false })
+
 /* Закрыть */
 function close() {
-  reset() // Сбрасываем при закрытии
+  reset()
   emit('close')
 }
 
+
 /* Сохранить */
 function save() {
-  emit('save', {  // Было 'create', теперь 'save'
-    id: Date.now(),
+  const updatedTask = {
+    id: props.taskData?.id || Date.now(), // Сохраняем существующий ID или создаем новый
     title: title.value,
     status: status.value,
     tag: tag.value,
     progress: progressPercentage.value,
     checklist: [...checklist.value],
-    members: []
-  })
+    members: props.taskData?.members || [] // Сохраняем существующих участников
+  }
+
+  console.log('Сохраняем отредактированную задачу:', updatedTask)
+  emit('save', updatedTask)
   close()
-  reset()
 }
 
+/* Добавить подзадачу */
 const addItem = () => {
   checklist.value.push({
     id: Date.now(),
@@ -194,18 +216,96 @@ const addItem = () => {
   })
 }
 
+/* Удалить подзадачу */
 const removeItem = (i) => {
   checklist.value.splice(i, 1)
 }
 
-/* Следим за пропсом show и сбрасываем форму при открытии */
+
+/* Следим за пропсом taskData */
+watch(() => props.taskData, (newTask) => {
+  console.log('taskData изменился:', newTask)
+  if (newTask) {
+    loadTaskData(newTask)
+  }
+}, { immediate: true, deep: true })
+
+/* Следим за открытием модалки */
 watch(() => props.show, (newVal) => {
-  if (newVal) {
-    // Сбрасываем форму при открытии
+  console.log('Модалка открыта?', newVal)
+  if (newVal && props.taskData) {
+    // При каждом открытии загружаем свежие данные
+    loadTaskData(props.taskData)
+  } else if (!newVal) {
+    reset()
+  }
+}, { immediate: false })
+
+//* Загрузка данных задачи в форму */
+const loadTaskData = (task) => {
+  if (task) {
+    console.log('📥 Edit_task загружает задачу:', task)
+    console.log('📊 Edit_task статус из props:', task.status)
+
+    title.value = task.title || ''
+
+    // ВАЖНО: преобразуем статус в число и проверяем
+    const taskStatus = parseInt(task.status)
+    if (!isNaN(taskStatus) && [1, 2, 3].includes(taskStatus)) {
+      status.value = taskStatus
+    } else {
+      status.value = 1 // По умолчанию Беклог
+    }
+
+    console.log('✅ Edit_task установлен статус:', status.value)
+
+    tag.value = task.tag || 'Frontend'
+    checklist.value = task.checklist ? JSON.parse(JSON.stringify(task.checklist)) : []
+  }
+}
+
+/* Следим за пропсом taskData - с deep: true */
+watch(() => props.taskData, (newTask) => {
+  console.log('🔄 taskData изменился в Edit_task:', newTask)
+  if (newTask) {
+    loadTaskData(newTask)
+  }
+}, { immediate: true, deep: true })
+
+/* Следим за открытием модалки */
+watch(() => props.show, (newVal) => {
+  console.log('🚪 Edit_task открыта?', newVal)
+  if (newVal && props.taskData) {
+    // Принудительно загружаем данные при каждом открытии
+    loadTaskData(props.taskData)
+  } else if (!newVal) {
+    reset()
+  }
+}, { immediate: true })
+
+/* Следим за пропсом taskData */
+watch(() => props.taskData, (newTask) => {
+  console.log('🔄 taskData изменился:', newTask)
+  if (newTask) {
+    loadTaskData(newTask)
+  }
+}, { immediate: true, deep: true })
+
+/* Следим за открытием модалки */
+watch(() => props.show, (newVal) => {
+  console.log('🚪 Модалка открыта?', newVal)
+  if (newVal && props.taskData) {
+    // При каждом открытии загружаем свежие данные
+    loadTaskData(props.taskData)
+  } else if (!newVal) {
     reset()
   }
 }, { immediate: false })
 </script>
+
+
+
+
 
 <style scoped>
 /* Фон */
@@ -261,28 +361,6 @@ watch(() => props.show, (newVal) => {
   margin-bottom: 24px;
 }
 
-/* Controls */
-.input,
-.textarea {
-  width: 150%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-}
-
-.textarea {
-  min-height: 120px;
-  resize: none;
-}
-
-.row {
-  display: flex;
-  gap: 15px;
-  margin: 16px 0;
-  border-radius: 15px;
-}
-
-
 .primary {
   background: #3b82f6;
   color: white;
@@ -295,80 +373,5 @@ watch(() => props.show, (newVal) => {
   padding: 12px;
   background: #f9f9f9;
   border-radius: 8px;
-}
-
-.flex {
-  display: flex;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.mb-2 {
-  margin-bottom: 8px;
-}
-
-.text-sm {
-  font-size: 14px;
-}
-
-.text-gray-500 {
-  color: #6b7280;
-}
-
-.text-gray-700 {
-  color: #374151;
-}
-
-.font-medium {
-  font-weight: 500;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.h-2 {
-  height: 8px;
-}
-
-.bg-gray-200 {
-  background-color: #e5e7eb;
-}
-
-.rounded-full {
-  border-radius: 9999px;
-}
-
-.overflow-hidden {
-  overflow: hidden;
-}
-
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-}
-
-/* Цвета прогресс-бара */
-.bg-red-500 {
-  background-color: #ef4444;
-}
-
-.bg-yellow-500 {
-  background-color: #f59e0b;
-}
-
-.bg-blue-500 {
-  background-color: #3b82f6;
-}
-
-.bg-green-500 {
-  background-color: #10b981;
 }
 </style>
