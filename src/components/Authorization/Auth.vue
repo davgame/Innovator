@@ -60,7 +60,7 @@
       <!-- Button -->
       <button
         class="w-full py-4 mt-6 rounded-2xl bg-blue-500 text-white text-lg font-semibold
-               hover:bg-blue-600 transition cursor-pointer"
+         hover:bg-blue-600 transition cursor-pointer"
       >
         {{ activeTab === 'login' ? 'Войти' : 'Далее' }}
       </button>

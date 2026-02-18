@@ -132,7 +132,7 @@
           >
             главная
           </router-link>
-          <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">поиск</a>
+          <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">канбан</a>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
           <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</router-link>

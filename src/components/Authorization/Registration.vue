@@ -100,7 +100,7 @@
         accept=".pdf"
         class="hidden"
         ref="fileInput"
-        @change="handleFileSelect"
+        @change="handlePdfSelect"
       />
 
       <p
@@ -128,7 +128,7 @@
 
         <!-- Информация о файле -->
         <div class="text-left">
-          <p class="text-gray-800 font-medium truncate max-w-xs">
+          <p class="text-gray-800 font-medium truncate max-w-xs text-[12px] lg:text-[16px]">
             {{ pdfFile.name }}
           </p>
           <p class="text-gray-500 text-sm mt-1">
@@ -149,10 +149,10 @@
       type="button"
       class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
             hover:bg-blue-600 transition cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
-      @click="submitRegistration"
+      @click="goToStep3"
       :disabled="!pdfFile"
     >
-      Создать аккаунт
+      Далее
     </button>
 
     <!-- Кнопка "Назад" -->
@@ -164,15 +164,85 @@
     >
       Назад
     </button>
-  </div>
-  </div>
 
 
+  </div>
+      <!-- Шаг 3: Drop-file -->
+<div v-else-if="step === 3">
+  <label class="block text-gray-600 mb-2">Загрузите изображение профиля</label>
+    <!-- Круг (если ширина = высоте) -->
+     <div class="flex flex-col items-center justify-center mt-12">
+      <div class="w-40 h-40 border border-[#CBCBCB] rounded-full flex items-center justify-center" @click="triggerImageInput">
+
+        <!-- Если есть аватар - показываем его -->
+        <img
+          v-if="avatarPreview"
+          :src="avatarPreview"
+          alt="Avatar"
+          class="w-full h-full object-cover rounded-full"
+        />
+        <!-- Если нет аватара - показываем камеру (центрированную) -->
+        <div v-else class="w-full h-full flex items-center justify-center">
+          <img
+            src="/src/assets/images/camera.svg"
+            alt="Загрузить фото"
+            class="w-12 h-12"
+          />
+        </div>
+
+
+        <!-- Оверлей при наведении -->
+        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="text-white text-sm">Изменить фото</span>
+        </div>
+              <!-- Скрытый input для выбора файла -->
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/jpg"
+        class="hidden"
+        ref="imageInput"
+        @change="handleImageSelect"
+      />
+      </div>
+
+        <p class="text-gray-800 font-medium truncate max-w-xs text-[12px] lg:text-[16px]">
+      {{ userName || 'Федосьев Георгий' }}
+        </p>
+          <!-- Модалка редактирования -->
+    <ModalOmg
+      :show="showEditModal"
+      :image-file="selectedImage"
+      @close="closeEditModal"
+      @save="saveAvatar"
+    />
+    </div>
+      <!-- Кнопка отправки -->
+    <button
+      type="button"
+      class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
+          hover:bg-blue-600 transition cursor-pointer"
+    @click="completeRegistration"
+    >
+      Завершить регистрацию
+    </button>
+
+    <!-- Кнопка "Назад" -->
+    <button
+      type="button"
+      class="w-full py-4 mt-4 rounded-2xl border border-gray-300 text-gray-700 text-lg font-semibold
+            hover:bg-gray-50 transition cursor-pointer"
+      @click="goBackToStep2"
+    >
+      Назад
+    </button>
+</div>
+  </div>
 
 </template>
 
 <script setup>
 import { ref, nextTick } from "vue";
+import ModalOmg from "./ModalOmg.vue";
 
 const step = ref(1);
 const userName = ref('');
@@ -184,6 +254,11 @@ const pdfFile = ref(null);
 const fileError = ref('');
 const fileInput = ref(null);
 
+const imageInput = ref(null); // Отдельный ref для input изображения
+const selectedImage = ref(null); // Выбранный файл изображения
+const showEditModal = ref(false); // Показать/скрыть модалку
+const avatarPreview = ref(''); // Для отображения сохраненного аватара
+
 const emit = defineEmits(['complete']);
 
 const nextStep = () => {
@@ -194,20 +269,46 @@ const nextStep = () => {
   step.value = 2;
 };
 
+// Переход на шаг 3
+const goToStep3 = () => {
+  if (!pdfFile.value) {
+    fileError.value = 'Пожалуйста, загрузите PDF файл';
+    return;
+  }
+  console.log('PDF файл загружен:', pdfFile.value.name);
+  step.value = 3;
+};
+
+// Метод для возврата на шаг 2
+const goBackToStep2 = () => {
+  console.log('Возврат на шаг 2');
+  step.value = 2;
+};
+
+// Метод для открытия проводника (для изображения)
+const triggerImageInput = () => {
+  console.log('triggerImageInput called'); // Добавьте для отладки
+  if (imageInput.value) {
+    imageInput.value.click();
+  } else {
+    console.error('imageInput ref is null');
+  }
+};
+
 // Обработчик drag-and-drop
 const handleDrop = (event) => {
   event.preventDefault();
   isDragging.value = false;
-
   if (event.dataTransfer.files.length > 0) {
     const droppedFile = event.dataTransfer.files[0];
-    validateAndSetFile(droppedFile);
+    validateAndSetPdfFile(droppedFile);
     event.dataTransfer.clearData();
   }
 };
 
+
 // Обработчик выбора файла через input
-const handleFileSelect = (event) => {
+const handlePdfSelect = (event) => {
   if (event.target.files.length > 0) {
     const selectedFile = event.target.files[0];
     validateAndSetFile(selectedFile);
@@ -288,5 +389,79 @@ const submitRegistration = () => {
   };
 
   emit('complete', registrationData);
+
+};
+
+// Обработчик выбора изображения
+const handleImageSelect = (event) => {
+  console.log('handleImageSelect called', event.target.files); // Для отладки
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Проверка типа файла
+  if (!file.type.startsWith('image/')) {
+    alert('Пожалуйста, выберите изображение');
+    return;
+  }
+
+  // Проверка размера (5 МБ)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    alert('Файл слишком большой. Максимальный размер: 5 МБ');
+    return;
+  }
+    // Сохраняем файл и открываем модалку редактирования
+  selectedImage.value = file;
+  showEditModal.value = true;
+
+  // Очищаем input, чтобы можно было выбрать тот же файл повторно
+  event.target.value = '';
+};
+
+
+// Закрыть модалку редактирования
+const closeEditModal = () => {
+  showEditModal.value = false;
+  selectedImage.value = null;
+};
+
+const saveAvatar = (imageDataUrl) => {
+  console.log('saveAvatar called with:', imageDataUrl.substring(0, 50) + '...'); // Для отладки
+
+  // Сохраняем превью для отображения
+  avatarPreview.value = imageDataUrl;
+
+  // Здесь можно преобразовать DataURL в File если нужно отправить на сервер
+  // const file = dataURLtoFile(imageDataUrl, 'avatar.jpg');
+
+  console.log('Аватар сохранен, preview length:', avatarPreview.value.length);
+
+  // Модалка закроется автоматически через emit('close') в компоненте ModalOmg
+};
+
+// Если нужно конвертировать DataURL в File для отправки на сервер:
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+};
+
+// Завершение регистрации
+const completeRegistration = () => {
+  const registrationData = {
+    userName: userName.value,
+    email: email.value,
+    password: password.value,
+    pdfFile: pdfFile.value,
+    avatar: avatarPreview.value
+  };
+  emit('complete', registrationData);
+  alert('Регистрация успешно завершена!');
 };
 </script>
