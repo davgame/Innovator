@@ -224,11 +224,12 @@
   <!-- Кнопка "Завершить регистрацию" (ВНУТРИ шага 3) -->
   <button
     type="button"
+    :disabled="authStore.loading"
     class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
           hover:bg-blue-600 transition cursor-pointer"
     @click="completeRegistration"
   >
-    Завершить регистрацию
+     {{ authStore.loading ? 'Регистрация...' : 'Завершить регистрацию' }}
   </button>
 
   <!-- Кнопка "Назад" на шаг 2 (ВНУТРИ шага 3) -->
@@ -247,6 +248,13 @@
 <script setup>
 import { ref, nextTick } from "vue";
 import ModalOmg from "./ModalOmg.vue";
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'
+
+const router = useRouter()
+const authStore = useAuthStore()   //регистрация и авторизация
+const registerError = ref('')
 
 const step = ref(1);
 const userName = ref('');
@@ -429,19 +437,19 @@ const closeEditModal = () => {
   selectedImage.value = null;
 };
 
-const saveAvatar = (imageDataUrl) => {
-  console.log('saveAvatar called with:', imageDataUrl.substring(0, 50) + '...'); // Для отладки
+const saveAvatar = async (imageDataUrl) => {
+  console.log('saveAvatar called')
 
-  // Сохраняем превью для отображения
-  avatarPreview.value = imageDataUrl;
+  // Сохраняем локально для предпросмотра
+  avatarPreview.value = imageDataUrl
 
-  // Здесь можно преобразовать DataURL в File если нужно отправить на сервер
-  // const file = dataURLtoFile(imageDataUrl, 'avatar.jpg');
+  // Если пользователь уже авторизован - сразу загружаем
+  if (authStore.user?.id) {
+    await uploadAvatarToStorage(imageDataUrl, authStore.user.id)
+  }
 
-  console.log('Аватар сохранен, preview length:', avatarPreview.value.length);
-
-  // Модалка закроется автоматически через emit('close') в компоненте ModalOmg
-};
+  // Модалка закроется автоматически
+}
 
 // Если нужно конвертировать DataURL в File для отправки на сервер:
 const dataURLtoFile = (dataurl, filename) => {
@@ -456,16 +464,69 @@ const dataURLtoFile = (dataurl, filename) => {
   return new File([u8arr], filename, { type: mime });
 };
 
-// Завершение регистрации
-const completeRegistration = () => {
-  const registrationData = {
-    userName: userName.value,
-    email: email.value,
-    password: password.value,
-    pdfFile: pdfFile.value,
-    avatar: avatarPreview.value
-  };
-  emit('complete', registrationData);
-  alert('Регистрация успешно завершена!');
-};
+
+const completeRegistration = async () => {
+  const { error } = await authStore.signUp(
+    email.value,
+    password.value,
+    userName.value
+  )
+
+  if (error) {
+    alert('Ошибка регистрации: ' + error.message)
+    return
+  }
+
+  await authStore.refreshUser()
+
+  // Если есть аватар - загружаем после регистрации
+  if (avatarPreview.value && authStore.user?.id) {
+    await uploadAvatarToStorage(avatarPreview.value, authStore.user.id)
+  }
+
+  router.push('/')
+}
+
+const uploadAvatarToStorage = async (imageDataUrl, userId) => {
+  try {
+    // Конвертируем DataURL в File
+    const file = dataURLtoFile(imageDataUrl, 'avatar.jpg')
+
+    // Загружаем в Storage Supabase
+    const fileName = `${userId}/avatar.jpg`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+
+    if (uploadError) {
+      console.error('Ошибка загрузки аватара:', uploadError)
+      return
+    }
+
+    // Получаем публичную ссылку
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
+
+    // Обновляем профиль с ссылкой на аватар
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: publicUrl,
+        avatar_name: file.name,
+        avatar_size: file.size
+      })
+      .eq('id', userId)
+
+    if (updateError) {
+      console.error('Ошибка обновления профиля:', updateError)
+    } else {
+      console.log('Аватар успешно загружен:', publicUrl)
+      // Обновляем данные в store
+      await authStore.refreshUser()
+    }
+  } catch (err) {
+    console.error('Ошибка:', err)
+  }
+}
 </script>

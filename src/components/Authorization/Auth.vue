@@ -51,28 +51,68 @@
       </div>
 
       <!-- Forgot -->
-      <div class="lg:mb-6 mb-4" v-if="activeTab === 'login'">
+      <div class="lg:mb-6 mb-4">
         <a class="text-blue-500 font-medium hover:underline cursor-pointer">
           Забыли пароль ?
         </a>
       </div>
 
-      <!-- Button -->
+      <!-- Кнопка входа -->
       <button
+        @click="handleLogin"
+        :disabled="isLoading"
         class="w-full py-4 mt-6 rounded-2xl bg-blue-500 text-white text-lg font-semibold
          hover:bg-blue-600 transition cursor-pointer"
       >
-        {{ activeTab === 'login' ? 'Войти' : 'Далее' }}
+        {{ isLoading  ? 'Вход...' : 'Войти' }}
       </button>
 
+       <p v-if="errorMessage" class="text-red-500 text-sm mt-4">{{ errorMessage  }}</p>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-const activeTab = ref('login')
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+// 1. Сначала объявляем ВСЕ переменные
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const isLoading = ref(false)
+const errorMessage = ref('')
+const router = useRouter()
+
+// 2. ПОТОМ получаем store
+const authStore = useAuthStore()
+
+// 3. Теперь можно использовать authStore в функциях
+const handleLogin = async () => {
+  if (!authStore) {
+    errorMessage.value = 'Ошибка инициализации'
+    return
+  }
+
+  errorMessage.value = ''
+  isLoading.value = true
+
+  try {
+    const { error } = await authStore.signIn(
+      email.value,
+      password.value
+    )
+
+    if (error) {
+      errorMessage.value = error.message
+    } else {
+      router.push('/')
+    }
+  } catch (err) {
+    errorMessage.value = 'Произошла ошибка'
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <style scoped>

@@ -3,9 +3,11 @@ import App from './App.vue'
 import './main.css';
 import { initFlowbite } from 'flowbite'
 import router from './router';
+import { createPinia } from 'pinia'
 
 const app = createApp(App)
 
+app.use(createPinia())
 app.use(router)
 
 app.mixin({

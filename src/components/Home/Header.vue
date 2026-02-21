@@ -1,4 +1,4 @@
-<template>
+<template v-if="authStore.profile">
   <nav class="border-gray-200 bg-[#FFFFFF]">
     <div class="flex fixed top-0 left-0 w-full bg-white shadow-2xs z-50 items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <!--Логотип-->
@@ -9,21 +9,42 @@
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
         </div>
       </div>
-      <div class="ml-auto flex items-center gap-2">
+      <div class="ml-auto flex items-center">
         <RouterLink
-          to="/authorization" @click="isOpen = false"
-          class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+          v-if="authStore.profile"
+          to="/profile"
+          class="flex items-center gap-2 mr-[15px]"
+          @click="isOpen = false"
         >
-          Войти
+          <!-- Если есть avatar_url - показываем изображение -->
+          <img
+            v-if="authStore.profile?.avatar_url"
+            :src="authStore.profile.avatar_url"
+            class="w-[42px] h-[42px] rounded-full object-cover"
+            alt="Avatar"
+          />
+          <!-- Если нет - показываем инициалы -->
+          <div v-else class="w-full h-full flex items-center justify-center text-white font-medium">
+            {{ authStore.userInitials }}
+          </div>
         </RouterLink>
-        <a
-          href="#"
-          class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
-        >
-          Регистрация
-        </a>
-      </div>
-      <button
+                <!-- Если нет профиля - показываем кнопки -->
+        <template v-else>
+          <RouterLink
+            to="/authorization"
+            @click="isOpen = false"
+            class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+          >
+            Войти
+          </RouterLink>
+          <RouterLink
+            to="/register"
+            class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+          >
+            Регистрация
+          </RouterLink>
+        </template>
+        <button
         @click="isOpen = !isOpen"
         type="button"
         class="cursor-pointer inline-flex items-center justify-center p-2 w-10 h-10 text-sm text-[#111827] border-1 border-[#9A9A9A]/20 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
@@ -47,6 +68,7 @@
           />
         </svg>
       </button>
+      </div>
     </div>
     <!-- Добавляем отступ, чтобы контент не перекрывался меню -->
     <div class="pt-[45px]">
@@ -70,18 +92,41 @@
         </div>
         <!--Кнопки-->
         <div class="ml-auto flex gap-2">
-          <a
-            href="#"
-            class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
-          >
-            Войти
-          </a>
-          <a
-            href="#"
-            class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
-          >
-            Регистрация
-          </a>
+                      <RouterLink
+          v-if="authStore.profile"
+          to="/profile"
+          class="flex items-center gap-2 mr-[15px]"
+          @click="isOpen = false"
+        >
+          <!-- Если есть avatar_url - показываем изображение -->
+          <img
+            v-if="authStore.profile?.avatar_url"
+            :src="authStore.profile.avatar_url"
+            class="w-[42px] h-[42px] rounded-full object-cover"
+            alt="Avatar"
+          />
+          <!-- Если нет - показываем инициалы -->
+          <div v-else class="w-full h-full flex items-center justify-center text-white font-medium">
+            {{ authStore.userInitials }}
+          </div>
+        </RouterLink>
+
+            <template v-else>
+              <RouterLink
+                to="/authorization"
+                @click="isOpen = false"
+                class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
+              >
+                Войти
+              </RouterLink>
+              <RouterLink
+                to="/register"
+                @click="isOpen = false"
+                class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+              >
+                Регистрация
+              </RouterLink>
+            </template>
         </div>
         <button
           @click="isOpen = false"
@@ -213,6 +258,9 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 
 const router = useRouter()
 const isOpen = ref(false)
@@ -259,4 +307,10 @@ watch(() => router.currentRoute.value, () => {
     isOpen.value = false
   }
 })
+
+
+// 👇 Следим за изменениями профиля
+watch(() => authStore.profile, (newProfile) => {
+  console.log('Profile changed:', newProfile)
+}, { immediate: true })
 </script>

@@ -5,5 +5,14 @@
 <style scoped>
 </style>
 
-<script>
+<script setup>
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  // ✅ Импортируй и используй store ТОЛЬКО внутри onMounted
+  import('@/stores/auth').then(({ useAuthStore }) => {
+    const authStore = useAuthStore()
+    authStore.init()
+  })
+})
 </script>
