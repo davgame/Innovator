@@ -164,24 +164,25 @@
     >
       Назад
     </button>
-
-
   </div>
-      <!-- Шаг 3: Drop-file -->
+  <!-- Шаг 3: Drop-file -->
+<!-- Шаг 3: Загрузка изображения профиля -->
 <div v-else-if="step === 3">
   <label class="block text-gray-600 mb-2">Загрузите изображение профиля</label>
-    <!-- Круг (если ширина = высоте) -->
-     <div class="flex flex-col items-center justify-center mt-12">
-      <div class="w-40 h-40 border border-[#CBCBCB] rounded-full flex items-center justify-center" @click="triggerImageInput">
 
+  <!-- Круг для загрузки фото -->
+  <div class="flex flex-col items-center justify-center mt-12">
+    <!-- Контейнер для фото -->
+    <div class="relative w-40 h-40 group cursor-pointer" @click="triggerImageInput">
+      <div class="w-40 h-40 border border-[#CBCBCB] rounded-full overflow-hidden bg-gray-100">
         <!-- Если есть аватар - показываем его -->
         <img
           v-if="avatarPreview"
           :src="avatarPreview"
           alt="Avatar"
-          class="w-full h-full object-cover rounded-full"
+          class="w-full h-full object-cover"
         />
-        <!-- Если нет аватара - показываем камеру (центрированную) -->
+        <!-- Если нет аватара - показываем камеру -->
         <div v-else class="w-full h-full flex items-center justify-center">
           <img
             src="/src/assets/images/camera.svg"
@@ -189,13 +190,14 @@
             class="w-12 h-12"
           />
         </div>
+      </div>
 
+      <!-- Оверлей при наведении -->
+      <div class="absolute inset-0 bg-black/20 bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <img src="/src/assets/images/camera_2.svg" class="text-white w-10 h-10"></img>
+      </div>
 
-        <!-- Оверлей при наведении -->
-        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span class="text-white text-sm">Изменить фото</span>
-        </div>
-              <!-- Скрытый input для выбора файла -->
+      <!-- Скрытый input для выбора файла -->
       <input
         type="file"
         accept="image/jpeg,image/png,image/gif,image/jpg"
@@ -203,41 +205,43 @@
         ref="imageInput"
         @change="handleImageSelect"
       />
-      </div>
-
-        <p class="text-gray-800 font-medium truncate max-w-xs text-[12px] lg:text-[16px]">
-      {{ userName || 'Федосьев Георгий' }}
-        </p>
-          <!-- Модалка редактирования -->
-    <ModalOmg
-      :show="showEditModal"
-      :image-file="selectedImage"
-      @close="closeEditModal"
-      @save="saveAvatar"
-    />
     </div>
-      <!-- Кнопка отправки -->
-    <button
-      type="button"
-      class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
+
+    <!-- Имя пользователя -->
+    <p class="text-gray-800 font-medium truncate max-w-xs text-[12px] lg:text-[16px] mt-2">
+      {{ userName || 'Федосьев Георгий' }}
+    </p>
+  </div> <!-- Закрываем flex-col контейнер -->
+
+  <!-- Модалка редактирования (ВНЕ flex контейнера, НО ВНУТРИ шага 3) -->
+  <ModalOmg
+    :show="showEditModal"
+    :image-file="selectedImage"
+    @close="closeEditModal"
+    @save="saveAvatar"
+  />
+
+  <!-- Кнопка "Завершить регистрацию" (ВНУТРИ шага 3) -->
+  <button
+    type="button"
+    class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
           hover:bg-blue-600 transition cursor-pointer"
     @click="completeRegistration"
-    >
-      Завершить регистрацию
-    </button>
+  >
+    Завершить регистрацию
+  </button>
 
-    <!-- Кнопка "Назад" -->
-    <button
-      type="button"
-      class="w-full py-4 mt-4 rounded-2xl border border-gray-300 text-gray-700 text-lg font-semibold
-            hover:bg-gray-50 transition cursor-pointer"
-      @click="goBackToStep2"
-    >
-      Назад
-    </button>
+  <!-- Кнопка "Назад" на шаг 2 (ВНУТРИ шага 3) -->
+  <button
+    type="button"
+    class="w-full py-4 mt-4 rounded-2xl border border-gray-300 text-gray-700 text-lg font-semibold
+          hover:bg-gray-50 transition cursor-pointer"
+    @click="goBackToStep2"
+  >
+    Назад
+  </button>
 </div>
   </div>
-
 </template>
 
 <script setup>
