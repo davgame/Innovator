@@ -162,7 +162,7 @@
               <img src="/src/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/whatsapp.png" alt="whatsApp" class="w-12 h-12" />
+              <img src="/src/assets/images/whatsapp.png" alt="whatsapp" class="w-12 h-12" />
             </a>
           </div>
         </div>
