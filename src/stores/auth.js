@@ -81,16 +81,40 @@ export const useAuthStore = defineStore('auth', {
       return { data, error }
     },
 
+    async updateUserStatus(status) {
+      if (!this.user?.id) return
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          status,
+          last_seen: new Date().toISOString()
+        })
+        .eq('id', this.user.id)
+
+      if (error) console.error('Error updating status:', error)
+    },
+
+    // При входе
     async signIn(email, password) {
       this.loading = true
       const { data, error } = await supabase.auth.signInWithPassword({
         email, password
       })
+
+      if (!error && data.user) {
+        this.user = data.user
+        await this.fetchProfile(data.user.id)
+        await this.updateUserStatus('online') // 👈 устанавливаем статус "online"
+      }
+
       this.loading = false
       return { data, error }
     },
 
+    // При выходе
     async signOut() {
+      await this.updateUserStatus('offline') // 👈 устанавливаем "offline"
       await supabase.auth.signOut()
       this.user = null
       this.profile = null

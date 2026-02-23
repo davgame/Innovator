@@ -9,11 +9,14 @@
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
         </div>
       </div>
-      <div class="ml-auto flex items-center">
+        <!-- 🔍 ПОИСК (всегда виден, по центру) -->
+      <div class="flex items-center gap-4">
+        <SearchUsers />
+
         <RouterLink
           v-if="authStore.profile"
           to="/profile"
-          class="flex items-center gap-2 mr-[15px]"
+          class="flex items-center gap-2"
           @click="isOpen = false"
         >
           <!-- Если есть avatar_url - показываем изображение -->
@@ -75,13 +78,14 @@
       <!-- Здесь основной контент страницы -->
     </div>
 
+
+
     <!-- FULLSCREEN МЕНЮ -->
     <Transition name="slide-menu">
-    <div
-      v-show="isOpen"
-      class="fixed inset-0 bg-[#4286F7] text-white flex flex-col transition-all duration-300 z-50"
-    >
+
+    <div v-show="isOpen" class="fixed inset-0 bg-[#4286F7] text-white flex flex-col transition-all duration-300 z-50">
       <div class="flex items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px] no-scrollbar">
+
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
           <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
@@ -90,44 +94,48 @@
             <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
           </div>
         </div>
-        <!--Кнопки-->
-        <div class="ml-auto flex gap-2">
-                      <RouterLink
+        <!-- Правая часть: поиск + аватар + кнопка закрытия -->
+      <div class="flex items-center gap-4 ml-auto px-4">
+
+         <!-- Аватар -->
+        <RouterLink
           v-if="authStore.profile"
           to="/profile"
-          class="flex items-center gap-2 mr-[15px]"
-          @click="isOpen = false"
-        >
-          <!-- Если есть avatar_url - показываем изображение -->
+          @click="isOpen = false">
+
           <img
             v-if="authStore.profile?.avatar_url"
             :src="authStore.profile.avatar_url"
-            class="w-[42px] h-[42px] rounded-full object-cover"
+            class="w-[42px] h-[42px] rounded-full object-cover border-2 border-white"
             alt="Avatar"
           />
-          <!-- Если нет - показываем инициалы -->
-          <div v-else class="w-full h-full flex items-center justify-center text-white font-medium">
+
+          <div
+            v-else
+            class="w-[42px] h-[42px] rounded-full bg-blue-500 flex items-center justify-center text-white font-medium border-2 border-white"
+          >
             {{ authStore.userInitials }}
           </div>
-        </RouterLink>
+          </RouterLink>
 
-            <template v-else>
-              <RouterLink
-                to="/authorization"
-                @click="isOpen = false"
-                class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
-              >
-                Войти
-              </RouterLink>
-              <RouterLink
-                to="/register"
-                @click="isOpen = false"
-                class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
-              >
-                Регистрация
-              </RouterLink>
-            </template>
+          <template v-else>
+            <RouterLink
+              to="/authorization"
+              @click="isOpen = false"
+              class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
+            >
+              Войти
+            </RouterLink>
+            <RouterLink
+              to="/register"
+              @click="isOpen = false"
+              class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+            >
+              Регистрация
+            </RouterLink>
+          </template>
         </div>
+
         <button
           @click="isOpen = false"
           class="cursor-pointer w-10 h-10 grid place-items-center border border-white rounded-lg text-white"
@@ -259,6 +267,7 @@
 import { ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import SearchUsers from './SearchUsers.vue'
 
 const authStore = useAuthStore()
 

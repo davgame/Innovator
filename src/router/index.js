@@ -9,6 +9,8 @@ import Pasport from '@/components/Pasport/Pasport.vue'
 import SupPage from '@/components/SUP/SupPage.vue'
 import Error_404 from '@/components/Error/Error_404.vue'
 import Error_502 from '@/components/Error/Error_502.vue'
+import User from '@/Profile/User.vue'
+import UserProfile from '@/Profile/UserProfile.vue'
 
 
 
@@ -60,10 +62,20 @@ const router = createRouter({
       name: 'not-found',
       component: Error_404
     },
-        {
+    {
       path: '/502',
       name: '502',
       component: Error_502
+    },
+    {
+      path: '/profile',
+      name: 'MyProfile',
+      component: User
+    },
+    {
+    path: '/profile/:id',
+    name: 'UserProfile',
+    component: UserProfile
     }
   ],
 })
