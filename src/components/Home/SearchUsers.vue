@@ -71,14 +71,22 @@
           </div>
 
           <!-- Информация -->
-          <div>
+          <!-- <div>
             <div class="font-medium">{{ user.full_name || 'Пользователь' }}</div>
             <div class="text-sm text-gray-500">{{ user.email }}</div>
+          </div> -->
+
+          <div>
+            <div class="flex items-center gap-1">
+              <h1 class="font-semibold">{{ user.full_name || 'Пользователь'  }}</h1>
+              <img src="/src/assets/images/metka.svg" class="w-[18px] h-[18px] translate-y-[2px]" alt="metka">
+            </div>
+            <p class="text-sm text-gray-500">{{ user.email }}</p>
           </div>
 
           <!-- Индикатор онлайн -->
           <div
-            class="w-2 h-2 rounded-full ml-auto"
+            class="w-2 h-2 rounded-full ml-auto flex items-center"
             :class="user.status === 'online' ? 'bg-green-500' : 'bg-gray-300'"
             :title="user.status === 'online' ? 'В сети' : 'Не в сети'"
           ></div>

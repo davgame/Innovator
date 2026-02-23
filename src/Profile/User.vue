@@ -41,13 +41,22 @@
   ></div>
 </div>
 
-      <div>
-      <!-- Информация о пользователе -->
-      <div class=" flex flex-col justify-center lg:items-start items-center lg:mt-30">
-        <h1 class="lg:text-4xl text-1xl lg:py-2 font-bold text-center lg:text-left">{{ authStore.profile?.full_name || 'Пользователь' }}</h1>
-        <p class="text-gray-500 lg:text-left text-center">{{ authStore.user?.email }}</p>
+    <div>
+    <!-- Информация о пользователе -->
+    <div class="flex flex-col justify-center lg:items-start items-center lg:mt-30">
+      <div class="flex justify-center items-center lg:gap-3 gap-2">
+        <h1 class="lg:text-4xl text-1xl lg:py-2 font-bold">
+          {{ authStore.profile?.full_name || 'Пользователь' }}
+        </h1>
+        <img
+          src="/src/assets/images/metka.svg"
+          class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] lg:translate-y-[6px] translate-y-[3px]"
+          alt="metka"
+        >
       </div>
+      <p class="text-gray-500 lg:text-left text-center text-[15px] lg:text-[18px]">{{ authStore.user?.email }}</p>
     </div>
+  </div>
   </div>
   </div>
 </template>
