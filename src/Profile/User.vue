@@ -20,20 +20,20 @@
           @mouseenter="showContextMenu = true"
           @mouseleave="showContextMenu = false">
   <!-- Контейнер аватара -->
-  <div class="w-full h-full rounded-full overflow-hidden bg-blue-500 border-3 border-white lg:mt-4">
+  <div class="flex items-center justify-center w-full h-full rounded-full overflow-hidden bg-[#CFD9FF] border-3 border-white lg:mt-4">
     <img
       v-if="authStore.profile?.avatar_url"
       :src="authStore.profile?.avatar_url + '?v=' + new Date().getTime()"
       class="w-full h-full object-cover"
       alt="Avatar"
     />
-        <!-- Контекстное меню -->
-    <div
+      <!-- Если нет аватара - показываем стандартную заглушку (ВЫБЕРИ ОДИН ВАРИАНТ) -->
+    <img
       v-else
-      class="w-full h-full flex items-center justify-center text-white lg:text-2xl text-sm font-bold"
-    >
-      {{ authStore.userInitials }}
-    </div>
+      src="/src/assets/images/Emodzi.svg"
+      class="lg:w-[120px] lg:h-[120px] w-[45px] h-[45px] object-cover"
+      alt="Default avatar"
+    />
   </div>
 
   <!-- Оверлей при наведении -->
@@ -96,11 +96,7 @@
       </p>
     </div>
       <Edit_button class="lg:hidden block items-center translate-y-[17px] justify-center"/>
-
-
     </div>
-
-
   </div>
   </div>
 
@@ -121,6 +117,12 @@
       @close="closeEditModal"
       @save="saveAvatar"
     />
+    <!-- Модалка подтверждения удаления -->
+    <Delete_Modal
+      :show="showDeleteModal"
+      @close="showDeleteModal = false"
+      @confirm="confirmDeletePhoto"
+    />
 </template>
 
 <script setup>
@@ -137,7 +139,7 @@ import Footer from '@/components/Home/Footer.vue';
 import ModalOmg from '@/components/Authorization/ModalOmg.vue';
 import Edit_img from './Edit_img.vue';
 import { supabase } from '@/lib/supabase' // 👈 убедись что импортирован
-
+import Delete_Modal from './Delete_Modal.vue';
 
 
 const imageInput = ref(null)
@@ -190,24 +192,6 @@ const showContextMenu = ref(false)
 const handleEditPhoto = () => {
   showContextMenu.value = false
   triggerImageInput()
-}
-
-const handleDeletePhoto = async () => {
-  showContextMenu.value = false
-  if (confirm('Удалить фото профиля?')) {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: null })
-        .eq('id', authStore.user?.id)
-
-      if (!error) {
-        await authStore.refreshUser()
-      }
-    } catch (error) {
-      console.error('Ошибка удаления:', error)
-    }
-  }
 }
 
 const closeContextMenu = () => {
@@ -394,4 +378,67 @@ const userStatusText = computed(() => {
   if (isOnline.value) return 'В сети'
   return `был(а) ${formatLastSeen(authStore.profile?.last_seen)}`
 })
+
+// Состояние для модалки удаления
+const showDeleteModal = ref(false)
+
+// Метод для открытия модалки удаления
+const handleDeletePhoto = () => {
+  showContextMenu.value = false
+  showDeleteModal.value = true
+}
+
+// Метод для подтверждения удаления
+const confirmDeletePhoto = async () => {
+  try {
+    console.log('1️⃣ Начинаем удаление')
+    console.log('2️⃣ ID пользователя:', authStore.user?.id)
+
+    if (!authStore.user?.id) {
+      console.error('❌ Нет ID пользователя')
+      return
+    }
+
+    console.log('3️⃣ Отправляем запрос к Supabase...')
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: null,
+        avatar_name: null,
+        avatar_size: null
+      })
+      .eq('id', authStore.user?.id)
+      .select()
+
+    console.log('4️⃣ Ответ получен')
+    console.log('5️⃣ data:', data)
+    console.log('6️⃣ error:', error)
+
+    if (error) {
+      console.error('7️⃣ Ошибка Supabase:', error)
+      console.error('8️⃣ Код ошибки:', error.code)
+      console.error('9️⃣ Сообщение:', error.message)
+      throw error
+    }
+
+    console.log('🔟 Данные после обновления:', data)
+
+    // Обновляем локальный store
+    if (authStore.profile) {
+      authStore.profile.avatar_url = null
+      authStore.profile.avatar_name = null
+      authStore.profile.avatar_size = null
+    }
+
+    console.log('1️⃣1️⃣ Вызываем refreshUser')
+    await authStore.refreshUser()
+
+    console.log('1️⃣2️⃣ Готово!')
+
+  } catch (error) {
+    console.error('❌ Ошибка в catch:', error)
+    console.error('❌ Полный объект ошибки:', JSON.stringify(error, null, 2))
+  }
+}
 </script>

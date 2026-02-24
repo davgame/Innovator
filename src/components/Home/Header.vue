@@ -26,10 +26,18 @@
             class="lg:block hidden w-[42px] h-[42px] rounded-full object-cover"
             alt="Avatar"
           />
-          <!-- Если нет - показываем инициалы -->
-          <div v-else class="w-full h-full flex items-center justify-center text-white font-medium">
-            {{ authStore.userInitials }}
+          <!-- Если нет аватара - показываем картинку-эмодзи в синем круге -->
+          <div
+            v-else
+            class="lg:flex hidden w-[42px] h-[42px] rounded-full bg-[#CFD9FF] items-center justify-center"
+          >
+            <img
+              src="/src/assets/images/Emodzi.svg"
+              class="w-[30px] h-[30px] object-contain"
+              alt="Default avatar"
+            />
           </div>
+
         </RouterLink>
           <!-- Если нет профиля - показываем кнопки -->
         <template v-else>
@@ -109,12 +117,16 @@
             class="w-[42px] h-[42px] rounded-full object-cover border-2 border-white"
             alt="Avatar"
           />
-
+          <!-- Если нет аватара - показываем картинку-эмодзи в синем круге -->
           <div
             v-else
-            class="w-[42px] h-[42px] rounded-full bg-blue-500 flex items-center justify-center text-white font-medium border-2 border-white"
+            class="lg:flex w-[42px] h-[42px] rounded-full bg-[#CFD9FF] flex items-center justify-center"
           >
-            {{ authStore.userInitials }}
+            <img
+              src="/src/assets/images/Emodzi.svg"
+              class="lg:w-[30px] lg:h-[30px] w-[26px] h-[26px] object-contain"
+              alt="Default avatar"
+            />
           </div>
           </RouterLink>
 
