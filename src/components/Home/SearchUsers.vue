@@ -3,9 +3,9 @@
     <!-- Иконка поиска (всегда видна) -->
     <button
       @click="toggleSearch"
-      class="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+      class="p-2 lg:mr-1 mr-4 text-gray-400 hover:bg-gray-100 transition-colors border rounded-lg border-[#9A9A9A]/20 w-10 h-10 lg:cursor-pointer"
     >
-      <img src="/src/assets/images/search.svg" class="w-[20px] h-[20px]" alt="Поиск">
+      <img src="/src/assets/images/search.svg" class="w-[21px] h-[21px]" alt="Поиск">
     </button>
 
     <!-- Строка поиска с анимацией -->
@@ -19,7 +19,7 @@
     >
       <div
         v-if="showSearchInput"
-        class="absolute right-10 flex items-center border-b border-gray-300 focus-within:border-blue-500 transition-colors bg-white"
+        class="absolute right-14 flex items-center border-b border-gray-300 focus-within:border-blue-500 transition-colors bg-white"
       >
         <input
           ref="searchInputRef"

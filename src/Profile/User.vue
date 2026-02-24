@@ -8,7 +8,7 @@
     <!-- Аватар + информация -->
       <div class="absolute
          lg:left-[180px] left-1/2
-         bottom-0 translate-y-[110px] lg:translate-y-[120px]
+         bottom-0 translate-y-[150px] lg:translate-y-[120px]
          -translate-x-1/2 lg:translate-x-0
          flex lg:flex-row flex-col
          lg:items-center items-center
@@ -43,9 +43,10 @@
 
     <div>
     <!-- Информация о пользователе -->
-    <div class="flex flex-col justify-center lg:items-start items-center lg:mt-30">
-      <div class="flex justify-center items-center lg:gap-3 gap-2">
-        <h1 class="lg:text-4xl text-1xl lg:py-2 font-bold">
+    <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
+      <div class="flex justify-between w-full lg:gap-70">
+        <div class="flex items-center lg:gap-3 gap-[6px] lg:justify-start justify-center">
+        <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold ">
           {{ authStore.profile?.full_name || 'Пользователь' }}
         </h1>
         <img
@@ -54,17 +55,33 @@
           alt="metka"
         >
       </div>
-      <p class="text-gray-500 lg:text-left text-center text-[15px] lg:text-[18px]">{{ authStore.user?.email }}</p>
+           <Edit_button class="hidden lg:flex items-center translate-y-[17px]"/>
+      </div>
+      <p class="text-gray-500 lg:text-left text-center text-[13px] lg:text-[18px]">{{ authStore.user?.email }}</p>
+      <Edit_button class="lg:hidden block items-center translate-y-[17px] justify-center"/>
     </div>
   </div>
   </div>
+
   </div>
+    <!-- Сетка с компонентами -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-30">
+
+      <ProfileCompetencies />
+      <ProfileResume />
+      <div class="lg:col-span-2">
+        <ProfileActions />
+      </div>
+    </div>
 </template>
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
 import { ref, watch, onMounted } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
 import { useAuthStore } from '@/stores/auth'
+import Edit_button from './Edit_button.vue';
+import User_organization from './User_organization.vue';
+
 
 const authStore = useAuthStore()
 

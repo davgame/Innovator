@@ -10,7 +10,7 @@
         </div>
       </div>
         <!-- 🔍 ПОИСК (всегда виден, по центру) -->
-      <div class="flex items-center gap-4">
+      <div class="flex items-center lg:gap-4">
         <SearchUsers />
 
         <RouterLink
@@ -23,7 +23,7 @@
           <img
             v-if="authStore.profile?.avatar_url"
             :src="authStore.profile.avatar_url"
-            class="w-[42px] h-[42px] rounded-full object-cover"
+            class="lg:block hidden w-[42px] h-[42px] rounded-full object-cover"
             alt="Avatar"
           />
           <!-- Если нет - показываем инициалы -->
@@ -31,7 +31,7 @@
             {{ authStore.userInitials }}
           </div>
         </RouterLink>
-                <!-- Если нет профиля - показываем кнопки -->
+          <!-- Если нет профиля - показываем кнопки -->
         <template v-else>
           <RouterLink
             to="/authorization"
