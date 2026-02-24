@@ -22,7 +22,7 @@
           <!-- Если есть avatar_url - показываем изображение -->
           <img
             v-if="authStore.profile?.avatar_url"
-            :src="authStore.profile.avatar_url"
+            :src="authStore.profile.avatar_url + '?v=' + avatarVersion"
             class="lg:block hidden w-[42px] h-[42px] rounded-full object-cover"
             alt="Avatar"
           />
@@ -100,12 +100,12 @@
          <!-- Аватар -->
         <RouterLink
           v-if="authStore.profile"
-          to="/profile"
+          :to="{ name: 'MyProfile' }"
           @click="isOpen = false">
 
           <img
             v-if="authStore.profile?.avatar_url"
-            :src="authStore.profile.avatar_url"
+            :src="authStore.profile.avatar_url + '?v=' + avatarVersion"
             class="w-[42px] h-[42px] rounded-full object-cover border-2 border-white"
             alt="Avatar"
           />
@@ -270,7 +270,7 @@ import { useAuthStore } from '@/stores/auth'
 import SearchUsers from './SearchUsers.vue'
 
 const authStore = useAuthStore()
-
+const avatarVersion = ref(Date.now()) // 👈 для сброса кэша
 const router = useRouter()
 const isOpen = ref(false)
 
@@ -305,6 +305,28 @@ const goToPage = (path) => {
   }, 350) // 350ms совпадает с длительностью анимации slide-menu
 }
 
+// 👇 Следим за изменениями в sessionStorage
+watch(() => sessionStorage.getItem('avatarUpdated'), (newVal) => {
+  if (newVal) {
+    avatarVersion.value = Date.now()
+  }
+})
+
+// 👇 Следим за изменениями аватара
+watch(() => authStore.profile?.avatar_url, (newUrl) => {
+  console.log('Avatar URL changed in header:', newUrl)
+  if (newUrl) {
+    avatarVersion.value = Date.now()
+  }
+}, { immediate: true })
+
+// 👇 Добавим интервал для проверки (запасной вариант)
+setInterval(() => {
+  if (authStore.profile?.avatar_url) {
+    avatarVersion.value = Date.now()
+  }
+}, 5000) // Проверка каждые 5 секунд
+
 // Блокировка скролла при открытом меню
 watch(isOpen, (value) => {
   document.body.style.overflow = value ? 'hidden' : ''
@@ -317,6 +339,19 @@ watch(() => router.currentRoute.value, () => {
   }
 })
 
+// 👇 Следим за изменениями аватара
+watch(() => authStore.profile?.avatar_url, (newUrl) => {
+  console.log('Avatar URL changed in header:', newUrl)
+    if (newUrl) {
+    avatarVersion.value = Date.now() // 👈 обновляем версию при изменении
+  }
+}, { immediate: true })
+
+const handleImageError = (e) => {
+  console.log('Image failed to load, using fallback')
+  e.target.style.display = 'none'
+  // Показываем инициалы
+}
 
 // 👇 Следим за изменениями профиля
 watch(() => authStore.profile, (newProfile) => {

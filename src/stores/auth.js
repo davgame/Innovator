@@ -55,14 +55,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async refreshUser() {
-    const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        this.user = session.user
-        await this.fetchProfile(session.user.id)
-      }
-    },
-
     async signUp(email, password, fullName) {
       this.loading = true
       const { data, error } = await supabase.auth.signUp({
@@ -93,6 +85,15 @@ export const useAuthStore = defineStore('auth', {
         .eq('id', this.user.id)
 
       if (error) console.error('Error updating status:', error)
+    },
+
+    // В actions
+    async refreshUser() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        this.user = session.user
+        await this.fetchProfile(session.user.id)
+      }
     },
 
     // При входе

@@ -16,15 +16,18 @@
          lg:p-0 p-4
          w-full lg:w-auto">
         <!-- Контейнер для аватара и индикатора -->
-        <div class="relative lg:w-55 lg:h-55 w-22 h-22 flex items-center justify-between">
+        <div class="relative lg:w-55 lg:h-55 w-22 h-22 flex items-center justify-between"
+          @mouseenter="showContextMenu = true"
+          @mouseleave="showContextMenu = false">
   <!-- Контейнер аватара -->
   <div class="w-full h-full rounded-full overflow-hidden bg-blue-500 border-3 border-white lg:mt-4">
     <img
       v-if="authStore.profile?.avatar_url"
-      :src="authStore.profile.avatar_url"
+      :src="authStore.profile?.avatar_url + '?v=' + new Date().getTime()"
       class="w-full h-full object-cover"
       alt="Avatar"
     />
+        <!-- Контекстное меню -->
     <div
       v-else
       class="w-full h-full flex items-center justify-center text-white lg:text-2xl text-sm font-bold"
@@ -33,13 +36,39 @@
     </div>
   </div>
 
-  <!-- Индикатор онлайн/офлайн -->
+  <!-- Оверлей при наведении -->
   <div
-    class="absolute bottom-2 right-0 lg:bottom-3 lg:right-5 lg:w-6 lg:h-6 w-4 h-4 rounded-full border-2 border-white"
-    :class="isOnline ? 'bg-green-500' : 'bg-gray-400'"
-    :title="isOnline ? 'В сети' : 'Не в сети'"
-  ></div>
-</div>
+    class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+    @click="triggerImageInput"
+  >
+    <img src="/src/assets/images/camera_2.svg" class="text-white w-10 h-10">
+  </div>
+    <!-- Индикатор онлайн/офлайн -->
+    <div
+      class="absolute bottom-2 right-0 lg:bottom-3 lg:right-5 lg:w-6 lg:h-6 w-4 h-4 rounded-full border-2 border-white"
+      :class="isOnline ? 'bg-green-500' : 'bg-gray-400'"
+      :title="isOnline ? 'В сети' : 'Не в сети'"
+    ></div>
+
+      <!-- Контекстное меню -->
+    <Edit_img
+    v-if="showContextMenu"
+      class="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50"
+      @edit="handleEditPhoto"
+      @delete="handleDeletePhoto"
+      @close="showContextMenu = false"
+    />
+  </div>
+
+  <!-- Скрытый input для выбора файла -->
+  <input
+    type="file"
+    accept="image/jpeg,image/png,image/gif,image/jpg"
+    class="hidden"
+    ref="imageInput"
+    @change="handleImageSelect"
+  />
+
 
     <div>
     <!-- Информация о пользователе -->
@@ -57,40 +86,74 @@
       </div>
            <Edit_button class="hidden lg:flex items-center translate-y-[17px]"/>
       </div>
-      <p class="text-gray-500 lg:text-left text-center text-[13px] lg:text-[18px]">{{ authStore.user?.email }}</p>
-      <Edit_button class="lg:hidden block items-center translate-y-[17px] justify-center"/>
+          <!-- 👇 СТАТУС ПОЛЬЗОВАТЕЛЯ -->
+    <div class="flex items-center gap-2 lg:mt-1">
+      <p
+        class="lg:text-left text-center text-[15px] lg:text-[18px]"
+        :class="isOnline ? 'text-green-600' : 'text-gray-500'"
+      >
+        {{ userStatusText }}
+      </p>
     </div>
+      <Edit_button class="lg:hidden block items-center translate-y-[17px] justify-center"/>
+
+
+    </div>
+
+
   </div>
   </div>
 
   </div>
     <!-- Сетка с компонентами -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-30">
-
-      <ProfileCompetencies />
-      <ProfileResume />
-      <div class="lg:col-span-2">
-        <ProfileActions />
-      </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-60 lg:px-20 px-4">
+      <User_organization/>
+      <ProfileCompetencies/>
+      <ProfileRole/>
+      <ProfileResume/>
+      <ProfileAction class="lg:mb-40 mb-25" />
     </div>
+    <Footer/>
+      <!-- Модалка редактирования -->
+    <ModalOmg
+      :show="showEditModal"
+      :image-file="selectedImage"
+      @close="closeEditModal"
+      @save="saveAvatar"
+    />
 </template>
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
-import { ref, watch, onMounted } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
+import { ref, watch, onMounted, computed  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
 import { useAuthStore } from '@/stores/auth'
 import Edit_button from './Edit_button.vue';
 import User_organization from './User_organization.vue';
+import ProfileCompetencies from './ProfileCompetencies.vue';
+import ProfileResume from './PRofileResume.vue';
+import ProfileAction from './ProfileAction.vue';
+import ProfileRole from './ProfileRole.vue';
+import Footer from '@/components/Home/Footer.vue';
+import ModalOmg from '@/components/Authorization/ModalOmg.vue';
+import Edit_img from './Edit_img.vue';
+import { supabase } from '@/lib/supabase' // 👈 убедись что импортирован
 
 
+
+const imageInput = ref(null)
 const authStore = useAuthStore()
+// 👇 Объявляем ВСЕ ref переменные
+const isOnline = ref(false)
+const selectedImage = ref(null)      // для файла изображения
+const showEditModal = ref(false)     // для модального окна
+const avatarPreview = ref('')
 
 // Следим за изменениями профиля
 watch(() => authStore.profile, (newProfile) => {
   console.log('Profile changed in user.vue:', newProfile)
 }, { immediate: true })
 
-const isOnline = ref(false)
+
 
 // Функция обновления статуса
 const updateOnlineStatus = () => {
@@ -112,5 +175,223 @@ watch(() => authStore.profile?.status, (newStatus) => {
 
 onMounted(() => {
   updateOnlineStatus()
+})
+
+// Метод для закрытия модалки
+const closeEditModal = () => {
+  showEditModal.value = false
+  selectedImage.value = null
+}
+
+// Состояние для контекстного меню
+const showContextMenu = ref(false)
+
+// Методы для контекстного меню
+const handleEditPhoto = () => {
+  showContextMenu.value = false
+  triggerImageInput()
+}
+
+const handleDeletePhoto = async () => {
+  showContextMenu.value = false
+  if (confirm('Удалить фото профиля?')) {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', authStore.user?.id)
+
+      if (!error) {
+        await authStore.refreshUser()
+      }
+    } catch (error) {
+      console.error('Ошибка удаления:', error)
+    }
+  }
+}
+
+const closeContextMenu = () => {
+  showContextMenu.value = false
+}
+
+// Метод для открытия проводника
+const triggerImageInput = () => {
+  if (imageInput.value) {
+    imageInput.value.click()
+  }
+}
+
+// Обработчик выбора файла
+const handleImageSelect = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    alert('Пожалуйста, выберите изображение')
+    return
+  }
+
+  const maxSize = 5 * 1024 * 1024
+  if (file.size > maxSize) {
+    alert('Файл слишком большой. Максимальный размер: 5 МБ')
+    return
+  }
+
+  selectedImage.value = file
+  showEditModal.value = true
+  event.target.value = ''
+}
+
+
+// Функция для конвертации DataURL в File
+const dataURLtoFile = (dataurl, filename) => {
+  const arr = dataurl.split(',')
+  const mime = arr[0].match(/:(.*?);/)[1]
+  const bstr = atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+  return new File([u8arr], filename, { type: mime })
+}
+
+// Следим за изменениями аватара
+watch(() => authStore.profile?.avatar_url, (newUrl, oldUrl) => {
+  console.log('Avatar URL changed from', oldUrl, 'to', newUrl)
+}, { immediate: true })
+
+// Также следим за всем профилем
+watch(() => authStore.profile, (newProfile) => {
+  console.log('Profile updated:', newProfile)
+}, { deep: true })
+
+
+const saveAvatar = async (imageDataUrl) => {
+  console.log('saveAvatar called')
+
+  if (authStore.user?.id) {
+    const newAvatarUrl = await uploadAvatarToStorage(imageDataUrl, authStore.user.id)
+
+    if (newAvatarUrl) {
+      // 👇 1. Сначала обновляем store напрямую (мгновенно)
+      if (authStore.profile) {
+        authStore.profile.avatar_url = newAvatarUrl
+      }
+
+      // 👇 2. Потом делаем refresh для синхронизации с сервером
+      await authStore.refreshUser()
+
+      // 👇 3. Принудительно обновляем версию в Header (если нужно)
+      // Можно использовать sessionStorage или event bus
+      sessionStorage.setItem('avatarUpdated', Date.now().toString())
+    }
+  }
+
+  showEditModal.value = false
+}
+
+// Обновленная функция загрузки (возвращает URL)
+const uploadAvatarToStorage = async (imageDataUrl, userId) => {
+  try {
+    // Конвертируем DataURL в File
+    const file = dataURLtoFile(imageDataUrl, 'avatar.jpg')
+
+    // Загружаем в Storage Supabase
+    const fileName = `${userId}/avatar.jpg`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, file, { upsert: true })
+
+    if (uploadError) {
+      console.error('Ошибка загрузки аватара:', uploadError)
+      return null
+    }
+
+    // Получаем публичную ссылку
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName)
+
+    // Обновляем профиль с ссылкой на аватар
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        avatar_url: publicUrl,
+        avatar_name: file.name,
+        avatar_size: file.size
+      })
+      .eq('id', userId)
+
+    if (updateError) {
+      console.error('Ошибка обновления профиля:', updateError)
+      return null
+    }
+
+    console.log('Аватар успешно загружен:', publicUrl)
+    return publicUrl
+
+  } catch (err) {
+    console.error('Ошибка:', err)
+    return null
+  }
+}
+
+// Также добавь watch для отслеживания изменений в store
+watch(() => authStore.profile?.avatar_url, (newUrl) => {
+  if (newUrl) {
+    avatarPreview.value = newUrl
+    console.log('Avatar URL updated in store:', newUrl)
+  }
+})
+
+// Форматирование времени последнего визита
+const formatLastSeen = (timestamp) => {
+  if (!timestamp) return 'Никогда'
+
+  const lastSeen = new Date(timestamp)
+  const now = new Date()
+  const diffMs = now - lastSeen
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Только что'
+  if (diffMins < 60) return `${diffMins} ${getMinutesWord(diffMins)} назад`
+  if (diffHours < 24) return `${diffHours} ${getHoursWord(diffHours)} назад`
+  if (diffDays === 1) return 'Вчера'
+  if (diffDays < 7) return `${diffDays} ${getDaysWord(diffDays)} назад`
+
+  return lastSeen.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// Склонение слов
+const getMinutesWord = (minutes) => {
+  if (minutes % 10 === 1 && minutes % 100 !== 11) return 'минуту'
+  if ([2, 3, 4].includes(minutes % 10) && ![12, 13, 14].includes(minutes % 100)) return 'минуты'
+  return 'минут'
+}
+
+const getHoursWord = (hours) => {
+  if (hours % 10 === 1 && hours % 100 !== 11) return 'час'
+  if ([2, 3, 4].includes(hours % 10) && ![12, 13, 14].includes(hours % 100)) return 'часа'
+  return 'часов'
+}
+
+const getDaysWord = (days) => {
+  if (days % 10 === 1 && days % 100 !== 11) return 'день'
+  if ([2, 3, 4].includes(days % 10) && ![12, 13, 14].includes(days % 100)) return 'дня'
+  return 'дней'
+}
+
+// Текст статуса
+const userStatusText = computed(() => {
+  if (isOnline.value) return 'В сети'
+  return `был(а) ${formatLastSeen(authStore.profile?.last_seen)}`
 })
 </script>
