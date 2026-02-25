@@ -1,5 +1,4 @@
 <template>
-
       <!-- Email -->
       <label class="block text-gray-600 mb-2">Email</label>
       <div class="relative mb-6">

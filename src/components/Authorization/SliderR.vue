@@ -109,7 +109,7 @@ import Registration from "./Registration.vue"; // путь к компонент
 const activeTab = ref('auth'); // начальное состояние — «Авторизация»
 
 const slides = [
-  "/images/slide.jpg",
+  "/images/baner.jpg",
   "/images/slide.jpg",
   "/images/slide.jpg"
 ];

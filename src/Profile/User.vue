@@ -107,7 +107,7 @@
       <ProfileCompetencies/>
       <ProfileRole/>
       <ProfileResume/>
-      <ProfileAction class="lg:mb-40 mb-25" />
+      <ProfileAction class="lg:mb-40 mb-25" @open-exit-modal="showExitModal = true"/>
     </div>
     <Footer/>
       <!-- Модалка редактирования -->
@@ -123,16 +123,24 @@
       @close="showDeleteModal = false"
       @confirm="confirmDeletePhoto"
     />
+
+      <!-- Модалка выхода -->
+  <Exit_modal
+    :show="showExitModal"
+    @close="showExitModal = false"
+    @confirm="handleLogout"
+  />
 </template>
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
 import { ref, watch, onMounted, computed  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
+import { useRouter } from 'vue-router'  // 👈 добавь этот импорт
 import { useAuthStore } from '@/stores/auth'
 import Edit_button from './Edit_button.vue';
 import User_organization from './User_organization.vue';
 import ProfileCompetencies from './ProfileCompetencies.vue';
-import ProfileResume from './PRofileResume.vue';
+import ProfileResume from './ProfileResume.vue';
 import ProfileAction from './ProfileAction.vue';
 import ProfileRole from './ProfileRole.vue';
 import Footer from '@/components/Home/Footer.vue';
@@ -140,6 +148,7 @@ import ModalOmg from '@/components/Authorization/ModalOmg.vue';
 import Edit_img from './Edit_img.vue';
 import { supabase } from '@/lib/supabase' // 👈 убедись что импортирован
 import Delete_Modal from './Delete_Modal.vue';
+import Exit_modal from './Exit_modal.vue';
 
 
 const imageInput = ref(null)
@@ -149,6 +158,26 @@ const isOnline = ref(false)
 const selectedImage = ref(null)      // для файла изображения
 const showEditModal = ref(false)     // для модального окна
 const avatarPreview = ref('')
+const router = useRouter()  // 👈 добавь эту строку
+const showExitModal = ref(false)
+
+const handleLogout = async () => {
+  console.log('🚪 Выход из аккаунта')
+  try {
+    await authStore.signOut()
+    console.log('✅ Успешно вышел')
+
+    // 👇 Принудительно прокручиваем страницу вверх
+    window.scrollTo({
+      top: 0,
+      behavior: 'instant' // или 'smooth' если хочешь плавно
+    })
+
+    router.push('/')
+  } catch (error) {
+    console.error('❌ Ошибка при выходе:', error)
+  }
+}
 
 // Следим за изменениями профиля
 watch(() => authStore.profile, (newProfile) => {
@@ -156,6 +185,10 @@ watch(() => authStore.profile, (newProfile) => {
 }, { immediate: true })
 
 
+// Открыть модальное окно
+const openExitModal = () => {
+  showExitModal.value = true
+}
 
 // Функция обновления статуса
 const updateOnlineStatus = () => {

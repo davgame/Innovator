@@ -84,8 +84,16 @@ export const useAuthStore = defineStore('auth', {
         })
         .eq('id', this.user.id)
 
-      if (error) console.error('Error updating status:', error)
-    },
+      if (error) {
+         console.error('Ошибка обновления статуса:', error)
+         } else {
+    // 👇 Обновляем локальное состояние
+      if (this.profile) {
+        this.profile.status = status
+        this.profile.last_seen = new Date().toISOString()
+      }
+    }
+  },
 
     // В actions
     async refreshUser() {
@@ -107,18 +115,27 @@ export const useAuthStore = defineStore('auth', {
         this.user = data.user
         await this.fetchProfile(data.user.id)
         await this.updateUserStatus('online') // 👈 устанавливаем статус "online"
-      }
-
+            // 👇 Обновляем локальный профиль
+    if (this.profile) {
+      this.profile.status = 'online'
+      this.profile.last_seen = new Date().toISOString()
+    }
+  }
       this.loading = false
       return { data, error }
     },
 
     // При выходе
     async signOut() {
-      await this.updateUserStatus('offline') // 👈 устанавливаем "offline"
-      await supabase.auth.signOut()
-      this.user = null
-      this.profile = null
+      try {
+        await this.updateUserStatus('offline')
+        await supabase.auth.signOut()
+        this.user = null
+        this.profile = null
+        console.log('✅ Выход выполнен успешно')
+      } catch (error) {
+        console.error('❌ Ошибка при выходе:', error)
+      }
     }
   }
 })

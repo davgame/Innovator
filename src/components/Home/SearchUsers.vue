@@ -19,7 +19,7 @@
     >
       <div
         v-if="showSearchInput"
-        class="absolute right-14 flex items-center border-b border-gray-300 focus-within:border-blue-500 transition-colors bg-white"
+        class="absolute right-14 flex items-center border-b border-gray-300 focus-within:border-blue-500 transition-colors bg-white w-72"
       >
         <input
           ref="searchInputRef"
@@ -45,7 +45,7 @@
     <!-- Результаты поиска -->
     <div
       v-if="showResults && searchResults.length > 0"
-      class="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto"
+      class="absolute top-full lg:right-[53px] mt-4 w-73 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto justify-center items-center"
     >
       <div
         v-for="user in searchResults"
@@ -97,7 +97,7 @@
     <!-- Сообщение если ничего не найдено -->
     <div
       v-else-if="showResults && searchQuery && !loading && searchResults.length === 0"
-      class="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 text-center text-gray-500"
+      class="absolute top-full lg:right-[53px] mt-4 w-73 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 text-center text-gray-500"
     >
       Ничего не найдено
     </div>
@@ -105,7 +105,7 @@
     <!-- Индикатор загрузки -->
     <div
       v-if="loading"
-      class="absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 text-center"
+      class="absolute top-full lg:right-[53px] mt-4 w-73 bg-white rounded-lg shadow-xl border border-gray-200 z-50 p-4 text-center"
     >
       Поиск...
     </div>
@@ -152,6 +152,7 @@ const toggleSearch = () => {
 // Закрыть поиск
 const closeSearch = () => {
   showSearchInput.value = false
+  loading.value = false  // 👈 добавить
   clearSearch()
 }
 
@@ -160,6 +161,7 @@ const clearSearch = () => {
   searchQuery.value = ''
   searchResults.value = []
   showResults.value = false
+  loading.value = false  // 👈 добавить
 }
 
 // Дебаунс функция
@@ -175,7 +177,6 @@ const debounce = (fn, delay) => {
 const searchUsers = async () => {
   const query = searchQuery.value.trim()
 
-  // Всегда показываем результаты (даже пустые)
   showResults.value = true
 
   if (!query || query.length < 2) {
@@ -187,13 +188,28 @@ const searchUsers = async () => {
   console.log('🔍 Поиск:', query)
 
   try {
-    const { data, error } = await supabase
+    // Пробуем полнотекстовый поиск
+    let { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .ilike('full_name', `%${query}%`)
+      .textSearch('full_name', query, {
+        config: 'russian'
+      })
       .limit(5)
 
-    if (error) throw error
+    // Если полнотекстовый поиск не сработал или вернул 0 результатов
+    if (error || !data || data.length === 0) {
+      console.log('🔄 Пробуем обычный поиск...')
+
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('profiles')
+        .select('*')
+        .ilike('full_name', `%${query}%`)
+        .limit(5)
+
+      if (fallbackError) throw fallbackError
+      data = fallbackData
+    }
 
     console.log('📦 Найдено:', data?.length || 0)
     searchResults.value = data || []
@@ -220,6 +236,7 @@ const goToUserProfile = (userId) => {
 const handleClickOutside = (event) => {
   if (!event.target.closest('.relative')) {
     showResults.value = false
+    loading.value = false  // 👈 добавить
     if (showSearchInput.value && !searchQuery.value) {
       showSearchInput.value = false
     }
