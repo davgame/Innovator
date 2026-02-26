@@ -11,6 +11,7 @@ import Error_404 from '@/components/Error/Error_404.vue'
 import Error_502 from '@/components/Error/Error_502.vue'
 import User from '@/Profile/User.vue'
 import UserProfile from '@/Profile/UserProfile.vue'
+import Edit_profile from '@/Profile/Edit_profile.vue'
 
 
 
@@ -76,6 +77,11 @@ const router = createRouter({
     path: '/profile/:id',
     name: 'UserProfile',
     component: UserProfile
+    },
+    {
+    path: '/profile/edit',
+    name: 'EditProfile',
+    component: Edit_profile
     }
   ],
 })

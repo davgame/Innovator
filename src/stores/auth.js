@@ -42,16 +42,19 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async fetchProfile(userId) {
-      const { data, error } = await supabase // 👈 Стало
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle() // 👈 Стало (замени .single() на .maybeSingle())
+      console.log('📡 Fetching profile for:', userId)
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*, organizations(*)')
+        .eq('id', userId)
+        .maybeSingle()
 
       if (!error) {
         this.profile = data
+        console.log('✅ Profile loaded:', data)
       } else {
-        console.error('Error fetching profile:', error)
+        console.error('❌ Error fetching profile:', error)
       }
     },
 
@@ -96,13 +99,17 @@ export const useAuthStore = defineStore('auth', {
   },
 
     // В actions
-    async refreshUser() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        this.user = session.user
-        await this.fetchProfile(session.user.id)
-      }
-    },
+async refreshUser() {
+  const { data: { session } } = await supabase.auth.getSession()
+  console.log('🔄 refreshUser session:', session)
+
+  if (session?.user) {
+    this.user = session.user
+    await this.fetchProfile(session.user.id)
+  } else {
+    console.warn('⚠️ Нет активной сессии')
+  }
+},
 
     // При входе
     async signIn(email, password) {

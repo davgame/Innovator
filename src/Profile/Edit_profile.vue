@@ -73,10 +73,10 @@
     <div>
     <!-- Информация о пользователе -->
     <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
-      <div class="flex justify-between w-full lg:gap-70">
+      <div class="flex flex-col lg:flex-row lg:justify-between lg:w-full items-center lg:items-start lg:gap-57">
         <div class="flex items-center lg:gap-3 gap-[6px] lg:justify-start justify-center">
         <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold ">
-          {{ authStore.profile?.full_name || 'Пользователь' }}
+           {{ editedProfile.full_name || authStore.profile?.full_name || 'Пользователь' }}
         </h1>
         <img
           src="/src/assets/images/metka.svg"
@@ -84,9 +84,11 @@
           alt="metka"
         >
       </div>
-          <Edit_button
-          class="hidden lg:flex items-center translate-y-[17px] justify-center"
-        />
+        <Save_button
+          :saving="saving"
+          @cancel="cancelEdit"
+          @save="saveChanges"
+          class="hidden lg:flex items-center translate-y-[17px]"/>
       </div>
           <!-- 👇 СТАТУС ПОЛЬЗОВАТЕЛЯ -->
     <div class="flex items-center gap-2 lg:mt-1">
@@ -97,7 +99,10 @@
         {{ userStatusText }}
       </p>
     </div>
-      <Edit_button
+      <Save_button
+        :saving="saving"
+        @cancel="cancelEdit"
+        @save="saveChanges"
         class="lg:hidden block items-center translate-y-[17px] justify-center"/>
     </div>
   </div>
@@ -105,15 +110,27 @@
 
   </div>
     <!-- Сетка с компонентами -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-60 lg:px-20 px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-55 lg:px-20 px-4">
       <User_organization
-      :edit-mode="false"
-      :initial-organization-id="authStore.profile?.organization_id"
-      @loaded="displayOrganization = $event"
-  />
-      <ProfileCompetencies/>
-      <ProfileRole/>
-      <ProfileResume/>
+        :edit-mode="true"
+        :initial-organization-id="editedProfile.organization_id || authStore.profile?.organization_id"
+        @update:organization="updateOrganization"
+      />
+      <ProfileCompetencies
+        :edit-mode="true"
+        :initial-competencies="editedProfile.competencies"
+        @update:competencies="updateCompetencies"
+      />
+      <ProfileRole
+        :edit-mode="true"
+        :initial-role="editedProfile.role"
+        @update:role="updateRole"
+      />
+      <ProfileResume
+        :edit-mode="true"
+        :initial-resume="editedProfile.resume"
+        @update:resume="updateResume"
+      />
       <ProfileAction class="lg:mb-40 mb-25" @open-exit-modal="showExitModal = true"/>
     </div>
     <Footer/>
@@ -141,10 +158,9 @@
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
-import { ref, watch, onMounted, computed  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
+import { ref, watch, onMounted, computed, reactive } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
 import { useRouter } from 'vue-router'  // 👈 добавь этот импорт
 import { useAuthStore } from '@/stores/auth'
-import Edit_button from './Edit_button.vue';
 import User_organization from './User_organization.vue';
 import ProfileCompetencies from './ProfileCompetencies.vue';
 import ProfileResume from './ProfileResume.vue';
@@ -156,6 +172,7 @@ import Edit_img from './Edit_img.vue';
 import { supabase } from '@/lib/supabase' // 👈 убедись что импортирован
 import Delete_Modal from './Delete_Modal.vue';
 import Exit_modal from './Exit_modal.vue';
+import Save_button from './Save_button.vue';
 
 
 const imageInput = ref(null)
@@ -167,7 +184,123 @@ const showEditModal = ref(false)     // для модального окна
 const avatarPreview = ref('')
 const router = useRouter()  // 👈 добавь эту строку
 const showExitModal = ref(false)
-const userOrganization = ref(null)
+
+// Состояние
+const saving = ref(false)
+
+// После объявления editedProfile
+
+console.log('authStore.profile?.full_name:', authStore.profile?.full_name)
+
+// Редактируемые данные
+const editedProfile = reactive({
+  full_name: authStore.profile?.full_name || '',  // ← сюда должно прийти имя
+  avatar_url: authStore.profile?.avatar_url || null,
+  organization_id: authStore.profile?.organization_id,
+  organization: null,
+  competencies: ['React.JS', 'REST API', 'TailwindCSS', 'HTML', 'CSS', 'Figma'],
+  role: 'Активист',
+  resume: {
+    name: 'Anisimov_CV.PDF',
+    size: '1.5 МБ',
+    url: null
+  }
+})
+
+// Добавь логирование
+console.log('authStore.profile:', authStore.profile)
+console.log('editedProfile.full_name:', editedProfile.full_name)
+
+// Копия исходных данных для отмены
+const originalProfile = ref(JSON.parse(JSON.stringify(editedProfile)))
+
+const updateCompetencies = (comps) => {
+  editedProfile.competencies = comps
+}
+
+const updateRole = (role) => {
+  editedProfile.role = role
+}
+
+const updateResume = (resume) => {
+  editedProfile.resume = resume
+}
+
+const updateOrganization = (org) => {
+  console.log('Обновление организации:', org)  // 👈 отладка
+  editedProfile.organization_id = org.id
+  editedProfile.organization = org
+}
+
+watch(() => editedProfile.organization_id, (newId) => {
+  console.log('organization_id изменился на:', newId)
+})
+// Отмена изменений
+const cancelEdit = () => {
+  Object.assign(editedProfile, originalProfile.value)
+  router.push('/profile')
+}
+
+// Сохранение изменений
+const saveChanges = async () => {
+  console.log('💾 Попытка сохранения')
+  console.log('👤 authStore.user:', authStore.user)
+
+  if (!authStore.user?.id) {
+    console.error('❌ Нет ID пользователя в saveChanges')
+    alert('Ошибка: пользователь не авторизован')
+    await authStore.refreshUser()
+    if (!authStore.user?.id) {
+      router.push('/authorization')
+      return
+    }
+  }
+
+  saving.value = true
+  try {
+    console.log('✅ Сохраняем с ID:', authStore.user.id)
+
+    // 👇 ДОБАВЬ ЭТОТ КОД
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: editedProfile.full_name,
+        organization_id: editedProfile.organization_id
+      })
+      .eq('id', authStore.user.id)
+
+    if (error) throw error
+
+    console.log('✅ Сохранение выполнено')
+    await authStore.refreshUser()
+    router.push('/profile')
+  } catch (error) {
+    console.error('❌ Ошибка сохранения:', error)
+    alert('Не удалось сохранить изменения')
+  } finally {
+    saving.value = false
+  }
+}
+
+const handleOrganizationLoaded = (org) => {
+  // Организация загружена, можно обновить editedProfile если нужно
+  if (!editedProfile.organization_id) {
+    editedProfile.organization_id = org.id
+    editedProfile.organization = org
+  }
+}
+
+onMounted(async () => {
+  // Принудительно обновляем профиль
+  await authStore.refreshUser()
+
+  // Обновляем editedProfile
+  editedProfile.full_name = authStore.profile?.full_name || ''
+  editedProfile.avatar_url = authStore.profile?.avatar_url || null
+  editedProfile.organization_id = authStore.profile?.organization_id
+
+  console.log('После refreshUser:', authStore.profile?.full_name)
+})
 
 const handleLogout = async () => {
   console.log('🚪 Выход из аккаунта')
@@ -189,9 +322,31 @@ const handleLogout = async () => {
 
 // Следим за изменениями профиля
 watch(() => authStore.profile, (newProfile) => {
-  console.log('Profile changed in user.vue:', newProfile)
+  console.log('Profile changed:', newProfile?.full_name)
+
+  if (newProfile?.full_name) {
+    if (!editedProfile.full_name) {
+      editedProfile.full_name = newProfile.full_name
+    }
+  }
 }, { immediate: true })
 
+// После создания editedProfile
+watch(() => authStore.profile, (newProfile) => {
+  if (newProfile?.full_name) {
+    editedProfile.full_name = newProfile.full_name
+    editedProfile.avatar_url = newProfile.avatar_url
+    editedProfile.organization_id = newProfile.organization_id
+  }
+}, { immediate: true })
+
+// 1. Получаем доступ к store
+
+// 2. Смотрим профиль
+console.log(authStore.profile)
+
+// 3. Смотрим конкретно имя
+console.log('Full name:', authStore.profile?.full_name)
 
 // Открыть модальное окно
 const openExitModal = () => {
@@ -315,6 +470,27 @@ const saveAvatar = async (imageDataUrl) => {
 
   showEditModal.value = false
 }
+
+onMounted(async () => {
+  console.log('🔍 EditProfile mounted')
+  console.log('👤 authStore.user:', authStore.user)
+  console.log('📊 authStore.profile:', authStore.profile)
+
+  if (!authStore.user?.id) {
+    console.log('⏳ Пользователь не авторизован, пробуем загрузить...')
+    await authStore.refreshUser()
+  }
+
+  if (authStore.user?.id) {
+    console.log('✅ Пользователь загружен, ID:', authStore.user.id)
+    editedProfile.full_name = authStore.profile?.full_name || ''
+    editedProfile.avatar_url = authStore.profile?.avatar_url || null
+    editedProfile.organization_id = authStore.profile?.organization_id
+  } else {
+    console.error('❌ Не удалось получить ID пользователя')
+    router.push('/authorization')
+  }
+})
 
 // Обновленная функция загрузки (возвращает URL)
 const uploadAvatarToStorage = async (imageDataUrl, userId) => {
@@ -482,20 +658,35 @@ const confirmDeletePhoto = async () => {
     console.error('❌ Полный объект ошибки:', JSON.stringify(error, null, 2))
   }
 }
+// Следим за изменениями
+watch(() => authStore.profile, (newProfile) => {
+  console.log('Profile changed:', newProfile)
 
-const loadUserOrganization = async () => {
-  if (authStore.profile?.organization_id) {
-    const { data } = await supabase
-      .from('organizations')
-      .select('*')
-      .eq('id', authStore.profile.organization_id)
-      .single()
-
-    if (data) userOrganization.value = data
+  if (newProfile && !editedProfile.full_name) {
+    console.log('Setting full_name to:', newProfile.full_name)
+    editedProfile.full_name = newProfile.full_name
   }
-}
+}, { immediate: true })  // 👈 опции должны быть здесь
 
-onMounted(() => {
-  loadUserOrganization()
+// После создания editedProfile
+console.log('🔥 editedProfile.full_name:', editedProfile.full_name)
+console.log('🔥 authStore.profile?.full_name:', authStore.profile?.full_name)
+
+// При монтировании
+onMounted(async () => {
+  console.log('🔍 EditProfile mounted')
+
+  // Принудительно загружаем пользователя
+  await authStore.refreshUser()
+
+  console.log('✅ После refreshUser:', authStore.user)
+
+  if (authStore.user?.id) {
+    editedProfile.full_name = authStore.profile?.full_name || ''
+    editedProfile.organization_id = authStore.profile?.organization_id
+  } else {
+    console.error('❌ Не удалось загрузить пользователя')
+  }
 })
+
 </script>
