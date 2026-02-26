@@ -22,13 +22,13 @@
           class="flex-shrink-0"
           :style="{
             width: '854px',
-            height: '100%' // Занимает всю высоту родителя
+            aspectRatio: '480px'
           }"
         >
           <img
             :src="slide"
             alt="Slide"
-            class="w-full h-full object-cover"
+            class="w-full h-full "
           />
         </div>
       </div>
