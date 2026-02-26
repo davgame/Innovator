@@ -125,13 +125,16 @@
         :edit-mode="true"
         :initial-role="editedProfile.role"
         @update:role="updateRole"
+        class="lg:mb-40"
       />
       <ProfileResume
         :edit-mode="true"
         :initial-resume="editedProfile.resume"
         @update:resume="updateResume"
+        class="lg:mb-40 mb-25"
+
       />
-      <ProfileAction class="lg:mb-40 mb-25" @open-exit-modal="showExitModal = true"/>
+
     </div>
     <Footer/>
       <!-- Модалка редактирования -->
