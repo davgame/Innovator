@@ -132,7 +132,6 @@
         :initial-resume="editedProfile.resume"
         @update:resume="updateResume"
         class="lg:mb-40 mb-25"
-
       />
 
     </div>
