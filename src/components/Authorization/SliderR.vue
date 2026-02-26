@@ -28,7 +28,7 @@
           <img
             :src="slide"
             alt="Slide"
-            class="w-full h-full "
+            class="w-full h-full"
           />
         </div>
       </div>
