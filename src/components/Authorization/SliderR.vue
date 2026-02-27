@@ -22,7 +22,7 @@
           class="flex-shrink-0"
           :style="{
             width: '854px',
-            aspectRatio: '480px'
+            height: '100%'
           }"
         >
           <img
