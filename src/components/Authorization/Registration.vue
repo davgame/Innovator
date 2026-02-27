@@ -60,6 +60,26 @@
         </button>
       </div>
 
+        <!-- Индикатор силы пароля -->
+  <div v-if="password" class="mb-4">
+    <!-- Полоса прогресса -->
+    <div class="flex gap-1 h-1.5 mb-1">
+      <div
+        v-for="i in 4"
+        :key="i"
+        class="flex-1 rounded-full transition-all duration-300"
+        :class="[
+          i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200'
+        ]"
+      ></div>
+    </div>
+
+    <!-- Текст оценки -->
+    <p class="text-sm" :class="passwordStrength.textColor">
+      {{ passwordStrength.label }}
+    </p>
+  </div>
+
       <!-- Далее -->
       <button
         class="w-full py-4 mt-6 rounded-2xl bg-blue-500 text-white text-lg font-semibold
@@ -150,7 +170,6 @@
       class="w-full py-4 mt-8 rounded-2xl bg-blue-500 text-white text-lg font-semibold
             hover:bg-blue-600 transition cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
       @click="goToStep3"
-      :disabled="!pdfFile"
     >
       Далее
     </button>
@@ -246,7 +265,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from "vue";
+import { ref, nextTick, computed } from "vue";
 import ModalOmg from "./ModalOmg.vue";
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -255,6 +274,7 @@ import { supabase } from '@/lib/supabase'
 const router = useRouter()
 const authStore = useAuthStore()   //регистрация и авторизация
 const registerError = ref('')
+
 
 const step = ref(1);
 const userName = ref('');
@@ -283,11 +303,14 @@ const nextStep = () => {
 
 // Переход на шаг 3
 const goToStep3 = () => {
-  if (!pdfFile.value) {
-    fileError.value = 'Пожалуйста, загрузите PDF файл';
-    return;
+  // Проверяем, загружен ли файл для лога
+  if (pdfFile.value) {
+    console.log('PDF файл загружен:', pdfFile.value.name);
+  } else {
+    console.log('Переход на шаг 3 без PDF');
   }
-  console.log('PDF файл загружен:', pdfFile.value.name);
+
+  // Всегда переходим на шаг 3
   step.value = 3;
 };
 
@@ -529,4 +552,64 @@ const uploadAvatarToStorage = async (imageDataUrl, userId) => {
     console.error('Ошибка:', err)
   }
 }
+
+// Оценка сложности пароля
+// Оценка сложности пароля
+const passwordStrength = computed(() => {
+  const pwd = password.value
+
+  if (!pwd) {
+    return { score: 0, label: '', color: '', textColor: '' }
+  }
+
+  let score = 0
+
+  // Оценка по длине
+  if (pwd.length >= 4) score++
+  if (pwd.length >= 6) score++
+  if (pwd.length >= 8) score++
+
+  // Бонус за наличие цифр (только если длина достаточная)
+  if (pwd.length >= 6 && /\d/.test(pwd)) score++
+
+  // Ограничиваем максимум 4 баллами
+  const normalizedScore = Math.min(4, score)
+
+  // Определяем результат
+  let label, color, textColor
+
+  switch (normalizedScore) {
+    case 1:
+      label = 'Очень слабый'
+      color = 'bg-red-500'
+      textColor = 'text-red-500'
+      break
+    case 2:
+      label = 'Слабый'
+      color = 'bg-orange-500'
+      textColor = 'text-orange-500'
+      break
+    case 3:
+      label = 'Средний'
+      color = 'bg-yellow-500'
+      textColor = 'text-yellow-600'
+      break
+    case 4:
+      label = 'Сильный'
+      color = 'bg-green-500'
+      textColor = 'text-green-600'
+      break
+    default:
+      label = 'Очень слабый'
+      color = 'bg-red-500'
+      textColor = 'text-red-500'
+  }
+
+  return {
+    score: normalizedScore,
+    label,
+    color,
+    textColor
+  }
+})
 </script>
