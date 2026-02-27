@@ -42,14 +42,14 @@
           <!-- Если нет профиля - показываем кнопки -->
         <template v-else>
           <RouterLink
-            to="/authorization"
+            to="/authorization?tab=auth"
             @click="isOpen = false"
             class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
           >
             Войти
           </RouterLink>
           <RouterLink
-            to="/register"
+            to="/register?tab=register"
             class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
           >
             Регистрация
@@ -132,14 +132,14 @@
 
           <template v-else>
             <RouterLink
-              to="/authorization"
+              to="/authorization?tab=auth"
               @click="isOpen = false"
               class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
             >
               Войти
             </RouterLink>
             <RouterLink
-              to="/register"
+              to="/authorization?tab=register"
               @click="isOpen = false"
               class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
             >

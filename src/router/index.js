@@ -20,6 +20,11 @@ const router = createRouter({
   routes: [
     {
       path: '/authorization',
+      name:'Sign',
+      component:SliderR
+    },
+    {
+      path: '/register',
       name:'Start',
       component:SliderR
     },

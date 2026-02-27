@@ -100,13 +100,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
-
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { useRoute, useRouter } from 'vue-router';  // 👈 добавить
 import Auth from "./Auth.vue";     // путь к компоненту авторизации
 import Registration from "./Registration.vue"; // путь к компоненту регистрации
 
 // Инициализируем activeTab
 const activeTab = ref('auth'); // начальное состояние — «Авторизация»
+const route = useRoute();  // 👈 добавить
+const router = useRouter();  // 👈 добавить
+
+// 👇 Следим за query параметром tab
+watch(() => route.query.tab, (newTab) => {
+  console.log('Tab from URL:', newTab);
+  if (newTab === 'register') {
+    activeTab.value = 'register';
+  } else {
+    activeTab.value = 'auth';
+  }
+}, { immediate: true });
+
+// 👇 Если параметр отсутствует, устанавливаем 'auth' по умолчанию
+onMounted(() => {
+  if (!route.query.tab) {
+    router.replace({ query: { tab: 'auth' } });
+  }
+});
 
 const slides = [
   "/images/baner.jpg",
