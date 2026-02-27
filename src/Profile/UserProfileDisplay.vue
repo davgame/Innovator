@@ -1,5 +1,6 @@
 <!-- src/components/UserProfileDisplay.vue -->
 <template>
+
   <div class="px-20 mt-21">
     <div v-if="loading">Загрузка...</div>
     <div v-else-if="userProfile">
