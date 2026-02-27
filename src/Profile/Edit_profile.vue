@@ -114,7 +114,7 @@
       <User_organization
         :edit-mode="true"
         :initial-organization-id="editedProfile.organization_id || authStore.profile?.organization_id"
-        @update:organization="updateOrganization"
+        @update:organization="handleOrganizationUpdate"
       />
       <ProfileCompetencies
         :edit-mode="true"
@@ -123,7 +123,8 @@
       />
       <ProfileRole
         :edit-mode="true"
-        :initial-role="editedProfile.role"
+        :organization-id="editedProfile.organization_id"
+        :initial-role-id="editedProfile.role_id"
         @update:role="updateRole"
         class="lg:mb-40"
       />
@@ -220,10 +221,6 @@ const updateCompetencies = (comps) => {
   editedProfile.competencies = comps
 }
 
-const updateRole = (role) => {
-  editedProfile.role = role
-}
-
 const updateResume = (resume) => {
   editedProfile.resume = resume
 }
@@ -267,7 +264,8 @@ const saveChanges = async () => {
       .from('profiles')
       .update({
         full_name: editedProfile.full_name,
-        organization_id: editedProfile.organization_id
+        organization_id: editedProfile.organization_id,
+        role_id: editedProfile.role_id
       })
       .eq('id', authStore.user.id)
 
@@ -605,6 +603,18 @@ const showDeleteModal = ref(false)
 const handleDeletePhoto = () => {
   showContextMenu.value = false
   showDeleteModal.value = true
+}
+
+const handleOrganizationUpdate = (org) => {
+  updateOrganization(org)
+  // Сбрасываем роль при смене организации
+  editedProfile.role_id = null
+  editedProfile.role = null
+}
+
+const updateRole = (role) => {
+  editedProfile.role_id = role.id
+  editedProfile.role = role
 }
 
 // Метод для подтверждения удаления

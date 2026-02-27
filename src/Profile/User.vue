@@ -112,7 +112,10 @@
       @loaded="displayOrganization = $event"
   />
       <ProfileCompetencies/>
-      <ProfileRole/>
+      <ProfileRole
+        :edit-mode="false"
+        :organization-id="authStore.profile?.organization_id"
+        :initial-role-id="authStore.profile?.role_id"/>
       <ProfileResume/>
       <ProfileAction class="lg:mb-40 mb-25" @open-exit-modal="showExitModal = true"/>
     </div>
