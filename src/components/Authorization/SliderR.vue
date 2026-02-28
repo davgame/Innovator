@@ -128,7 +128,7 @@ onMounted(() => {
 });
 
 const slides = [
-  "/images/baner.jpg",
+  "/images/glory.png",
   "/images/slide.jpg",
   "/images/slide.jpg"
 ];
