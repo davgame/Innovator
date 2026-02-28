@@ -72,34 +72,44 @@
 
     <div>
     <!-- Информация о пользователе -->
-    <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
-      <div class="flex justify-between w-full lg:gap-70">
-        <div class="flex items-center lg:gap-3 gap-[6px] lg:justify-start justify-center">
-        <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold ">
-          {{ authStore.profile?.full_name || 'Пользователь' }}
-        </h1>
-        <img
-          src="/src/assets/images/metka.svg"
-          class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] lg:translate-y-[6px] translate-y-[3px]"
-          alt="metka"
-        >
-      </div>
-          <Edit_button
-          class="hidden lg:flex items-center translate-y-[17px] justify-center"
-        />
-      </div>
-          <!-- 👇 СТАТУС ПОЛЬЗОВАТЕЛЯ -->
-    <div class="flex items-center gap-2 lg:mt-1">
-      <p
-        class="lg:text-left text-center text-[15px] lg:text-[18px]"
-        :class="isOnline ? 'text-green-600' : 'text-gray-500'"
+<div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
+
+  <!-- Верхняя строка -->
+  <div class="flex items-center justify-between w-full">
+
+    <!-- Имя + галочка -->
+    <div class="flex-1 flex items-center gap-1 lg:gap-3">
+
+      <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold">
+        {{ authStore.profile?.full_name || 'Пользователь' }}
+      </h1>
+
+      <img
+        src="/src/assets/images/metka.svg"
+        class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] lg:translate-y-[6px] translate-y-[3px]"
+        alt="metka"
       >
-        {{ userStatusText }}
-      </p>
     </div>
-      <Edit_button
-        class="lg:hidden block items-center translate-y-[17px] justify-center"/>
-    </div>
+
+    <!-- Кнопка (ПК) -->
+      <Edit_button class="hidden lg:flex translate-y-[17px]" />
+  </div>
+
+  <!-- Статус -->
+  <div class="flex items-center justify-center gap-2 lg:mt-1">
+    <p
+      class="lg:text-left text-center text-[15px] lg:text-[18px]"
+      :class="isOnline ? 'text-green-600' : 'text-gray-500'"
+    >
+      {{ userStatusText }}
+    </p>
+  </div>
+
+  <!-- Кнопка (мобилка) -->
+  <Edit_button
+    class="lg:hidden block translate-y-[17px]"
+  />
+</div>
   </div>
   </div>
 

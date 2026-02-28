@@ -1,9 +1,7 @@
 <!-- src/views/UserProfile.vue -->
 <template>
   <Header/>
-  <div class="px-20 mt-21">
-    <UserProfileDisplay :user-id="userId" />
-  </div>
+<UserProfileDisplay :user-id="userId"/>
 </template>
 
 <script setup>
@@ -14,3 +12,4 @@ import UserProfileDisplay from './UserProfileDisplay.vue'
 const route = useRoute()
 const userId = route.params.id
 </script>
+<UserProfileDisplay :user-id="userId"/>
