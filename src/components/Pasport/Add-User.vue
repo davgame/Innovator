@@ -22,7 +22,8 @@
       <!-- Search -->
       <div class="relative mb-3">
         <input
-          v-model="search"
+          v-model="searchQuery"
+          @input="searchUsers"
           type="text"
           placeholder="Начните ввод..."
           class="w-full border border-[#CBCBCB]
@@ -34,22 +35,23 @@
       <!-- Users list (scroll) -->
       <div
         class="flex-1 overflow-y-auto space-y-2 pr-1"
-        :style="{ maxHeight: filteredUsers.length > 4 ? '260px' : 'auto' }"
+        :style="{ maxHeight: searchResults.length > 4 ? '260px' : 'auto' }"
       >
         <div
-          v-for="user in filteredUsers"
+          v-for="user in searchResults"
           :key="user.id"
           class="flex items-center gap-3 p-2 rounded-[14px]
                  hover:bg-[#F6F8FA] cursor-pointer"
+          :class="{ 'bg-blue-50': isSelected(user) }"
           @click="toggleUser(user)"
         >
           <img
-            :src="user.avatar"
+            :src="user.avatar_url"
             class="w-9 h-9 rounded-full"
           />
 
           <div class="flex-1">
-            <p class="text-[14px] font-medium">{{ user.name }}</p>
+            <p class="text-[14px] font-medium">{{ user.full_name }}</p>
             <p class="text-[12px] text-[#6C727C]">{{ user.role }}</p>
           </div>
 
@@ -86,7 +88,7 @@
 
       <!-- Footer button -->
       <button
-        @click="confirm"
+        @click="addMembers"
         class="mt-4 bg-[#222222] hover:bg-[#4286F7]
                text-white py-2 rounded-[14px]
                text-[15px] font-medium transition-colors"
@@ -98,48 +100,119 @@
   </div>
 </template>
 
-<script>
-import { users } from './user';
 
-export default {
-  emits: ['close', 'confirm'],
+<script setup>
+import { ref } from 'vue'
+import { supabase } from '@/lib/supabase'
 
-  data() {
-    return {
-      search: '',
-      selectedUsers: []
-    }
-  },
-
-  computed: {
-    filteredUsers() {
-      return users.filter(user =>
-        user.name.toLowerCase().includes(this.search.toLowerCase())
-      )
-    }
-  },
-
-  methods: {
-    isSelected(user) {
-      return this.selectedUsers.some(u => u.id === user.id)
-    },
-
-    toggleUser(user) {
-      if (this.isSelected(user)) {
-        this.selectedUsers = this.selectedUsers.filter(
-          u => u.id !== user.id
-        )
-      } else {
-        this.selectedUsers.push(user)
-      }
-      console.log('Текущие выбранные в модалке:', this.selectedUsers)
-    },
-
-    confirm() {
-      console.log('Confirm в Add-User, отправляем:', this.selectedUsers)
-      this.$emit('confirm', this.selectedUsers)
-      this.$emit('close')
-    }
+const props = defineProps({
+  projectId: {
+    type: Number,
+    required: true
   }
+})
+
+const emit = defineEmits(['close', 'confirm'])
+
+// 👇 Объявляем все переменные
+const searchQuery = ref('')
+const searchResults = ref([])
+const selectedUsers = ref([])
+
+// Поиск пользователей в БД
+
+// Удалить из выбранных (альтернативный метод)
+const removeUser = (userId) => {
+  selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
+}
+
+// Сохранить всех выбранных в БД
+const addMembers = async () => {
+  if (selectedUsers.value.length === 0) {
+    alert('Выберите хотя бы одного пользователя')
+    return
+  }
+
+  const members = selectedUsers.value.map(user => ({
+    project_id: props.projectId,
+    user_id: user.id,
+    role: user.role
+  }))
+
+  console.log('Сохраняем участников:', members)
+
+  const { error } = await supabase
+    .from('project_members')
+    .insert(members)
+
+  if (error) {
+    console.error('Ошибка сохранения:', error)
+    alert('Ошибка при добавлении участников')
+  } else {
+    console.log('✅ Участники сохранены')
+    emit('confirm', selectedUsers.value)
+    emit('close')
+  }
+}
+
+// Простое подтверждение (без сохранения в БД, если нужно)
+const confirm = () => {
+  console.log('Confirm в Add-User, отправляем:', selectedUsers.value)
+  emit('confirm', selectedUsers.value)
+  emit('close')
+}
+
+const isSelected = (user) => {
+  return selectedUsers.value.some(u => u.id === user.id)
+}
+
+const toggleUser = (user) => {
+  console.log('🖱️ Клик по пользователю:', user.full_name)
+
+  if (isSelected(user)) {
+    selectedUsers.value = selectedUsers.value.filter(u => u.id !== user.id)
+  } else {
+    selectedUsers.value.push({
+      id: user.id,
+      name: user.full_name,
+      avatar: user.avatar_url,
+      full_name: user.full_name,
+      avatar_url: user.avatar_url
+    })
+  }
+  console.log('📋 Текущие выбранные:', selectedUsers.value.map(u => u.name))
+}
+
+const searchUsers = async () => {
+  console.log('🔍 Ищем:', searchQuery.value)
+
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    return
+  }
+
+  // Тест с конкретным именем
+  const testQuery = 'Бурлов'
+  const { data: testData, error: testError } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .ilike('full_name', `%${testQuery}%`)
+
+  console.log('🧪 Тестовый поиск "Бурлов":', testData)
+  console.log('🧪 Ошибка теста:', testError)
+
+  // Основной поиск
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, avatar_url')
+    .ilike('full_name', `%${searchQuery.value}%`)
+    .limit(5)
+
+  if (error) {
+    console.error('❌ Ошибка поиска:', error)
+  }
+
+  console.log('📦 Результаты поиска:', data)
+  searchResults.value = data || []
 }
 </script>

@@ -8,7 +8,7 @@
 
   <div class="bg-white border-b border-gray-200 px-15">
     <!-- Заголовок проекта с выбранными пользователями -->
-    <div class="mb-6 gap-2 flex justify-between items-center">
+    <div class="mb-5 gap-2 flex justify-between items-center">
         <h1 class="text-5xl font-bold text-gray-900">
           {{ project.name }}
         </h1>
@@ -64,6 +64,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import AddUser from '../Pasport/Add-User.vue'
+import { useRoute } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+
+const route = useRoute()
+const projectId = route.params.projectId  // ID из маршрута
+const selectedUsers = ref([])
+
+onMounted(() => {
+  loadProjectMembers()
+})
 
 // Props
 const props = defineProps({
@@ -76,8 +86,6 @@ const props = defineProps({
 // Объявляем события
 const emit = defineEmits(['updateName']) // ← Добавить эту строку!
 
-// Выбранные пользователи
-const selectedUsers = ref([])
 
 // Состояние модального окна
 const showMemberModal = ref(false)
@@ -150,7 +158,43 @@ const handleMembersConfirm = (users) => {
 
   closeModal()
 }
+
+
+const loadProjectMembers = async () => {
+  // Проверяем, есть ли projectId
+  if (!projectId) {
+    console.error('❌ Нет ID проекта')
+    return
+  }
+
+  // Делаем запрос
+  const { data, error } = await supabase
+    .from('project_members')
+    .select('*, profiles(full_name, avatar_url)')
+    .eq('project_id', projectId)
+
+  // Проверяем ошибку
+  if (error) {
+    console.error('❌ Ошибка загрузки:', error)
+    return
+  }
+
+  // Проверяем, что данные есть
+  if (data && data.length > 0) {
+    selectedUsers.value = data.map(m => ({
+      id: m.user_id,
+      name: m.profiles?.full_name || 'Пользователь',  // 👈 защита от null
+      avatar: m.profiles?.avatar_url || null,          // 👈 защита от null
+      role: m.role || 'Участник'                       // 👈 роль по умолчанию
+    }))
+    console.log('✅ Загружены участники:', selectedUsers.value)
+  } else {
+    selectedUsers.value = []
+    console.log('ℹ️ Участников пока нет')
+  }
+}
 </script>
+
 
 <style scoped>
 /* Стили для перекрытия аватарок (эллипсов) */

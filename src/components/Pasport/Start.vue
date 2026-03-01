@@ -5,8 +5,8 @@
     <h1 class="lg:text-5xl text-[33px] font-bold lg:mb-12 mb-8">Новый проект<span class="text-[#222222]"></span></h1>
 
     <!-- Поле ввода -->
-     <div class="items-center justify-between  lg:px-[100px]">
-    <div class="relative lg:w-[480px] mb-6 align-items justify-center">
+     <div class="items-center justify-between lg:px-[100px]">
+    <div class="relative lg:w-[480px] w-[330px] mb-6 align-items justify-center">
       <textarea
         ref="textarea"
         rows="1"
@@ -15,7 +15,7 @@
         @keydown.enter.exact.prevent="fetchSuggestions"
         @keydown.enter.shift.exact.prevent="query += '\n'"
         placeholder="Воображение важнее, чем знание"
-        class="w-full min-w-[330px] lg:min-h-[140px] min-h-[125px] max-h-[200px] p-6 border-2 border-blue-300 rounded-3xl lg:text-lg text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 resize-none overflow-hidden"
+        class="w-full lg:min-w-[480px] min-w-[280px] lg:min-h-[140px] min-h-[125px] max-h-[200px] p-6 border-2 border-blue-300 rounded-3xl lg:text-lg text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 resize-none overflow-hidden"
       ></textarea>
 
       <!-- Smart Mood toggle -->

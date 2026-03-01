@@ -14,7 +14,7 @@
          lg:items-center items-center
          lg:gap-7 gap-2
          lg:p-0 p-4
-         w-full lg:w-auto">
+         w-full lg:w-auto ">
         <!-- Контейнер для аватара и индикатора -->
         <div class="relative lg:w-55 lg:h-55 w-22 h-22 flex items-center justify-between"
           @mouseenter="showContextMenu = true"
@@ -75,10 +75,10 @@
 <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
 
   <!-- Верхняя строка -->
-  <div class="flex items-center justify-between w-full">
+  <div class="flex items-center w-full justify-center">
 
     <!-- Имя + галочка -->
-    <div class="flex-1 flex items-center gap-1 lg:gap-3">
+    <div class="flex items-center gap-1 lg:gap-3">
 
       <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold">
         {{ authStore.profile?.full_name || 'Пользователь' }}
@@ -92,7 +92,7 @@
     </div>
 
     <!-- Кнопка (ПК) -->
-      <Edit_button class="hidden lg:flex translate-y-[17px]" />
+      <Edit_button class="hidden lg:flex ml-auto translate-y-[17px]" />
   </div>
 
   <!-- Статус -->

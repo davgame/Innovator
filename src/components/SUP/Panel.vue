@@ -3,15 +3,10 @@
   <div class="h-screen w-80 bg-white border-r border-gray-200 flex flex-col">
 
     <!-- Шапка с названием компании и локацией -->
-    <div class="p-7">
-        <!--Логотип-->
-      <div class="flex items-start space-x-3 w-1/2">
-        <img src="/src/assets/images/SUP_Logo.svg" alt="Innova" class="w-[42px] h-auto"/>
-        <div class="text-left">
-          <h1 class="text-[17px] font-rubik text-black font-bold">Инноваторы</h1>
-          <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
-        </div>
-      </div>
+    <div class="p-6">
+       <!--Логотип-->
+        <Header_sup/>
+
     </div>
 
     <!-- Поиск -->
@@ -179,6 +174,7 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router' // ← Добавить этот импорт!
+import Header_sup from './Header_sup.vue'
 
 // Эмит событий
 const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])

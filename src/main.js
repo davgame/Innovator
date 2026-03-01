@@ -15,4 +15,5 @@ app.mixin({
     initFlowbite()
   }
 })
+
 app.mount('#app')
