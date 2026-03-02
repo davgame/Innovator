@@ -51,12 +51,6 @@
       <button class="px-1 py-2 text-lg font-semibold text-[#318AEE] border-b-2 border-[#318AEE] cursor-pointer">
         Доска
       </button>
-      <button class="px-1 py-2 text-lg font-semibold text-[#C0C0C0]">
-        Календарь
-      </button>
-      <button class="px-1 py-2 text-lg font-semibold text-[#C0C0C0]">
-        Команда
-      </button>
     </div>
   </div>
 </template>

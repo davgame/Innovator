@@ -129,8 +129,8 @@ onMounted(() => {
 
 const slides = [
   "/images/glory.png",
-  "/images/slide.jpg",
-  "/images/slide.jpg"
+  "/images/banner2.jpg",
+  "/images/banner3.png"
 ];
 
 const currentSlide = ref(0);

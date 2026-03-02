@@ -68,35 +68,47 @@
     ref="imageInput"
     @change="handleImageSelect"
   />
-
-
     <div>
     <!-- Информация о пользователе -->
 <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
 
   <!-- Верхняя строка -->
-  <div class="flex items-center w-full justify-center">
+<div class="grid
+    lg:grid-cols-[minmax(0,600px)_auto]
+    items-center
+    w-full
+    gap-8
+  ">
 
-    <!-- Имя + галочка -->
-    <div class="flex items-center gap-1 lg:gap-3">
+  <!-- Имя + галочка -->
+  <div class="flex items-center lg:gap-2 gap-1 min-w-0">
 
-      <h1 class="lg:text-4xl text-[19px] lg:py-2 font-bold">
-        {{ authStore.profile?.full_name || 'Пользователь' }}
-      </h1>
+    <h1
+      class="lg:text-4xl
+        text-[19px]
+        lg:py-2
+        font-bold
+        truncate
+        max-w-full
+      "
+    >
+      {{ authStore.profile?.full_name || 'Пользователь' }}
+    </h1>
 
-      <img
-        src="/src/assets/images/metka.svg"
-        class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] lg:translate-y-[6px] translate-y-[3px]"
-        alt="metka"
-      >
-    </div>
-
-    <!-- Кнопка (ПК) -->
-      <Edit_button class="hidden lg:flex ml-auto translate-y-[17px]" />
+    <img
+      src="/src/assets/images/metka.svg"
+      class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] flex-shrink-0 lg:translate-y-[7px] translate-y-[2px]"
+      alt="metka"
+    >
   </div>
 
+  <!-- Кнопка -->
+  <Edit_button class="hidden lg:flex translate-y-[17px]" />
+
+</div>
+
   <!-- Статус -->
-  <div class="flex items-center justify-center gap-2 lg:mt-1">
+  <div class="flex items-center justify-center gap-2 lg:mt-[-2px]">
     <p
       class="lg:text-left text-center text-[15px] lg:text-[18px]"
       :class="isOnline ? 'text-green-600' : 'text-gray-500'"

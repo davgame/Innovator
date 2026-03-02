@@ -4,7 +4,8 @@
     <div v-if="step === 1">
       <!-- Name -->
       <label class="block text-gray-600 mb-2">Полное имя</label>
-      <div class="relative mb-6">
+      <div class="relative mb-6"
+      :class="{ 'mb-12': userNameError }">
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/user_1.svg" alt="Innova" class="w-auto h-auto"/>
         </span>
@@ -14,20 +15,32 @@
           placeholder="Федосьев Георгий"
           class="w-full pl-13 pr-4 py-4 rounded-2xl border border-gray-300
                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          :class="[
+            userNameError
+              ? 'border-red-500 focus:ring-red-200'
+              : 'border-gray-300 focus:ring-blue-500'
+          ]"
+          @input="validateName"
         />
         <button
           v-if="userName"
           type="button"
           class="absolute inset-y-0 right-4 text-gray-400 cursor-pointer"
-          @click="userName = ''"
+          @click="userName = ''; validateName()"
         >
           <img src="/src/assets/images/cross_1.svg" alt="Очистить поле" class="w-auto h-auto"/>
         </button>
+          <!-- Ошибка -->
+        <div v-if="userNameError" class="absolute left-0" :style="{ top: 'calc(100% + 6px)' }">
+          <p class="text-red-500 text-sm">{{ userNameError }}</p>
+        </div>
       </div>
 
       <!-- Email -->
       <label class="block text-gray-600 mb-2">Email</label>
-      <div class="relative mb-6">
+      <div
+        class="relative mb-6" :class="{ 'mb-12': emailError }"
+      >
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/Messenger.svg" alt="Innova" class="w-auto h-auto"/>
         </span>
@@ -35,14 +48,24 @@
           v-model="email"
           type="email"
           placeholder="Kervis@gmail.com"
-          class="w-full pl-13 pr-4 py-4 rounded-2xl border border-gray-300
-                focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="w-full pl-13 pr-4 py-4 rounded-2xl border focus:outline-none focus:ring-2 transition-all"
+          :class="[
+            emailError
+              ? 'border-red-500 focus:ring-red-200'
+              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+          ]"
+          @input="validateEmail"
         />
+
+        <!-- Ошибка абсолютно позиционирована под инпутом -->
+        <div v-if="emailError" class="absolute left-0" :style="{ top: 'calc(100% + 6px)' }">
+          <p class="text-red-500 text-sm">{{ emailError }}</p>
+        </div>
       </div>
 
       <!-- Password -->
       <label class="block text-gray-600 mb-2">Пароль</label>
-      <div class="relative mb-4">
+      <div class="relative mb-6" :class="{ 'mb-12': passwordError, 'mb-6': !passwordError }">
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/Password.svg" alt="Innova" class="w-auto h-auto"/>
         </span>
@@ -271,11 +294,12 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { supabase } from '@/lib/supabase'
 
+const emailError = ref('')
 const router = useRouter()
 const authStore = useAuthStore()   //регистрация и авторизация
 const registerError = ref('')
 
-
+const userNameError = ref('')
 const step = ref(1);
 const userName = ref('');
 const email = ref('');
@@ -285,6 +309,7 @@ const isDragging = ref(false);
 const pdfFile = ref(null);
 const fileError = ref('');
 const fileInput = ref(null);
+const passwordError = ref('')  // 👈 добавить
 
 const imageInput = ref(null); // Отдельный ref для input изображения
 const selectedImage = ref(null); // Выбранный файл изображения
@@ -293,13 +318,6 @@ const avatarPreview = ref(''); // Для отображения сохранен
 
 const emit = defineEmits(['complete']);
 
-const nextStep = () => {
-  if (!userName.value || !email.value || !password.value) {
-    alert("Пожалуйста, заполните все поля");
-    return;
-  }
-  step.value = 2;
-};
 
 // Переход на шаг 3
 const goToStep3 = () => {
@@ -317,6 +335,64 @@ const goToStep3 = () => {
 // Метод для возврата на шаг 2
 const goBackToStep2 = () => {
   console.log('Возврат на шаг 2');
+  step.value = 2;
+};
+
+const validateEmail = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!email.value) {
+    emailError.value = ''  // пустое поле — нет ошибки
+  } else if (!emailRegex.test(email.value)) {
+    emailError.value = 'Введите корректный email'
+  } else {
+    emailError.value = ''  // правильный email — ошибка исчезает
+  }
+}
+
+const validateName = () => {
+  if (!userName.value) {
+    userNameError.value = ''
+  } else {
+    const words = userName.value.trim().split(/\s+/)
+    if (words.length < 2) {
+      userNameError.value = 'Введите имя и фамилию'
+    } else {
+      userNameError.value = ''
+    }
+  }
+}
+// Валидация пароля
+const validatePassword = () => {
+  if (!password.value) {
+    passwordError.value = ''
+  } else if (password.value.length < 6) {
+    passwordError.value = 'Пароль должен содержать минимум 6 символов'
+  } else {
+    passwordError.value = ''
+  }
+}
+
+const nextStep = () => {
+  if (!userName.value || !email.value || !password.value) {
+    alert("Пожалуйста, заполните все поля");
+    return;
+  }
+
+    // Проверка имени
+  const nameWords = userName.value.trim().split(/\s+/)
+  if (nameWords.length < 2) {
+    userNameError.value = 'Введите имя и фамилию';
+    return;
+  }
+
+  // Финальная проверка перед отправкой
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    emailError.value = 'Введите корректный email';
+    return;
+  }
+
   step.value = 2;
 };
 

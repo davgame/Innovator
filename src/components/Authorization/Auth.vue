@@ -1,7 +1,7 @@
 <template>
       <!-- Email -->
       <label class="block text-gray-600 mb-2">Email</label>
-      <div class="relative mb-6">
+      <div class="relative " :class="{ 'mb-12': emailError, 'mb-6': !emailError }">
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/Messenger.svg" alt="Innova" class="w-auto h-auto"/>
         </span>
@@ -11,12 +11,21 @@
           placeholder="Kervis@gmail.com"
           class="w-full pl-13 pr-4 py-4 rounded-2xl border border-gray-300
                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+          :class="[
+            emailError
+              ? 'border-red-500 focus:ring-red-200'
+              : 'border-gray-300 focus:ring-blue-500'
+          ]"
+          @input="validateEmail"
         />
+        <div v-if="emailError" class="absolute left-0" :style="{ top: 'calc(100% + 4px)' }">
+          <p class="text-red-500 text-sm">{{ emailError }}</p>
+        </div>
       </div>
 
       <!-- Password -->
       <label class="block text-gray-600 mb-2">Пароль</label>
-      <div class="relative mb-4">
+      <div class="relative" style="min-height: 3px;" :class="{ 'mb-12': passwordError || serverError, 'mb-6': !(passwordError || serverError) }">
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/Password.svg" alt="Innova" class="w-auto h-auto"/>
         </span>
@@ -26,6 +35,12 @@
           placeholder="**********"
           class="w-full pl-12 pr-13 py-4 rounded-2xl border border-gray-300
                  focus:outline-none focus:ring-2 focus:ring-blue-500"
+          :class="[
+            passwordError
+              ? 'border-red-500 focus:ring-red-200'
+              : 'border-gray-300 focus:ring-blue-500'
+          ]"
+          @input="validatePassword"
         />
         <button
           type="button"
@@ -47,10 +62,17 @@
             class="w-auto h-auto"
           />
         </button>
+        <div v-if="passwordError" class="absolute left-0" :style="{ top: 'calc(100% + 4px)' }">
+          <p class="text-red-500 text-sm">{{ passwordError }}</p>
+        </div>
+        <!-- Сообщение от сервера (неверный пароль) -->
+      <div v-else-if="serverError" class="absolute left-0" :style="{ top: 'calc(100% + 4px)' }">
+        <p class="text-red-500 text-sm">{{ serverError }}</p>
+      </div>
       </div>
 
       <!-- Forgot -->
-      <div class="lg:mb-6 mb-4">
+      <div class="mt-2 mb-4">
         <a class="text-blue-500 font-medium hover:underline cursor-pointer">
           Забыли пароль ?
         </a>
@@ -65,8 +87,6 @@
       >
         {{ isLoading  ? 'Вход...' : 'Войти' }}
       </button>
-
-       <p v-if="errorMessage" class="text-red-500 text-sm mt-4">{{ errorMessage  }}</p>
 </template>
 
 <script setup>
@@ -81,7 +101,10 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
-
+// 👇 Объявляем переменные для ошибок
+const emailError = ref('')
+const passwordError = ref('')  // 👈 добавить эту строку
+const serverError = ref('')  // 👈 ошибка от сервера
 // 2. ПОТОМ получаем store
 const authStore = useAuthStore()
 
@@ -100,9 +123,13 @@ const handleLogin = async () => {
       email.value,
       password.value
     )
-
     if (error) {
-      errorMessage.value = error.message
+      // 👇 Обработка ошибки от сервера
+      if (error.message === 'Invalid login credentials') {
+        serverError.value = 'Неверный email или пароль'
+      } else {
+        serverError.value = error.message
+      }
     } else {
       router.push('/')
     }
@@ -112,6 +139,31 @@ const handleLogin = async () => {
     isLoading.value = false
   }
 }
+
+// Валидация email
+const validateEmail = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!email.value) {
+    emailError.value = ''
+  } else if (!emailRegex.test(email.value)) {
+    emailError.value = 'Введите корректный email'
+  } else {
+    emailError.value = ''
+  }
+}
+
+// Валидация пароля
+const validatePassword = () => {
+  if (!password.value) {
+    passwordError.value = ''
+  } else if (password.value.length < 6) {
+    passwordError.value = 'Пароль должен содержать минимум 6 символов'
+  } else {
+    passwordError.value = ''
+  }
+}
+
+
 </script>
 
 <style scoped>
