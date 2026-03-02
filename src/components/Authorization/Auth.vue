@@ -72,7 +72,7 @@
       </div>
 
       <!-- Forgot -->
-      <div class="mt-2 mb-4">
+      <div class="-mt-2 mb-6">
         <a class="text-blue-500 font-medium hover:underline cursor-pointer">
           Забыли пароль ?
         </a>
