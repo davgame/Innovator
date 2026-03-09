@@ -261,11 +261,9 @@
         <div class="px-3 lg:mt-0 mt-12 mb-15">
           <div class="flex flex-col items-center gap-4 lg:fixed lg:bottom-10 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:z-40 lg:w-auto mt-auto lg:mt-0">
             <!-- Кнопка "Далее" -->
-            <router-link to="/sup" @click="isOpen = false" class="w-full lg:w-auto">
-              <button @click="modalOpen = true" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
-                Далее
-              </button>
-            </router-link>
+            <button @click="goToKanban" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
+              Далее
+            </button>
 
             <!-- Кнопка "Назад" -->
             <button @click="$router.back()" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full lg:w-auto text-center">
@@ -282,6 +280,8 @@
 <script setup>
 import { ref, computed, onUnmounted,onMounted } from 'vue'
 import Header from '../Home/Header.vue';
+import { useRouter } from 'vue-router'  // 👈 ДОБАВЬТЕ ЭТУ СТРОКУ!
+
 
 const text = ref('')
 const errorMessage = ref('')
@@ -318,6 +318,26 @@ const organizations = ref([
   }
 
 ])
+
+const props = defineProps({
+  projectName: {
+    type: String,
+    default: ''
+  },
+  projectId: {
+    type: Number,
+    default: null
+  }
+})
+
+const router = useRouter()
+
+onMounted(() => {
+  console.log('📦 Pasport получил:', {
+    name: props.projectName,
+    id: props.projectId
+  })
+})
 
 // Выбранная организация - по умолчанию первая
 const selectedOrganization = ref(
@@ -464,6 +484,13 @@ const removeTag = (index) => {
   selectedTags.value.splice(index, 1)
 }
 
+// ДОБАВЬТЕ ЭТУ ФУНКЦИЮ после других функций
+const goToKanban = () => {
+  const projectId = props.projectId || route.query.id
+  console.log('👉 Переход на канбан с ID:', projectId)
+
+  router.push(`/sup/project/${projectId}`)
+}
 </script>
 
 <style scoped>

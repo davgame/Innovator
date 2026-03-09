@@ -41,6 +41,7 @@
         </button>
       </div>
 
+
       <!-- Список проектов -->
       <div class="space-y-2">
         <div
@@ -141,7 +142,7 @@
     </div>
 
     <!-- Модальное окно для переименования -->
-    <div v-if="isRenaming" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div v-if="isRenaming" class="fixed inset-0 bg-[#D3D3D3]/80 bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-xl p-6 w-96">
         <h3 class="text-lg font-semibold mb-4">Переименовать проект</h3>
         <input
@@ -152,16 +153,16 @@
           class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           ref="renameInput"
         />
-        <div class="flex justify-end space-x-3">
+        <div class="flex justify-end space-x-4 mt-4">
           <button
             @click="cancelRename"
-            class="px-4 py-2 text-gray-600 hover:text-gray-800"
+            class="cursor-pointer px-4 py-2 border border-[#9A9A9A]/20 hover:bg-gray-100 rounded-[10px] text-gray-600 hover:text-gray-800"
           >
             Отмена
           </button>
           <button
             @click="confirmRename"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-[10px] hover:bg-blue-600"
           >
             Сохранить
           </button>
@@ -175,94 +176,22 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router' // ← Добавить этот импорт!
 import Header_sup from './Header_sup.vue'
+import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ИМПОРТ
+import { useAuthStore } from '@/stores/auth'  // 👈 ДЛЯ ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ
+import { watch } from 'vue'  // если нет импорта
 
 // Эмит событий
 const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])
-
-
 const router = useRouter() // ← Добавить эту строку!
+const authStore = useAuthStore()
+const projects = ref([])  // 👈 БУДЕМ ХРАНИТЬ ПРОЕКТЫ ИЗ БД
+const loading = ref(false)
 
 // Функция перехода на главную
 const goToHome = () => {
   console.log('Переход на главную страницу')
   router.push('/')
 }
-
-// Локальные данные проектов
-const projects = ref([
-  {
-    id: 1,
-    name: 'Android Banking App',
-    fullName: 'Android Banking App',
-    category: 'Мобильное приложение',
-    color: '#3B82F6',
-    icon: 'A',
-    version: null
-  },
-  {
-    id: 2,
-    name: 'Шнекаход',
-    fullName: 'Шнекаход',
-    category: 'Транспортное средство',
-    color: '#10B981',
-    icon: 'Ш',
-    version: null
-  },
-  {
-    id: 3,
-    name: 'Axon',
-    fullName: 'Axon',
-    category: 'Нейротехнологии',
-    color: '#8B5CF6',
-    icon: 'A',
-    version: null
-  },
-  {
-    id: 4,
-    name: 'Транспортная система',
-    fullName: 'Транспортная система',
-    category: 'Инфраструктура',
-    color: '#F59E0B',
-    icon: 'Т',
-    version: null
-  },
-  {
-    id: 5,
-    name: 'Умный стол',
-    fullName: 'Умный стол',
-    category: 'Интерактивное оборудование',
-    color: '#EF4444',
-    icon: 'У',
-    version: 'V.01'
-  },
-  {
-    id: 6,
-    name: 'Web-платформа для брендинга',
-    fullName: 'Web-платформа для брендинга',
-    category: 'Веб-разработка',
-    color: '#EC4899',
-    icon: 'W',
-    version: null
-  },
-  {
-    id: 7,
-    name: 'Космический спутник',
-    fullName: 'Космический спутник',
-    category: 'Спутниковая система связи',
-    color: '#6366F1',
-    icon: 'К',
-    version: null
-  },
-  {
-    id: 8,
-    name: 'Робот-собака',
-    fullName: 'Робот-собака',
-    category: 'Робототехника',
-    color: '#14B8A6',
-    icon: 'Р',
-    version: null
-  },
-])
 
 // Состояния
 const searchQuery = ref('')
@@ -330,6 +259,67 @@ const toggleMenu = (projectId) => {
   }
 }
 
+// Полностью ЗАМЕНИТЕ функцию loadProjects на эту:
+const loadProjects = async () => {
+  loading.value = true
+  try {
+    console.log('📡 Загружаю проекты из БД...')
+
+    // 👇 ЖДЕМ, ПОКА ЗАГРУЗИТСЯ ПОЛЬЗОВАТЕЛЬ
+    if (!authStore.user) {
+      console.log('⏳ Ожидание авторизации...')
+      // Ждем немного или выходим
+      setTimeout(() => {
+        if (authStore.user) {
+          loadProjects() // пробуем снова
+        }
+      }, 500)
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('created_by', authStore.user.id)  // 👈 ТЕПЕРЬ ТОЧНО ЕСТЬ
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+
+    console.log('✅ Загружены проекты:', data)
+
+    // Преобразуем данные в формат для Panel
+    projects.value = data.map(p => ({
+      id: p.id,
+      name: p.name,
+      fullName: p.name,
+      category: p.description || 'Проект',
+      color: getColorForProject(p.id),
+      icon: p.name.charAt(0).toUpperCase(),
+      version: null
+    }))
+
+  } catch (error) {
+    console.error('❌ Ошибка загрузки проектов:', error)
+    projects.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+// Добавьте после объявления переменных
+watch(() => authStore.user, (newUser) => {
+  console.log('👤 Пользователь изменился:', newUser)
+  if (newUser) {
+    loadProjects() // загружаем проекты когда пользователь готов
+  }
+}, { immediate: true })
+
+// Функция для цвета (можно оставить как есть)
+const getColorForProject = (id) => {
+  const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899', '#6366F1', '#14B8A6']
+  return colors[(id % colors.length)]
+}
+
 const closeMenu = () => {
   menuOpenId.value = null
   hoveredProjectId.value = null
@@ -348,16 +338,39 @@ const renameProject = (project) => {
   })
 }
 
-const confirmRename = () => {
-  if (newProjectName.value.trim()) {
+// Подтверждение переименования
+const confirmRename = async () => {
+  if (!newProjectName.value.trim()) return
+
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .update({ name: newProjectName.value.trim() })
+      .eq('id', renamingProjectId.value)
+
+    if (error) throw error
+
+    // Обновляем локальный список
     const projectIndex = projects.value.findIndex(p => p.id === renamingProjectId.value)
     if (projectIndex !== -1) {
       projects.value[projectIndex].name = newProjectName.value.trim()
       projects.value[projectIndex].fullName = newProjectName.value.trim()
+
+      // Если это текущий проект, обновляем и его
+      if (selectedProjectId.value === renamingProjectId.value) {
+        selectProject(projects.value[projectIndex])
+      }
+
       emit('project-renamed', projects.value[projectIndex])
     }
+
+    console.log('✅ Проект переименован в БД')
+  } catch (error) {
+    console.error('❌ Ошибка переименования:', error)
+    alert('Не удалось переименовать проект')
+  } finally {
+    cancelRename()
   }
-  cancelRename()
 }
 
 const cancelRename = () => {
@@ -367,54 +380,77 @@ const cancelRename = () => {
 }
 
 // Удаление проекта
-const deleteProject = (projectId) => {
-  if (confirm('Вы уверены, что хотите удалить этот проект?')) {
-    const projectIndex = projects.value.findIndex(p => p.id === projectId)
-    const projectToDelete = projects.value[projectIndex]
+const deleteProject = async (projectId) => {
+  if (!confirm('Вы уверены, что хотите удалить этот проект?')) return
 
-    projects.value.splice(projectIndex, 1)
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+
+    if (error) throw error
+
+    // Удаляем из локального списка
+    projects.value = projects.value.filter(p => p.id !== projectId)
 
     if (selectedProjectId.value === projectId) {
       selectedProjectId.value = projects.value.length > 0 ? projects.value[0].id : null
+      if (selectedProjectId.value) {
+        const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
+        selectProject(firstProject)
+      }
     }
 
     closeMenu()
-    emit('project-deleted', projectToDelete)
+    console.log('✅ Проект удален из БД')
+  } catch (error) {
+    console.error('❌ Ошибка удаления проекта:', error)
+    alert('Не удалось удалить проект')
   }
 }
 
 // Создание нового проекта
-// Создание нового проекта
-const createNewBoard = () => {
-  const newProject = {
-    id: Date.now(),
-    name: `Новый проект ${projects.value.length + 1}`,
-    fullName: `Новый проект ${projects.value.length + 1}`,
-    category: 'Категория проекта',
-    color: '#9CA3AF',
-    icon: 'Н',
-    version: null
+const createNewBoard = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          name: `Новый проект ${projects.value.length + 1}`,
+          created_by: authStore.user?.id,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single()
+
+    if (error) throw error
+
+    if (data) {
+      const newProject = {
+        id: data.id,
+        name: data.name,
+        fullName: data.name,
+        category: 'Новый проект',
+        color: getColorForProject(data.id),
+        icon: data.name.charAt(0).toUpperCase(),
+        version: null
+      }
+
+      projects.value.unshift(newProject)
+      selectProject(newProject)
+      searchQuery.value = ''
+
+      emit('project-created', newProject)
+      console.log('✅ Новый проект создан в БД')
+    }
+  } catch (error) {
+    console.error('❌ Ошибка создания проекта:', error)
+    alert('Не удалось создать проект')
   }
-
-  projects.value.unshift(newProject)
-  selectProject(newProject) // Правильно!
-  searchQuery.value = ''
-
-  emit('project-created', newProject) // Правильно!
 }
 
-// Фильтрация проектов
-const filteredProjects = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return projects.value
-  }
-
-  const query = searchQuery.value.toLowerCase()
-  return projects.value.filter(project =>
-    project.name.toLowerCase().includes(query) ||
-    project.category.toLowerCase().includes(query)
-  )
-})
 
 // Обработчики клавиш
 const handleKeydown = (e) => {
@@ -423,26 +459,70 @@ const handleKeydown = (e) => {
   }
 }
 
-
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-})
-
-// Выбор проекта
-const selectProject = (project) => {
-  selectedProjectId.value = project.id
-  emit('project-selected', { ...project }) // Важно: создаем новый объект
-}
-
-// И в onMounted убедитесь что выбирается первый проект:
+// Загружаем при монтировании
 onMounted(() => {
-  const firstProject = projects.value[0]
-  if (firstProject) {
-    selectProject(firstProject)
+  loadProjects()
+
+  // Также загружаем из localStorage, если там есть новый проект
+  const savedName = localStorage.getItem('newProjectName')
+  if (savedName) {
+    // Создаем проект в БД (если нужно)
+    createProjectFromLocalStorage(savedName)
   }
 })
 
+// Создание проекта из localStorage
+const createProjectFromLocalStorage = async (name) => {
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          name: name,
+          created_by: authStore.user?.id,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single()
+
+    if (!error && data) {
+      localStorage.removeItem('newProjectName')
+      await loadProjects()  // Перезагружаем список
+
+      // Выбираем новый проект
+      const newProject = {
+        id: data.id,
+        name: data.name,
+        fullName: data.name,
+        category: 'Новый проект',
+        color: getColorForProject(data.id),
+        icon: data.name.charAt(0).toUpperCase(),
+        version: null
+      }
+
+      selectProject(newProject)
+    }
+  } catch (error) {
+    console.error('Ошибка создания проекта:', error)
+  }
+}
+
+// Выбор проекта
+const selectProject = (project) => {
+  console.log('👉 Выбран проект:', project)
+  selectedProjectId.value = project.id
+  emit('project-selected', project)
+  router.push(`/sup/project/${project.id}`)
+}
+
+// Фильтрация проектов
+const filteredProjects = computed(() => {
+  if (!searchQuery.value) return projects.value
+  return projects.value.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
 </script>
 
 

@@ -107,8 +107,8 @@ import { supabase } from '@/lib/supabase'
 
 const props = defineProps({
   projectId: {
-    type: Number,
-    required: true
+    type: [Number, String],  // Может быть число или строка
+    default: null  // 👈 ДЕЛАЕМ НЕОБЯЗАТЕЛЬНЫМ
   }
 })
 

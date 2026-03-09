@@ -49,11 +49,10 @@
   <div class="px-3 lg:mt-0 mt-105">
     <div class="flex flex-col items-center gap-4 lg:fixed lg:bottom-10 lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:z-40 lg:w-auto mt-auto lg:mt-0">
       <!-- Кнопка "Далее" -->
-      <router-link :to="`/sup?projectId=${projectId}`"  class="w-75 lg:w-auto">
-        <button class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
+
+        <button @click="goToPasport" class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-full text-center">
           Далее
         </button>
-      </router-link>
 
       <!-- Кнопка "Назад" -->
       <button @click="$router.back()" class="btn-more border-1 border-[#222222] hover:bg-gray-100 text-[#222222] font-medium py-4 lg:px-28 text-[20px] rounded-[18px] transition-colors duration-300 cursor-pointer w-75 lg:w-auto text-center">
@@ -64,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
@@ -103,6 +102,45 @@ const createNewProject = async () => {
   }
 }
 
+const props = defineProps({
+  projectName: {
+    type: String,
+    default: ''
+  },
+  projectId: {
+    type: Number,
+    default: null
+  }
+})
+
+// При монтировании загружаем название из props или localStorage
+onMounted(() => {
+  console.log('📦 Create-Team получил:', {
+    name: props.projectName,
+    id: props.projectId
+  })
+
+  // Если нет props, берем из localStorage
+  if (!props.projectName) {
+    const savedName = localStorage.getItem('newProjectName')
+    if (savedName) {
+      console.log('📦 Загружаем из localStorage:', savedName)
+    }
+  }
+})
+
+// При переходе на Pasport передаем название дальше
+const goToPasport = () => {
+  console.log('👉 Переход на Pasport с ID:', computedProjectId.value)
+  router.push({
+    path: '/Pasport',
+    query: {
+      id: computedProjectId.value,
+      name: props.projectName || route.query.name
+    }
+  })
+}
+
 // Загружаем участников проекта из БД
 const loadProjectMembers = async () => {
   if (!projectId.value) return
@@ -135,56 +173,48 @@ const loadProjectMembers = async () => {
   }
 }
 
-
-
-// Сохраняем выбранных пользователей в БД
+// При подтверждении выбора участников
 const setUsers = async (users) => {
-  console.log('🔥 setUsers получил:', users)
+  console.log('🔥 Сохраняем участников:', users)
 
-  if (!projectId.value) {
-    console.error('❌ Нет projectId')
+  const projectId = props.projectId || route.query.id
+
+  if (!projectId) {
+    console.error('❌ Нет ID проекта')
     return
   }
 
-  // 👇 1. Удаляем всех старых участников этого проекта
-  const { error: deleteError } = await supabase
-    .from('project_members')
-    .delete()
-    .eq('project_id', projectId.value)
-
-  if (deleteError) {
-    console.error('❌ Ошибка удаления старых участников:', deleteError)
-    return
-  }
-
-  // 👇 2. Добавляем новых участников
-  if (users && users.length > 0) {
-    const membersToInsert = users.map(user => ({
-      project_id: projectId.value,
-      user_id: user.id
-    }))
-
-    console.log('📦 Добавляем новых участников:', membersToInsert)
-
-    const { error: insertError } = await supabase
+  try {
+    // 1. Удаляем старых участников
+    await supabase
       .from('project_members')
-      .insert(membersToInsert)
+      .delete()
+      .eq('project_id', projectId)
 
-    if (insertError) {
-      console.error('❌ Ошибка добавления участников:', insertError)
-    } else {
+    // 2. Добавляем новых участников
+    if (users && users.length > 0) {
+      const membersToInsert = users.map(user => ({
+        project_id: projectId,
+        user_id: user.id,
+        role: user.role || 'Участник',
+        joined_at: new Date().toISOString()
+      }))
+
+      const { error } = await supabase
+        .from('project_members')
+        .insert(membersToInsert)
+
+      if (error) throw error
+
       console.log('✅ Участники сохранены в БД')
     }
-  } else {
-    console.log('ℹ️ Участников нет, проект очищен')
-  }
 
-  // 👇 3. Обновляем локальный список
-  selectedUsers.value = users.map(user => ({
-    id: user.id,
-    name: user.full_name || user.name,
-    avatar: user.avatar_url || user.avatar
-  }))
+    // Обновляем локальный список
+    selectedUsers.value = users
+
+  } catch (error) {
+    console.error('❌ Ошибка сохранения участников:', error)
+  }
 }
 
 // Удалить участника
@@ -218,18 +248,36 @@ const removeUser = async (userId) => {
   }
 }
 
-// Инициализация
+// Загружаем участников при монтировании
 onMounted(async () => {
-  // Получаем или создаем проект
-  if (route.params.projectId) {
-    projectId.value = route.params.projectId
-  } else {
-    projectId.value = await createNewProject()
-  }
+  const projectId = props.projectId || route.query.id
 
-  // Загружаем участников
-  if (projectId.value) {
-    await loadProjectMembers()
+  if (projectId) {
+    // Загружаем участников из БД
+    const { data, error } = await supabase
+      .from('project_members')
+      .select(`
+        *,
+        profiles (
+          full_name,
+          avatar_url
+        )
+      `)
+      .eq('project_id', projectId)
+
+    if (!error && data) {
+      selectedUsers.value = data.map(m => ({
+        id: m.user_id,
+        name: m.profiles?.full_name || 'Пользователь',
+        avatar: m.profiles?.avatar_url || null,
+        role: m.role || 'Участник'
+      }))
+    }
   }
+})
+
+// НАЙДИТЕ место после других const и ДОБАВЬТЕ:
+const computedProjectId = computed(() => {
+  return props.projectId || (route.query.id ? Number(route.query.id) : null)
 })
 </script>

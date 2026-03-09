@@ -276,12 +276,44 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { defineProps, onMounted } from 'vue'
+import { useProjectStore } from '@/stores/projectStore'
 import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
 import Edit_task from './Edit_task.vue'
+
+const props = defineProps({
+  projectId: {
+    type: String,
+    default: null
+  }
+})
+
+const projectStore = useProjectStore()
+
+// Kanban.vue - замените onMounted
+onMounted(async () => {
+  console.log('🔍 Kanban получил props.projectId:', props.projectId, 'тип:', typeof props.projectId)
+
+  // 👇 Проверяем, что ID существует и это число
+  if (props.projectId && !isNaN(props.projectId)) {
+    await projectStore.loadProject(props.projectId)
+  } else {
+    console.log('⚠️ Kanban: нет валидного projectId, пропускаем загрузку')
+  }
+})
+
+// Kanban.vue - добавьте после onMounted
+watch(() => props.projectId, (newId) => {
+  console.log('🔍 Kanban watch: projectId изменился на', newId)
+
+  if (newId && !isNaN(newId)) {
+    projectStore.loadProject(newId)
+  }
+}, { immediate: false }) // immediate: false чтобы не дублировать onMounted
 
 // Обработчик перемещения задачи (убедитесь, что статус обновляется)
 // Обработчик перемещения задачи

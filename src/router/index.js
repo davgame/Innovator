@@ -14,7 +14,6 @@ import UserProfile from '@/Profile/UserProfile.vue'
 import Edit_profile from '@/Profile/Edit_profile.vue'
 
 
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -34,19 +33,27 @@ const router = createRouter({
       component: Home
     },
     {
-      path: '/project',
+      path: '/project/:projectId',
       name: 'Project',
       component: Start
     },
     {
       path: '/Next_team',
       name:'Next_time',
-      component:CreateTeam
+      component:CreateTeam,
+      props: (route) => ({
+        projectName: route.query.name,
+        projectId: route.query.id ? parseInt(route.query.id) : null
+      })
     },
     {
       path: '/Pasport',
       name:'Pasport',
-      component:Pasport
+      component:Pasport,
+      props: (route) => ({
+        projectName: route.query.name,
+        projectId: route.query.id ? parseInt(route.query.id) : null
+      })
     },
     {
       path: '/faq',
@@ -60,8 +67,20 @@ const router = createRouter({
     },
     {
       path: '/sup',
-      name: 'sup',
-      component: SupPage
+      component: SupPage,
+      children: [
+        {
+          path: '', // /sup - главная страница SUP
+          name: 'sup-default',
+          component: () => import('@/components/SUP/Kanban.vue') // или другой компонент
+        },
+        {
+          path: 'project/:projectId', // /sup/project/48
+          name: 'sup-project',
+          component: () => import('@/components/SUP/Kanban.vue'), // 👈 Kanban, не SupPage!
+          props: true
+        }
+      ]
     },
     {
       path: '/:pathMatch(.*)*',
@@ -79,15 +98,15 @@ const router = createRouter({
       component: User
     },
     {
-    path: '/profile/:id',
-    name: 'UserProfile',
-    component: UserProfile
+      path: '/profile/:id',
+      name: 'UserProfile',
+      component: UserProfile
     },
     {
-    path: '/profile/edit',
-    name: 'EditProfile',
-    component: Edit_profile
-    }
+      path: '/profile/edit',
+      name: 'EditProfile',
+      component: Edit_profile
+    },
   ],
 })
 

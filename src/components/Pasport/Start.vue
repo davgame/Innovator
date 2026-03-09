@@ -9,12 +9,12 @@
     <div class="relative lg:w-[480px] w-[330px] mb-6 align-items justify-center">
       <textarea
         ref="textarea"
-        rows="1"
+        :rows="smartMood ? 3 : 1"
         v-model="query"
         @input="handleInput"
         @keydown.enter.exact.prevent="fetchSuggestions"
         @keydown.enter.shift.exact.prevent="query += '\n'"
-        placeholder="Воображение важнее, чем знание"
+        :placeholder="smartMood ? 'Придумаю название проекта' : 'Название проекта'"
         class="w-full lg:min-w-[480px] min-w-[280px] lg:min-h-[140px] min-h-[125px] max-h-[200px] p-6 border-2 border-blue-300 rounded-3xl lg:text-lg text-[15px] outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 resize-none overflow-hidden"
       ></textarea>
 
@@ -68,7 +68,7 @@
       <!-- Кнопка запроса -->
       <button
         @click="fetchSuggestions"
-        :disabled="loading || !query.trim()"
+        :disabled="loading || !query.trim() || !smartMood"
         class="absolute right-3 lg:top-1/3 top-[40px] -translate-y-1/2 bg-blue-500 text-white p-2 rounded-xl hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         🔍
@@ -95,7 +95,7 @@
     </div>
 
     <!-- Результаты -->
-    <div v-if="suggestions.length" class="lg:w-[480px] w-[330px] align-items justify-center mb-4 border-2 border-blue-300 rounded-2xl bg-white shadow-lg overflow-hidden">
+    <div v-if="smartMood && suggestions.length" class="lg:w-[480px] w-[330px] align-items justify-center mb-4 border-2 border-blue-300 rounded-2xl bg-white shadow-lg overflow-hidden">
       <div class="p-3 bg-blue-50 border-b border-blue-200">
         <h3 class="font-semibold text-[#0066FF]">Рекомендации от AI:</h3>
       </div>
@@ -131,15 +131,15 @@
 
     <!-- Состояние пустого результата -->
     <div v-if="!loading && !error && suggestions.length === 0 && query.trim() && hasSearched"
-         class="w-[480px] p-6 text-center text-gray-500 border border-dashed border-gray-300 rounded-xl">
+      class="w-[480px] p-6 text-center text-gray-500 border border-dashed border-gray-300 rounded-xl">
       <p>Введите запрос и нажмите Enter или кнопку 🔍</p>
     </div>
     <!-- Кнопка "Подробнее" -->
-     <router-link to="/Next_team" @click="isOpen = false">
-    <button class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
-      Далее
+    <button
+      @click="createProjectAndGoToBoard"
+      class="btn-more bg-[#222222] hover:bg-[#4286F7] text-white font-medium py-4 lg:px-28 px-30 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
+        {{ projectStore.loading ? 'Создание...' : 'Далее' }}
     </button>
-    </router-link>
   </div>
 
 </template>
@@ -147,8 +147,10 @@
 <script setup>
 import { ref, nextTick, onUnmounted } from 'vue';
 import Header from '../Home/Header.vue';
-
-
+import { useRouter } from 'vue-router'  // 👈 добавляем
+import { useProjectStore } from '@/stores/projectStore'  // 👈 импортируем
+import { useAuthStore } from '@/stores/auth'
+import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ЭТОТ ИМПОРТ!
 
 // Реактивные данные
 const query = ref('')
@@ -160,6 +162,9 @@ const error = ref('')
 const hoveredIndex = ref(-1)
 const selectedIndex = ref(-1)
 const hasSearched = ref(false)
+const router = useRouter()  // 👈 для навигации
+const projectStore = useProjectStore()  // 👈 создаем экземпляр store
+const authStore = useAuthStore() // 👈 для проверки авторизации
 
 // Таймер для debounce
 let inputTimer = null
@@ -174,7 +179,7 @@ const handleInput = () => {
   error.value = ''
   clearTimeout(inputTimer)
   inputTimer = setTimeout(() => {
-    if (query.value.trim()) {
+    if (smartMood.value && query.value.trim()) {
       fetchSuggestions()
     }
   }, 800)
@@ -196,7 +201,15 @@ const autoResize = () => {
 // Переключение Smart Mood
 const toggleSmartMood = () => {
   smartMood.value = !smartMood.value
-  console.log('Smart Mood:', smartMood.value ? 'включен' : 'выключен')
+
+  // сбрасываем AI состояние
+  suggestions.value = []
+  hasSearched.value = false
+  selectedIndex.value = -1
+  hoveredIndex.value = -1
+
+  // очищаем поле
+  query.value = ''
 }
 
 // Основная функция запроса
@@ -271,6 +284,45 @@ const selectSuggestion = (suggestion) => {
   setTimeout(() => {
     selectedIndex.value = -1
   }, 2000)
+}
+
+// Start.vue - в функции createProjectAndGoToBoard
+const createProjectAndGoToBoard = async () => {
+  if (!query.value.trim()) return
+
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert([
+        {
+          name: query.value.trim(),
+          created_by: authStore.user?.id,
+          created_at: new Date().toISOString()
+        }
+      ])
+      .select()
+      .single()
+
+    if (error) throw error
+
+    if (data) {
+      console.log('✅ Проект создан, ID из БД:', data.id)  // ДОЛЖНО БЫТЬ 52, 58 и т.д.
+
+      // Сохраняем правильный ID
+      localStorage.setItem('currentProjectId', data.id)
+      localStorage.setItem('currentProjectName', data.name)
+
+      router.push({
+        path: '/Next_team',
+        query: {
+          id: data.id,  // 👈 ID ИЗ БД (число)
+          name: data.name
+        }
+      })
+    }
+  } catch (err) {
+    console.error('❌ Ошибка:', err)
+  }
 }
 
 // Очистка таймера при размонтировании компонента
