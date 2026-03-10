@@ -10,7 +10,7 @@
     <Panel @project-selected="handleProjectSelected"/>
 
     <!-- Правая часть -->
-    <div class="flex-1 flex flex-col mt-33">
+    <div class="flex-1 flex flex-col mt-31">
       <!-- Заголовок проекта через Name_pg -->
       <Name_pg
         v-if="currentProject"

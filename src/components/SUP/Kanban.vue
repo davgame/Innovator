@@ -100,7 +100,7 @@
         :class="column.tasks.length === 0 ? 'overflow-y-hidden' : 'overflow-y-auto'"
       >
         <template #item="{ element }">
-          <div class="rounded-xl px-4 h-42 py-6 border-2 border-[#D7D7D7]/32 cursor-move transition relative">
+          <div class="hover:border-[#4286F7] rounded-xl px-4 h-42 py-6 border-2 border-[#D7D7D7]/32 cursor-move transition relative">
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
 

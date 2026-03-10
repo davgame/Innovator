@@ -12,6 +12,10 @@ export default defineConfig({
     tailwindcss(),
     vueDevTools(),
   ],
+  // Добавьте для лучшей обработки фавиконов
+  build: {
+    assetsInlineLimit: 4096,
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
