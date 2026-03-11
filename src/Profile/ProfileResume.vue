@@ -92,7 +92,7 @@
 <script setup>
 import { ref, onMounted, watch  } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { supabase } from '@/lib/supabase'  // 👈 @/ указывает на src/
+import { supabase } from '@/lib/supabase' 
 
 const props = defineProps({
   editMode: {
@@ -199,7 +199,7 @@ const handleFileSelect = async (event) => {
         resume_size: file.size
       }
 
-        emit('update:resume', {  // 👈 ВЫЗОВ СОБЫТИЯ
+        emit('update:resume', {  // 👈 ВЫЗОВ СОБЫТИЯdefineProps
         name: file.name,
         size: file.size,
         url: result.url

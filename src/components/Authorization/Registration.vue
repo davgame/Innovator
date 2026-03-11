@@ -612,7 +612,7 @@ const completeRegistration = async () => {
     alert('Ошибка регистрации: ' + error.message)
     return
   }
-  
+  defineProps
   await authStore.updateUserStatus('online')
   await authStore.refreshUser()
 

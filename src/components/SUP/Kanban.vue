@@ -277,7 +277,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { defineProps, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
