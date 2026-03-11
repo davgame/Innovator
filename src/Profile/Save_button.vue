@@ -10,7 +10,7 @@
       <button
         @click="$emit('save')"
         class="cursor-pointer lg:px-9 lg:py-3 px-7 py-[10px] bg-blue-500 lg:text-[17px] text-sm font-medium text-white lg:rounded-[12px] rounded-[10px] hover:bg-blue-600 transition-colors"
-        :disabled="saving"
+        :disabled="saving || !hasChanges"
       >
         {{ saving ? 'Сохранить' : 'Сохранить' }}
       </button>
@@ -23,6 +23,10 @@ defineProps({
   saving: {
     type: Boolean,
     default: false
+  },
+    hasChanges: {
+      type: Boolean,
+      default: false
   }
 })
 

@@ -68,8 +68,6 @@
     ref="imageInput"
     @change="handleImageSelect"
   />
-
-
     <div>
     <!-- Информация о пользователе -->
     <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
@@ -85,9 +83,10 @@
         >
       </div>
         <Save_button
-          :saving="saving"
-          @cancel="cancelEdit"
-          @save="saveChanges"
+          :saving="isSaving"
+          :has-changes="hasChanges"
+          @cancel="handleCancel"
+          @save="saveProfile"
           class="hidden lg:flex items-center translate-y-[17px]"/>
       </div>
           <!-- 👇 СТАТУС ПОЛЬЗОВАТЕЛЯ -->
@@ -100,9 +99,10 @@
       </p>
     </div>
       <Save_button
-        :saving="saving"
-        @cancel="cancelEdit"
-        @save="saveChanges"
+        :saving="isSaving"
+        :has-changes="hasChanges"
+        @cancel="handleCancel"
+        @save="saveProfile"
         class="lg:hidden block items-center translate-y-[17px] justify-center"/>
     </div>
   </div>
@@ -122,6 +122,7 @@
         @update:competencies="updateCompetencies"
       />
       <ProfileRole
+        :key="profileRoleKey"
         :edit-mode="true"
         :organization-id="editedProfile.organization_id"
         :initial-role-id="editedProfile.role_id"
@@ -151,23 +152,22 @@
       @confirm="confirmDeletePhoto"
     />
 
-      <!-- Модалка выхода -->
-  <Exit_modal
-    :show="showExitModal"
-    @close="showExitModal = false"
-    @confirm="handleLogout"
-  />
+    <!-- Модалка выхода -->
+    <Exit_modal
+      :show="showExitModal"
+      @close="showExitModal = false"
+      @confirm="handleLogout"
+    />
 </template>
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
-import { ref, watch, onMounted, computed, reactive } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
+import { ref, watch, onMounted, computed, reactive, watchEffect  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
 import { useRouter } from 'vue-router'  // 👈 добавь этот импорт
 import { useAuthStore } from '@/stores/auth'
 import User_organization from './User_organization.vue';
 import ProfileCompetencies from './ProfileCompetencies.vue';
 import ProfileResume from './ProfileResume.vue';
-import ProfileAction from './ProfileAction.vue';
 import ProfileRole from './ProfileRole.vue';
 import Footer from '@/components/Home/Footer.vue';
 import ModalOmg from '@/components/Authorization/ModalOmg.vue';
@@ -176,7 +176,6 @@ import { supabase } from '@/lib/supabase' // 👈 убедись что импо
 import Delete_Modal from './Delete_Modal.vue';
 import Exit_modal from './Exit_modal.vue';
 import Save_button from './Save_button.vue';
-
 
 const imageInput = ref(null)
 const authStore = useAuthStore()
@@ -187,6 +186,8 @@ const showEditModal = ref(false)     // для модального окна
 const avatarPreview = ref('')
 const router = useRouter()  // 👈 добавь эту строку
 const showExitModal = ref(false)
+const isSaving = ref(false)
+const profileRoleKey = ref(0)
 
 // Состояние
 const saving = ref(false)
@@ -195,8 +196,18 @@ const saving = ref(false)
 
 console.log('authStore.profile?.full_name:', authStore.profile?.full_name)
 
+// Добавьте в начало <script setup>
+const props = defineProps({
+  // Определите нужные props
+  userId: {
+    type: String,
+    default: null
+  },
+  // ... другие props
+})
+
 // Редактируемые данные
-const editedProfile = reactive({
+const editedProfile = ref({
   full_name: authStore.profile?.full_name || '',  // ← сюда должно прийти имя
   avatar_url: authStore.profile?.avatar_url || null,
   organization_id: authStore.profile?.organization_id,
@@ -221,32 +232,63 @@ const updateCompetencies = (comps) => {
   editedProfile.competencies = comps
 }
 
-const updateResume = (resume) => {
-  editedProfile.resume = resume
+
+const handleCancel = () => {
+  console.log('Отмена редактирования')
+  router.back()
 }
 
-const updateOrganization = (org) => {
-  console.log('Обновление организации:', org)  // 👈 отладка
-  editedProfile.organization_id = org.id
-  editedProfile.organization = org
+const handleSave = async () => {
+  console.log('💾 Сохраняем профиль...')
+  isSaving.value = true
+
+  try {
+    // Ваша логика сохранения в БД
+    // ...
+
+    console.log('✅ Профиль сохранен')
+    router.back()
+  } catch (error) {
+    console.error('❌ Ошибка сохранения:', error)
+  } finally {
+    isSaving.value = false
+  }
 }
 
-watch(() => editedProfile.organization_id, (newId) => {
-  console.log('organization_id изменился на:', newId)
+// computed свойство для отслеживания изменений
+const hasChanges = computed(() => {
+  if (!editedProfile.value || !originalProfile.value) {
+    console.log('⚠️ Нет данных для сравнения')
+    return false
+  }
+
+  const changed =
+    editedProfile.value.full_name !== originalProfile.value.full_name ||
+    editedProfile.value.organization_id !== originalProfile.value.organization_id ||
+    editedProfile.value.role_id !== originalProfile.value.role_id
+
+  console.log('📊 Сравнение:', {
+    changed,
+    newName: editedProfile.value.full_name,
+    oldName: originalProfile.value.full_name,
+    newOrg: editedProfile.value.organization_id,
+    oldOrg: originalProfile.value.organization_id
+  })
+
+  return changed
 })
-// Отмена изменений
-const cancelEdit = () => {
-  Object.assign(editedProfile, originalProfile.value)
-  router.push('/profile')
-}
 
-// Сохранение изменений
-const saveChanges = async () => {
-  console.log('💾 Попытка сохранения')
+watchEffect(() => {
+  console.log('📊 isSaving:', isSaving.value)
+  console.log('📊 hasChanges:', hasChanges.value)
+})
+
+const saveProfile = async () => {
+  console.log('💾 saveProfile вызван');
   console.log('👤 authStore.user:', authStore.user)
 
   if (!authStore.user?.id) {
-    console.error('❌ Нет ID пользователя в saveChanges')
+    console.error('❌ Нет ID пользователя в saveProfile')
     alert('Ошибка: пользователь не авторизован')
     await authStore.refreshUser()
     if (!authStore.user?.id) {
@@ -255,51 +297,59 @@ const saveChanges = async () => {
     }
   }
 
-  saving.value = true
+  isSaving.value = true  // 👈 используйте isSaving (не saving)
   try {
     console.log('✅ Сохраняем с ID:', authStore.user.id)
 
-    // 👇 ДОБАВЬ ЭТОТ КОД
     const { error } = await supabase
       .from('profiles')
       .update({
-        full_name: editedProfile.full_name,
-        organization_id: editedProfile.organization_id,
-        role_id: editedProfile.role_id
+        full_name: editedProfile.value.full_name,
+        organization_id: editedProfile.value.organization_id,
+        role_id: editedProfile.value.role_id
       })
       .eq('id', authStore.user.id)
 
     if (error) throw error
 
-    console.log('✅ Сохранение выполнено')
+    console.log('✅ Профиль сохранен')
     await authStore.refreshUser()
-    router.push('/profile')
+    router.back()
   } catch (error) {
     console.error('❌ Ошибка сохранения:', error)
     alert('Не удалось сохранить изменения')
   } finally {
-    saving.value = false
+    isSaving.value = false
   }
 }
 
-const handleOrganizationLoaded = (org) => {
-  // Организация загружена, можно обновить editedProfile если нужно
-  if (!editedProfile.organization_id) {
-    editedProfile.organization_id = org.id
-    editedProfile.organization = org
-  }
+const handleOrganizationUpdate = (org) => {
+  console.log('🏢 Обновление организации:', org)
+
+  editedProfile.value.organization_id = org.id
+  editedProfile.value.organization = org
+
+  // сброс роли
+  editedProfile.value.role_id = null
+  editedProfile.value.role = null
+
+  profileRoleKey.value++
 }
 
+// При загрузке профиля
 onMounted(async () => {
-  // Принудительно обновляем профиль
   await authStore.refreshUser()
 
-  // Обновляем editedProfile
-  editedProfile.full_name = authStore.profile?.full_name || ''
-  editedProfile.avatar_url = authStore.profile?.avatar_url || null
-  editedProfile.organization_id = authStore.profile?.organization_id
+  if (authStore.profile) {
+    // Для ref
+    editedProfile.value = {
+      full_name: authStore.profile.full_name || '',
+      organization_id: authStore.profile.organization_id || null,
+      role_id: authStore.profile.role_id || null
+    }
 
-  console.log('После refreshUser:', authStore.profile?.full_name)
+    originalProfile.value = JSON.parse(JSON.stringify(editedProfile.value))
+  }
 })
 
 const handleLogout = async () => {
@@ -605,16 +655,26 @@ const handleDeletePhoto = () => {
   showDeleteModal.value = true
 }
 
-const handleOrganizationUpdate = (org) => {
-  updateOrganization(org)
+const updateOrganization = (org) => {
+  console.log('🏢 Обновление организации:', org)
+  editedProfile.organization_id = org.id
+  editedProfile.organization = org
   // Сбрасываем роль при смене организации
   editedProfile.role_id = null
   editedProfile.role = null
 }
 
+
+
 const updateRole = (role) => {
-  editedProfile.role_id = role.id
-  editedProfile.role = role
+  editedProfile.value.role_id = role.id
+  editedProfile.value.role = role
+}
+
+// 👇 ДОБАВЬТЕ ЭТУ ФУНКЦИЮ
+const updateResume = (resumeData) => {
+  console.log('📄 Обновление резюме:', resumeData)
+  editedProfile.resume = resumeData
 }
 
 // Метод для подтверждения удаления

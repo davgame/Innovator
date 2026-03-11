@@ -207,8 +207,8 @@
       Назад
     </button>
   </div>
+
   <!-- Шаг 3: Drop-file -->
-<!-- Шаг 3: Загрузка изображения профиля -->
 <div v-else-if="step === 3">
   <label class="block text-gray-600 mb-2">Загрузите изображение профиля</label>
 
@@ -316,6 +316,10 @@ const selectedImage = ref(null); // Выбранный файл изображе
 const showEditModal = ref(false); // Показать/скрыть модалку
 const avatarPreview = ref(''); // Для отображения сохраненного аватара
 
+// ... существующие переменные
+const uploadProgress = ref(0)
+const isUploading = ref(false)
+
 const emit = defineEmits(['complete']);
 
 
@@ -324,6 +328,7 @@ const goToStep3 = () => {
   // Проверяем, загружен ли файл для лога
   if (pdfFile.value) {
     console.log('PDF файл загружен:', pdfFile.value.name);
+    uploadFile(); // 👈 НУЖНО ВЫЗВАТЬ!
   } else {
     console.log('Переход на шаг 3 без PDF');
   }
@@ -337,6 +342,7 @@ const goBackToStep2 = () => {
   console.log('Возврат на шаг 2');
   step.value = 2;
 };
+
 
 const validateEmail = () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -459,14 +465,45 @@ const validateAndSetFile = (file) => {
   }
 
   // Проверка размера (2 МБ)
-  const maxSize = 3 * 1024 * 1024*1024;
+  const maxSize = 2 * 1024 * 1024;
   if (file.size > maxSize) {
-    fileError.value = `Файл слишком большой (${formatFileSize(file.size)}). Максимальный размер: 3 МБ`;
+    fileError.value = `Файл слишком большой (${formatFileSize(file.size)}). Максимальный размер: 2 МБ`;
     return;
   }
 
   // Сохраняем файл
   pdfFile.value = file;
+};
+
+
+// Загрузить файл
+const uploadFile = async () => {
+  if (!pdfFile.value || !authStore.user?.id) {
+    console.log('⚠️ Нет файла или пользователя');
+    return false;
+  }
+
+  console.log('📡 Загружаю файл:', pdfFile.value.name, 'для пользователя:', authStore.user.id);
+
+  isUploading.value = true;
+  try {
+    const result = await authStore.uploadResume(pdfFile.value, authStore.user.id);
+    console.log('📦 Результат загрузки:', result);
+
+    if (result.success) {
+      console.log('✅ Файл успешно загружен');
+      return true;
+    } else {
+      fileError.value = result.error || 'Ошибка загрузки файла';
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Ошибка загрузки:', error);
+    fileError.value = 'Ошибка загрузки файла';
+    return false;
+  } finally {
+    isUploading.value = false;
+  }
 };
 
 // Очистка файла и выбор нового
@@ -575,7 +612,8 @@ const completeRegistration = async () => {
     alert('Ошибка регистрации: ' + error.message)
     return
   }
-
+  
+  await authStore.updateUserStatus('online')
   await authStore.refreshUser()
 
   // Если есть аватар - загружаем после регистрации
