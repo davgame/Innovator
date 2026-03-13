@@ -41,7 +41,9 @@
     <!-- Модальное окно (компонент Add-User.vue) -->
     <AddUser
       v-if="showModal"
-      :project-id="projectId"
+      :project-id="computedProjectId"
+      :selected-users="selectedUsers"
+      mode="create"
       @close="showModal = false"
       @confirm="setUsers"
     />
@@ -72,9 +74,16 @@ import AddUser from './Add-User.vue'
 
 const route = useRoute()
 const router = useRouter()
+
+const computedProjectId = computed(() => {
+  const id = props.projectId || route.query.id
+  const numericId = Number(id)
+
+  return Number.isNaN(numericId) ? null : numericId
+})
 const authStore = useAuthStore()
 
-const projectId = ref(null)
+computedProjectId
 const showModal = ref(false)
 const selectedUsers = ref([])
 
@@ -101,6 +110,22 @@ const createNewProject = async () => {
     return data.id
   }
 }
+
+onMounted(async () => {
+  let id = props.projectId || route.query.id
+
+  if (!id) {
+    const newId = await createNewProject()
+    if (!newId) return
+
+    id = newId
+
+    // обновляем URL без перезагрузки
+    router.replace({
+      query: { ...route.query, id }
+    })
+  }
+})
 
 const props = defineProps({
   projectName: {
@@ -143,7 +168,7 @@ const goToPasport = () => {
 
 // Загружаем участников проекта из БД
 const loadProjectMembers = async () => {
-  if (!projectId.value) return
+  if (!computedProjectId.value) return
 
   const { data, error } = await supabase
     .from('project_members')
@@ -154,7 +179,7 @@ const loadProjectMembers = async () => {
         avatar_url
       )
     `)
-    .eq('project_id', projectId.value)
+    .eq('project_id', computedProjectId.value)
 
   if (error) {
     console.error('Ошибка загрузки участников:', error)
@@ -177,7 +202,7 @@ const loadProjectMembers = async () => {
 const setUsers = async (users) => {
   console.log('🔥 Сохраняем участников:', users)
 
-  const projectId = props.projectId || route.query.id
+  const projectId = computedProjectId.value
 
   if (!projectId) {
     console.error('❌ Нет ID проекта')
@@ -189,7 +214,7 @@ const setUsers = async (users) => {
     await supabase
       .from('project_members')
       .delete()
-      .eq('project_id', projectId)
+      .eq('project_id', computedProjectId.value)
 
     // 2. Добавляем новых участников
     if (users && users.length > 0) {
@@ -211,6 +236,7 @@ const setUsers = async (users) => {
 
     // Обновляем локальный список
     selectedUsers.value = users
+    await loadProjectMembers()
 
   } catch (error) {
     console.error('❌ Ошибка сохранения участников:', error)
@@ -219,33 +245,32 @@ const setUsers = async (users) => {
 
 // Удалить участника
 const removeUser = async (userId) => {
-  console.log('🗑️ Удаляем пользователя с ID:', userId)
 
-  if (!projectId.value) {
-    console.error('❌ Нет projectId')
+  console.log('🗑️ Удаляем пользователя:', userId)
+
+  if (!computedProjectId.value) {
+    selectedUsers.value =
+      selectedUsers.value.filter(u => u.id !== userId)
     return
   }
 
-  try {
-    // Удаляем из базы данных
-    const { error } = await supabase
-      .from('project_members')
-      .delete()
-      .eq('project_id', projectId.value)
-      .eq('user_id', userId)
+  const { error } = await supabase
+    .from('project_members')
+    .delete()
+    .eq('project_id', computedProjectId.value) // ← ВОТ ТУТ
+    .eq('user_id', userId)
 
-    if (error) {
-      console.error('❌ Ошибка удаления из БД:', error)
-      return
-    }
-
-    // Обновляем локальный список
-    selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
-    console.log('✅ Пользователь удален, остались:', selectedUsers.value)
-
-  } catch (error) {
-    console.error('❌ Ошибка:', error)
+  if (error) {
+    console.error('❌ Ошибка удаления:', error)
+    return
   }
+
+  selectedUsers.value =
+    selectedUsers.value.filter(u => u.id !== userId)
+
+  await loadProjectMembers()
+
+  console.log('✅ Участник удалён')
 }
 
 // Загружаем участников при монтировании
@@ -276,8 +301,4 @@ onMounted(async () => {
   }
 })
 
-// НАЙДИТЕ место после других const и ДОБАВЬТЕ:
-const computedProjectId = computed(() => {
-  return props.projectId || (route.query.id ? Number(route.query.id) : null)
-})
 </script>

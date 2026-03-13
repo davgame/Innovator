@@ -328,7 +328,7 @@ const goToStep3 = () => {
   // Проверяем, загружен ли файл для лога
   if (pdfFile.value) {
     console.log('PDF файл загружен:', pdfFile.value.name);
-    uploadFile(); // 👈 НУЖНО ВЫЗВАТЬ!
+    uploadFile();
   } else {
     console.log('Переход на шаг 3 без PDF');
   }

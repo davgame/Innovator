@@ -52,20 +52,25 @@
 
           <div class="flex-1">
             <p class="text-[14px] font-medium">{{ user.full_name }}</p>
-            <p class="text-[12px] text-[#6C727C]">{{ user.role }}</p>
+            <p class="text-[12px] text-[#6C727C]">{{ user.role || 'Участник' }}</p>
           </div>
 
           <!-- Checkbox -->
           <div
-            class="w-5 h-5 rounded-[6px] border flex items-center justify-center"
+            class="w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors shrink-0"
             :class="isSelected(user)
               ? 'bg-[#4286F7] border-[#4286F7]'
               : 'border-[#CBCBCB]'"
           >
-            <div
-              v-if="isSelected(user)"
-              class="w-2.5 h-2.5 bg-white rounded-[3px]"
-            />
+            <svg
+                v-if="isSelected(user)"
+                class="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
           </div>
         </div>
       </div>
@@ -80,107 +85,141 @@
           :key="user.id"
           class="flex items-center gap-2
                  bg-[#F6F8FA] px-2 py-1 rounded-full"
+          @click="toggleUser(user)"
         >
-          <img :src="user.avatar" class="w-5 h-5 rounded-full" />
+          <img :src="user.avatar_url" class="w-5 h-5 rounded-full" />
           <span class="text-[12px]">{{ user.name }}</span>
+          <!-- Checkbox -->
+          <div
+            class="w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors shrink-0"
+            :class="isSelected(user)
+              ? 'bg-[#4286F7] border-[#4286F7]'
+              : 'border-[#CBCBCB]'"
+              @click.stop="toggleUser(user)"
+          >
+            <svg
+                v-if="isSelected(user)"
+                class="w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
         </div>
       </div>
 
       <!-- Footer button -->
       <button
-        @click="addMembers"
+        @click="handleConfirm"
         class="mt-4 bg-[#222222] hover:bg-[#4286F7]
                text-white py-2 rounded-[14px]
                text-[15px] font-medium transition-colors"
       >
         Готово
       </button>
-
     </div>
   </div>
 </template>
 
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
-
-const props = defineProps({
-  projectId: {
-    type: [Number, String],  // Может быть число или строка
-    default: null  // 👈 ДЕЛАЕМ НЕОБЯЗАТЕЛЬНЫМ
-  }
-})
-
-const emit = defineEmits(['close', 'confirm'])
 
 // 👇 Объявляем все переменные
 const searchQuery = ref('')
 const searchResults = ref([])
 const selectedUsers = ref([])
 
-// Поиск пользователей в БД
+const props = defineProps({
+  projectId: {
+    type: [Number, String],
+    default: null
+  },
+  selectedUsers: {
+    type: Array,
+    default: () => []
+  },
+  mode: {  // 👈 ДОБАВЬТЕ ЭТО
+    type: String,
+    default: 'create'
+  }
+})
 
-// Удалить из выбранных (альтернативный метод)
-const removeUser = (userId) => {
-  selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
+const emit = defineEmits(['close', 'confirm'])
+
+const handleConfirm = () => {
+  emit('confirm', selectedUsers.value)
+  emit('close')
 }
+// При открытии модалки в режиме edit - предвыбираем пользователей
+const selectedIds = ref([])
 
-// Сохранить всех выбранных в БД
-const addMembers = async () => {
-  if (selectedUsers.value.length === 0) {
-    alert('Выберите хотя бы одного пользователя')
+
+const loadMembers = async () => {
+
+  if (!props.projectId) return
+
+  const { data, error } = await supabase
+    .from('project_members')
+    .select(`
+      user_id,
+      profiles (
+        id,
+        full_name,
+        avatar_url
+      )
+    `)
+    .eq('project_id', props.projectId)
+
+  if (error) {
+    console.error('Ошибка загрузки участников:', error)
     return
   }
 
-  const members = selectedUsers.value.map(user => ({
-    project_id: props.projectId,
-    user_id: user.id,
-    role: user.role
+  selectedUsers.value = data.map(item => ({
+    id: item.profiles.id,
+    name: item.profiles.full_name,
+    avatar: item.profiles.avatar_url,
+    full_name: item.profiles.full_name,
+    avatar_url: item.profiles.avatar_url
   }))
 
-  console.log('Сохраняем участников:', members)
-
-  const { error } = await supabase
-    .from('project_members')
-    .insert(members)
-
-  if (error) {
-    console.error('Ошибка сохранения:', error)
-    alert('Ошибка при добавлении участников')
-  } else {
-    console.log('✅ Участники сохранены')
-    emit('confirm', selectedUsers.value)
-    emit('close')
-  }
-}
-
-// Простое подтверждение (без сохранения в БД, если нужно)
-const confirm = () => {
-  console.log('Confirm в Add-User, отправляем:', selectedUsers.value)
-  emit('confirm', selectedUsers.value)
-  emit('close')
+  console.log('👥 Текущие участники:', selectedUsers.value)
 }
 
 const isSelected = (user) => {
   return selectedUsers.value.some(u => u.id === user.id)
 }
 
-const toggleUser = (user) => {
-  console.log('🖱️ Клик по пользователю:', user.full_name)
+onMounted(async () => {
+  if (props.mode === 'edit' && props.projectId) {
+    await loadMembers()
+  }
+})
 
+const toggleUser = async(user) => {
+  try{
   if (isSelected(user)) {
     selectedUsers.value = selectedUsers.value.filter(u => u.id !== user.id)
+    console.log('🗑️ Удаляем:', user.name)
   } else {
     selectedUsers.value.push({
       id: user.id,
       name: user.full_name,
-      avatar: user.avatar_url,
       full_name: user.full_name,
-      avatar_url: user.avatar_url
+      avatar_url: user.avatar_url,
+      role: user.role || 'Участник'
     })
+    console.log('📋 Текущие выбранные:',  user.name)
   }
-  console.log('📋 Текущие выбранные:', selectedUsers.value.map(u => u.name))
+    console.log('📋 Текущие выбранные:', selectedUsers.value.map(u => u.name))
+
+  } catch (error) {
+    console.error('❌ Ошибка в toggleUser:', error)
+  }
 }
 
 const searchUsers = async () => {

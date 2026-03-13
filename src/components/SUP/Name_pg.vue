@@ -51,6 +51,8 @@
   <add-user
     v-if="showMemberModal"
     :project-id="projectId"
+    :selected-users="selectedUsers"
+    mode="edit"
     @close="closeModal"
     @confirm="handleMembersConfirm"
   />
@@ -76,29 +78,6 @@ const selectedUsers = ref([])
 const showMemberModal = ref(false)
 const projectId = ref(props.project?.id || null)
 
-// ✅ 1. Сначала объявляем ВСЕ функции
-const loadUsers = () => {
-  if (!projectId.value) return
-
-  // Сначала пробуем загрузить из localStorage (быстро)
-  const savedUsers = localStorage.getItem(`project_members_${projectId.value}`)
-
-  if (savedUsers) {
-    try {
-      const parsed = JSON.parse(savedUsers)
-      if (Array.isArray(parsed)) {
-        selectedUsers.value = parsed
-        console.log('✅ Загружены участники из localStorage:', parsed)
-        return
-      }
-    } catch (e) {
-      console.error('Ошибка парсинга localStorage:', e)
-    }
-  }
-
-  // Если в localStorage нет, грузим из БД
-  loadProjectMembers(projectId.value)
-}
 
 const loadProjectMembers = async (id) => {
   if (!id) {
@@ -156,19 +135,6 @@ const loadProjectMembers = async (id) => {
   }
 }
 
-// Следим за проектом
-watch(() => props.project, (newProject) => {
-  console.log('📌 Name_pg получил новый проект:', newProject)
-  if (newProject?.id) {
-    projectId.value = newProject.id
-    // Сначала пробуем из localStorage
-    loadUsers()
-    // Потом обновляем из БД (перезапишет если есть изменения)
-    loadProjectMembers(newProject.id)
-  }
-}, { immediate: true, deep: true })
-
-
 const getUserColor = (userId) => {
   const colors = [
     '#3B82F6', '#EF4444', '#10B981', '#F59E0B',
@@ -187,20 +153,45 @@ const openAddMemberModal = () => {
 
 const closeModal = () => {
   showMemberModal.value = false
-  loadUsers()
 }
 
-const handleMembersConfirm = (users) => {
-  if (users && users.length > 0) {
-    // Сохраняем в localStorage с привязкой к проекту
-    if (projectId.value) {
-      localStorage.setItem(`project_members_${projectId.value}`, JSON.stringify(users))
-    }
-    selectedUsers.value = users
+const handleMembersConfirm = async (users) => {
+  console.log('📥 Получены участники из модалки:', users)
+
+  // 1️⃣ Сохраняем изменения в БД
+  const { error: deleteError } = await supabase
+    .from('project_members')
+    .delete()
+    .eq('project_id', projectId.value)
+
+  if (deleteError) {
+    console.error(deleteError)
+    return
   }
-  closeModal()
-}
 
+  if (users && users.length > 0) {
+    const membersToInsert = users.map(user => ({
+      project_id: projectId.value,
+      user_id: user.id,
+      role: user.role || 'Участник',
+      joined_at: new Date().toISOString()
+    }))
+
+    const { error: insertError } = await supabase
+      .from('project_members')
+      .insert(membersToInsert)
+
+    if (insertError) {
+      console.error(insertError)
+      return
+    }
+  }
+
+  // 2️⃣ Обновляем список на фронте
+  await loadProjectMembers(projectId.value)
+
+  showMemberModal.value = false
+}
 
 watch(() => props.project, (newProject) => {
   console.log('📌 Name_pg получил новый проект:', newProject)
@@ -215,8 +206,16 @@ const displayName = computed(() => {
   return props.project?.name || 'Выберите проект'
 })
 
-// ✅ 3. onMounted после всего
+watch(() => props.project, (newProject) => {
+  if (newProject?.id) {
+    projectId.value = newProject.id
+    loadProjectMembers(newProject.id)  // 👈 ТОЛЬКО ИЗ БД
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  loadUsers()
+  if (props.project?.id) {
+    loadProjectMembers(props.project.id)
+  }
 })
 </script>

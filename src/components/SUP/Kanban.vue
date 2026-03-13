@@ -94,6 +94,7 @@
       <draggable
         v-model="column.tasks"
         group="tasks"
+        :data-column-id="column.id"
         item-key="id"
         @end="onTaskMoved"
         class="flex-1 min-h-0 space-y-6 overflow-y-auto pr-2 transition-all"
@@ -152,7 +153,7 @@
             <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-2">
               <div
                 class="h-full rounded-full transition-all duration-300"
-                :class="getProgressColor(element.progress)"
+                :class="getProgressColor(calcProgress(element))"
                 :style="{ width: calcProgress(element) + '%' }"
               ></div>
             </div>
@@ -276,14 +277,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
 import Edit_task from './Edit_task.vue'
+
 
 const props = defineProps({
   projectId: {
@@ -315,35 +316,28 @@ watch(() => props.projectId, (newId) => {
   }
 }, { immediate: false }) // immediate: false чтобы не дублировать onMounted
 
-// Обработчик перемещения задачи (убедитесь, что статус обновляется)
 // Обработчик перемещения задачи
 const onTaskMoved = (evt) => {
-  console.log('Задача перемещена:', evt)
-
   try {
-    // Получаем ID колонок
-    const fromColumnId = evt.from.closest('[data-column-id]')?.getAttribute('data-column-id')
-    const toColumnId = evt.to.closest('[data-column-id]')?.getAttribute('data-column-id')
+    const task = evt.item.__draggable_context.element
 
-    if (!fromColumnId || !toColumnId) return
+    const fromColumnId = Number(
+      evt.from.closest('[data-column-id]')?.dataset.columnId
+    )
 
-    const fromId = parseInt(fromColumnId)
-    const toId = parseInt(toColumnId)
+    const toColumnId = Number(
+      evt.to.closest('[data-column-id]')?.dataset.columnId
+    )
 
-    console.log(`Из колонки ${fromId} (${getColumnTitle(fromId)}) в колонку ${toId} (${getColumnTitle(toId)})`)
+    if (!task || !toColumnId) return
 
-    if (fromId !== toId) {
-      const fromColumn = columns.value.find(col => col.id === fromId)
-      if (!fromColumn || !fromColumn.tasks[evt.oldIndex]) return
-
-      const task = fromColumn.tasks[evt.oldIndex]
-
-      // ОБНОВЛЯЕМ СТАТУС ЗАДАЧИ
-      task.status = toId
-      console.log(`✅ Статус задачи обновлен на ${task.status} (${getColumnTitle(task.status)})`)
+    if (fromColumnId !== toColumnId) {
+      task.status = toColumnId
+      console.log(`Задача ${task.title} перемещена → статус ${toColumnId}`)
     }
+
   } catch (error) {
-    console.error('Ошибка при перемещении:', error)
+    console.error('Ошибка drag-drop:', error)
   }
 }
 
@@ -396,29 +390,22 @@ const getColumnTitle = (columnId) => {
   return column ? column.title : 'Неизвестно'
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ ЗАДАЧИ
 const createTask = (task) => {
   const columnId = targetColumnId.value || task.status
-  // Ищем колонку по статусу из задачи (1, 2, 3)
-  const column = columns.value.find(
-    col => col.id === task.status
-  )
 
+  const column = columns.value.find(col => col.id === columnId)
   if (!column) return
 
-
-  // Добавляем задачу в колонку со всеми данными
   column.tasks.push({
-    id: task.id,
+    id: task.id || Date.now(),
     title: task.title,
     progress: task.progress || 0,
-    status: columnId, // ← ВАЖНО: добавляем status равный ID колонки
-    tag: task.tag,
+    status: columnId,
+    tag: task.tag || '',
     checklist: task.checklist || [],
     members: task.members || []
   })
 
-  // Закрываем модалку
   showTaskModal.value = false
   targetColumnId.value = null
 }
@@ -532,13 +519,6 @@ const getProgressColor = (progress) => {
 
 // Данные о задаче, к которой добавляем участников
 const currentTaskForMembers = ref(null)
-
-// Обработчик добавления участников ко всей колонке
-const handleMembersAdded = (selectedUsers) => {
-  console.log('Добавлены участники проекта:', selectedUsers)
-  // Здесь можно добавить логику сохранения участников проекта
-  showMemberModal.value = false
-}
 
 // Открытие модального окна для добавления участников к задаче
 const openAddMemberToTask = (task) => {
@@ -678,46 +658,6 @@ const closeEditModal = () => {
   editingTask.value = null
 }
 
-// Обновленная функция сохранения задачи
-const saveTask = (taskData) => {
-  if (editingTask.value) {
-    // РЕДАКТИРОВАНИЕ существующей задачи
-    // Ищем задачу во всех колонках
-    for (const column of columns.value) {
-      const taskIndex = column.tasks.findIndex(t => t.id === editingTask.value.id)
-      if (taskIndex !== -1) {
-        // Обновляем задачу
-        column.tasks[taskIndex] = {
-          ...column.tasks[taskIndex],
-          title: taskData.title,
-          status: taskData.status,
-          tag: taskData.tag,
-          checklist: taskData.checklist,
-          progress: taskData.progress
-        }
-        break
-      }
-    }
-  } else {
-    // СОЗДАНИЕ новой задачи
-    const column = columns.value.find(col => col.id === taskData.status)
-    if (column) {
-      column.tasks.push({
-        id: taskData.id,
-        title: taskData.title,
-        progress: taskData.progress || 0,
-        tag: taskData.tag,
-        checklist: taskData.checklist || [],
-        members: taskData.members || []
-      })
-    }
-  }
-
-  // Закрываем модалку
-  showTaskModal.value = false
-  editingTask.value = null
-  targetColumnId.value = null
-}
 
 // ========== РАБОТА С ПРОГРЕССОМ ==========
 
@@ -734,34 +674,6 @@ const calcProgress = (task) => {
   }
 
   return progress
-}
-
-// Обновление статуса чеклиста
-const toggleChecklistItem = (task, itemId) => {
-  const item = task.checklist.find(i => i.id === itemId)
-  if (item) {
-    item.done = !item.done
-    // Прогресс пересчитается через calcProgress при следующем рендере
-    // Или можно вызвать сразу:
-    task.progress = calcProgress(task)
-  }
-}
-
-// Добавление нового пункта в чеклист
-const addChecklistItem = (task, text) => {
-  if (!task.checklist) task.checklist = []
-  task.checklist.push({
-    id: Date.now(),
-    text: text,
-    done: false
-  })
-  calcProgress(task) // Пересчитываем прогресс
-}
-
-// Удаление пункта из чеклиста
-const removeChecklistItem = (task, itemId) => {
-  task.checklist = task.checklist.filter(i => i.id !== itemId)
-  calcProgress(task) // Пересчитываем прогресс
 }
 
 </script>
