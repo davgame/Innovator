@@ -22,7 +22,7 @@
 
       <!-- Контент -->
       <div class="flex-1 p-6 bg-white">
-          <Kanban :projectId="currentProject?.id ? String(currentProject.id) : null"  />
+          <Kanban :projectId="String(currentProject?.id)" />
       </div>
     </div>
   </div>

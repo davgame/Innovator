@@ -277,14 +277,22 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
 import Edit_task from './Edit_task.vue'
-
+import {
+  fetchTasks,
+  createTaskDB,      // ← добавляем
+  updateTaskDB,
+  deleteTaskDB,
+  updateTaskStatus,
+  updateTaskDeadline
+}
+from '@/services/taskService'
 
 const props = defineProps({
   projectId: {
@@ -295,49 +303,70 @@ const props = defineProps({
 
 const projectStore = useProjectStore()
 
-// Kanban.vue - замените onMounted
-onMounted(async () => {
-  console.log('🔍 Kanban получил props.projectId:', props.projectId, 'тип:', typeof props.projectId)
 
-  // 👇 Проверяем, что ID существует и это число
-  if (props.projectId && !isNaN(props.projectId)) {
-    await projectStore.loadProject(props.projectId)
-  } else {
-    console.log('⚠️ Kanban: нет валидного projectId, пропускаем загрузку')
-  }
-})
+// 1️⃣ Добавляем ref для всех задач в колонках
+const columns = ref([
+  { id: 1, title: 'Беклог', tasks: [] },
+  { id: 2, title: 'В работе', tasks: [] },
+  { id: 3, title: 'Готово', tasks: [] }
+])
 
-// Kanban.vue - добавьте после onMounted
-watch(() => props.projectId, (newId) => {
-  console.log('🔍 Kanban watch: projectId изменился на', newId)
+// 2️⃣ Определяем loadTasks
+const loadTasks = async () => {
+  if (!props.projectId) return
 
-  if (newId && !isNaN(newId)) {
-    projectStore.loadProject(newId)
-  }
-}, { immediate: false }) // immediate: false чтобы не дублировать onMounted
-
-// Обработчик перемещения задачи
-const onTaskMoved = (evt) => {
   try {
-    const task = evt.item.__draggable_context.element
-
-    const fromColumnId = Number(
-      evt.from.closest('[data-column-id]')?.dataset.columnId
-    )
-
-    const toColumnId = Number(
-      evt.to.closest('[data-column-id]')?.dataset.columnId
-    )
-
-    if (!task || !toColumnId) return
-
-    if (fromColumnId !== toColumnId) {
-      task.status = toColumnId
-      console.log(`Задача ${task.title} перемещена → статус ${toColumnId}`)
+    const { data: tasks, error } = await fetchTasks(Number(props.projectId))
+    if (error) {
+      console.error('❌ Ошибка при загрузке задач:', error)
+      return
     }
 
-  } catch (error) {
-    console.error('Ошибка drag-drop:', error)
+    // Очистим все колонки
+    columns.value.forEach(col => (col.tasks = []))
+
+    // Распределяем задачи по колонкам по полю status
+    tasks.forEach(task => {
+      const column = columns.value.find(c => c.id === task.status)
+      if (column) column.tasks.push(task)
+    })
+  } catch (err) {
+    console.error('❌ Ошибка loadTasks:', err)
+  }
+}
+
+watch(
+  () => props.projectId,
+  async (id) => {
+    if (!id || isNaN(id)) return
+
+    console.log('📡 init project:', id)
+
+    await projectStore.loadProject(Number(id))
+    await loadTasks()
+  },
+  { immediate: true }
+)
+
+const deleteTask = async (task, columnId) => {
+  if (!confirm(`Удалить задачу "${task.title}"?`)) return
+
+  try {
+    const { error } = await deleteTaskDB(task.id)
+    if (error) {
+      console.error('❌ Ошибка при удалении задачи:', error)
+      return
+    }
+
+    // Обновляем локальный state
+    const column = columns.value.find(c => c.id === columnId)
+    if (!column) return
+    column.tasks = column.tasks.filter(t => t.id !== task.id)
+
+    closeContextMenu()
+    console.log(`✅ Задача "${task.title}" удалена`)
+  } catch (err) {
+    console.error('❌ Ошибка deleteTask:', err)
   }
 }
 
@@ -390,48 +419,59 @@ const getColumnTitle = (columnId) => {
   return column ? column.title : 'Неизвестно'
 }
 
-const createTask = (task) => {
-  const columnId = targetColumnId.value || task.status
+const createTask = async (task) => {
+  try {
+    const columnId = targetColumnId.value || task.status
 
-  const column = columns.value.find(col => col.id === columnId)
-  if (!column) return
+    const newTask = {
+      project_id: Number(props.projectId),
+      title: task.title,
+      status: columnId,
+      progress: task.progress || 0,
+      tag: task.tag || '',
+      checklist: task.checklist || [],
+      members: task.members || [],
+      deadline: task.deadline || null
+    }
 
-  column.tasks.push({
-    id: task.id || Date.now(),
-    title: task.title,
-    progress: task.progress || 0,
-    status: columnId,
-    tag: task.tag || '',
-    checklist: task.checklist || [],
-    members: task.members || []
-  })
+    const { data, error } = await createTaskDB(newTask)
 
-  showTaskModal.value = false
-  targetColumnId.value = null
+    if (error) {
+      console.error('❌ Ошибка создания задачи:', error)
+      return
+    }
+
+    // Добавляем в локальный state
+    const column = columns.value.find(col => col.id === columnId)
+    if (column && data.length) {
+      column.tasks.push(data[0]) // supabase возвращает массив вставленных записей
+    }
+
+    showTaskModal.value = false
+    targetColumnId.value = null
+  } catch (err) {
+    console.error('❌ Ошибка createTask:', err)
+  }
 }
 
-const columns = ref([
-  {
-    id: 1,
-    title: 'Беклог',
-    tasks: [
-      { id: 1, title: 'UX/UI дизайн', progress: 12 },
-      { id: 2, title: 'API интеграция', progress: 5 }
-    ]
-  },
-  {
-    id: 2,
-    title: 'В работе',
-    tasks: [
-      { id: 3, title: 'BPMN схема', progress: 77 }
-    ]
-  },
-  {
-    id: 3,
-    title: 'Готово',
-    tasks: []
+const updateTask = async (updatedTask) => {
+  const { error } = await updateTaskDB(updatedTask)
+  if (error) {
+    console.error('❌ Ошибка обновления задачи:', error)
+    return
   }
-])
+
+  // Обновляем локальный массив колонок
+  const column = columns.value.find(col => col.id === updatedTask.status)
+  if (!column) return
+
+  const index = column.tasks.findIndex(t => t.id === updatedTask.id)
+  if (index !== -1) {
+    column.tasks[index] = { ...updatedTask }
+  }
+
+  closeEditModal()
+}
 
 // Состояние для календаря
 const showDatePicker = ref(false)
@@ -476,12 +516,20 @@ const clearDate = () => {
 }
 
 // Сохранить дату
-const saveDate = () => {
+const saveDate = async () => {
   if (currentTaskForDate.value && tempSelectedDate.value) {
     currentTaskForDate.value.deadline = tempSelectedDate.value
+
+    try{
+      await updateTaskDeadline(currentTaskForDate.value.id, tempSelectedDate.value)
+      console.log('✅ Дата сохранена')
+    }catch(err){
+      console.error('❌ Ошибка сохранения даты:', err)
+    }
   }
   closeDatePicker()
 }
+
 
 // Форматирование даты для отображения
 const formatDateForDisplay = (dateString) => {
@@ -571,7 +619,6 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)]
   }
 
-// Открытие/закрытие контекстного меню
 const toggleContextMenu = (task) => {
   if (activeContextMenu.value === task.id) {
     activeContextMenu.value = null
@@ -585,16 +632,37 @@ const closeContextMenu = () => {
   activeContextMenu.value = null
 }
 
-// Удаление задачи
-const deleteTask = (task, columnId) => {
-  const column = columns.value.find(col => col.id === columnId)
-  if (column) {
-    const taskIndex = column.tasks.findIndex(t => t.id === task.id)
-    if (taskIndex !== -1) {
-      column.tasks.splice(taskIndex, 1)
+const onTaskMoved = async (evt) => {
+  try {
+    const task = evt.item.__draggable_context.element
+
+    const fromColumnId = Number(
+      evt.from.closest('[data-column-id]')?.dataset.columnId
+    )
+
+    const toColumnId = Number(
+      evt.to.closest('[data-column-id]')?.dataset.columnId
+    )
+
+    if (!task || !toColumnId) return
+
+    if (fromColumnId !== toColumnId) {
+      // Обновляем статус локально
+      task.status = toColumnId
+      console.log(`Задача ${task.title} перемещена → статус ${toColumnId}`)
+
+      // 👇 Сохраняем через сервис
+      try {
+        await updateTaskStatus(task.id, toColumnId)
+      } catch (err) {
+        console.error('❌ Ошибка сохранения статуса:', err)
+        task.status = fromColumnId
+      }
     }
+
+  } catch (error) {
+    console.error('Ошибка drag-drop:', error)
   }
-  closeContextMenu()
 }
 
 // Inline-редактирование названия задачи
@@ -608,34 +676,23 @@ const startEditTitle = (task) => {
 }
 
 // Сохранить
-const saveTitle = (task) => {
-  if (tempTitle.value.trim()) {
-    task.title = tempTitle.value.trim()
-  }
+const saveTitle = async (task) => {
+  if (!tempTitle.value.trim()) return
+
+  task.title = tempTitle.value.trim()
+
+  await updateTaskDB({
+    id: task.id,
+    title: task.title
+  })
 
   editingTaskId.value = null
-  tempTitle.value = ''
 }
 
 // Отмена
 const cancelEdit = () => {
   editingTaskId.value = null
   tempTitle.value = ''
-}
-// Обновить задачу
-const updateTask = (updatedTask) => {
-  console.log('Обновленная задача:', updatedTask)
-
-  // Ищем задачу во всех колонках и обновляем
-  for (const column of columns.value) {
-    const index = column.tasks.findIndex(t => t.id === updatedTask.id)
-    if (index !== -1) {
-      column.tasks[index] = updatedTask
-      break
-    }
-  }
-
-  closeEditModal()
 }
 
 // Состояние для редактирования задачи
