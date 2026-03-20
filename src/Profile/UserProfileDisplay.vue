@@ -97,13 +97,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import User_organization from './User_organization.vue'
 import ProfileCompetencies from './ProfileCompetencies.vue'
 import ProfileRole from './ProfileRole.vue'
 import ProfileResume from './ProfileResume.vue'
 import Footer from '@/components/Home/Footer.vue'
+import Edit_button from './Edit_button.vue'
 
 const props = defineProps({
   userId: {
@@ -114,6 +115,45 @@ const props = defineProps({
 
 const loading = ref(true)
 const userProfile = ref(null)
+let channel = null
+
+onMounted(async () => {
+  loading.value = true
+  try {
+    // 1. Загружаем профиль
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*, organizations(*)')
+      .eq('id', props.userId)
+      .single()
+
+    if (error) throw error
+    userProfile.value = data
+
+    // 2. Настраиваем Realtime подписку
+    channel = supabase
+      .channel(`profile-${props.userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${props.userId}`
+        },
+        (payload) => {
+          console.log('🔄 Realtime обновление:', payload.new.status)
+          userProfile.value = payload.new
+        }
+      )
+      .subscribe()
+
+  } catch (error) {
+    console.error('Ошибка загрузки профиля:', error)
+  } finally {
+    loading.value = false
+  }
+})
 
 const getUserInitials = (name) => {
   if (!name) return '?'
@@ -170,21 +210,7 @@ const userStatusText = computed(() => {
   return `был(а) ${formatLastSeen(userProfile.value?.last_seen)}`
 })
 
-onMounted(async () => {
-  loading.value = true
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*, organizations(*)')
-      .eq('id', props.userId)
-      .single()
-
-    if (error) throw error
-    userProfile.value = data
-  } catch (error) {
-    console.error('Ошибка загрузки профиля:', error)
-  } finally {
-    loading.value = false
-  }
+const isOnline = computed(() => {
+  return userProfile.value?.status === 'online'
 })
 </script>

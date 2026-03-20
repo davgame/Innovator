@@ -141,18 +141,52 @@ export const useAuthStore = defineStore('auth', {
       return { data, error }
     },
 
-    // При выходе
-    async signOut() {
-      try {
-        await this.updateUserStatus('offline')
-        await supabase.auth.signOut()
-        this.user = null
-        this.profile = null
-        console.log('✅ Выход выполнен успешно')
-      } catch (error) {
-        console.error('❌ Ошибка при выходе:', error)
+    
+    // auth.js
+    async updateLastSeen() {
+      if (!this.user?.id) return
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          last_seen: new Date().toISOString(),
+          status: 'online'
+        })
+        .eq('id', this.user.id)
+
+      if (error) {
+        console.error('Ошибка обновления last_seen:', error)
       }
     },
+
+    async signOut() {
+  try {
+    console.log('1️⃣ Выход, пользователь:', this.user?.id)
+
+    // 👇 СНАЧАЛА обновляем статус
+    if (this.user?.id) {
+      await supabase
+        .from('profiles')
+        .update({
+          status: 'offline',
+          last_seen: new Date().toISOString()
+        })
+        .eq('id', this.user.id)
+    }
+
+    // 👇 ПОТОМ выходим
+    await supabase.auth.signOut()
+
+    // 👇 Очищаем локальное состояние
+    this.user = null
+    this.profile = null
+
+    console.log('✅ Выход выполнен')
+
+  } catch (error) {
+    console.error('❌ Ошибка:', error)
+  }
+},
 
     // В auth.js - замените функцию uploadResume
     async uploadResume(file, userId) {

@@ -125,13 +125,75 @@
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch} from 'vue'
 import { supabase } from '@/lib/supabase'
 
+
+const emit = defineEmits(['close', 'confirm'])
 // 👇 Объявляем все переменные
 const searchQuery = ref('')
-const searchResults = ref([])
 const selectedUsers = ref([])
+const allUsers = ref([])  // 👈 Все пользователи для режима edit
+const projectMembers = ref([])  // 👈 Участники проекта для режима task
+const searchResults = ref([])
+const isLoading = ref(false)
+
+// Поиск пользователей в БД
+let searchTimer = null
+
+const searchUsers = async () => {
+  const query = searchQuery.value.trim()
+
+  if (!query) {
+    searchResults.value = []
+    return
+  }
+
+  isLoading.value = true
+
+  try {
+    let dbQuery = supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .ilike('full_name', `%${query}%`)
+      .limit(10)
+
+    if (props.mode === 'task' && props.projectMembers?.length > 0) {
+      const memberIds = props.projectMembers.map(m => m.id)
+      dbQuery = dbQuery.not('id', 'in', `(${memberIds.join(',')})`)
+    }
+
+    const { data, error } = await dbQuery
+
+    if (error) {
+      console.error('Ошибка поиска:', error)
+      searchResults.value = []
+    } else {
+      searchResults.value = data || []
+    }
+  } catch (err) {
+    console.error('Ошибка:', err)
+    searchResults.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Следим за изменением поискового запроса
+watch(searchQuery, (newValue) => {
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
+
+  if (!newValue.trim()) {
+    searchResults.value = []
+    return
+  }
+
+  searchTimer = setTimeout(() => {
+    searchUsers()
+  }, 500)
+})
 
 const props = defineProps({
   projectId: {
@@ -144,22 +206,13 @@ const props = defineProps({
   },
   mode: {  // 👈 ДОБАВЬТЕ ЭТО
     type: String,
-    default: 'create'
+    default: 'edit'
   }
 })
 
-const emit = defineEmits(['close', 'confirm'])
 
-const handleConfirm = () => {
-  emit('confirm', selectedUsers.value)
-  emit('close')
-}
-// При открытии модалки в режиме edit - предвыбираем пользователей
-const selectedIds = ref([])
-
-
-const loadMembers = async () => {
-
+// Загружаем участников проекта
+const loadProjectMembers = async () => {
   if (!props.projectId) return
 
   const { data, error } = await supabase
@@ -174,29 +227,41 @@ const loadMembers = async () => {
     `)
     .eq('project_id', props.projectId)
 
-  if (error) {
-    console.error('Ошибка загрузки участников:', error)
-    return
+  if (!error && data) {
+    projectMembers.value = data.map(m => ({
+      id: m.profiles.id,
+      full_name: m.profiles.full_name,
+      avatar_url: m.profiles.avatar_url
+    }))
   }
+}
 
-  selectedUsers.value = data.map(item => ({
-    id: item.profiles.id,
-    name: item.profiles.full_name,
-    avatar: item.profiles.avatar_url,
-    full_name: item.profiles.full_name,
-    avatar_url: item.profiles.avatar_url
-  }))
 
-  console.log('👥 Текущие участники:', selectedUsers.value)
+const handleConfirm = () => {
+  emit('confirm', selectedUsers.value)
+  emit('close')
 }
 
 const isSelected = (user) => {
   return selectedUsers.value.some(u => u.id === user.id)
 }
 
+// Инициализация
 onMounted(async () => {
+  // 1. Если переданные пользователи (для задачи)
+  if (props.selectedUsers && props.selectedUsers.length) {
+    selectedUsers.value = props.selectedUsers.map(u => ({
+      id: u.id,
+      name: u.name || u.full_name,
+      full_name: u.name || u.full_name,
+      avatar_url: u.avatar || u.avatar_url,
+      role: u.role || 'Участник'
+    }))
+  }
+
+  // 2. Если режим edit и есть projectId - загружаем участников проекта
   if (props.mode === 'edit' && props.projectId) {
-    await loadMembers()
+    await loadProjectMembers()
   }
 })
 
@@ -220,38 +285,5 @@ const toggleUser = async(user) => {
   } catch (error) {
     console.error('❌ Ошибка в toggleUser:', error)
   }
-}
-
-const searchUsers = async () => {
-  console.log('🔍 Ищем:', searchQuery.value)
-
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
-
-  // Тест с конкретным именем
-  const testQuery = 'Бурлов'
-  const { data: testData, error: testError } = await supabase
-    .from('profiles')
-    .select('id, full_name, avatar_url')
-    .ilike('full_name', `%${testQuery}%`)
-
-  console.log('🧪 Тестовый поиск "Бурлов":', testData)
-  console.log('🧪 Ошибка теста:', testError)
-
-  // Основной поиск
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, avatar_url')
-    .ilike('full_name', `%${searchQuery.value}%`)
-    .limit(5)
-
-  if (error) {
-    console.error('❌ Ошибка поиска:', error)
-  }
-
-  console.log('📦 Результаты поиска:', data)
-  searchResults.value = data || []
 }
 </script>

@@ -17,6 +17,8 @@
   <!-- Модальное окно для добавления участников -->
   <add-user
     v-if="showMemberModal"
+    :selected-users="currentTaskForMembers?.members || []"
+    mode="task"
     @close="closeModal"
     @confirm="handleMembersConfirm"
   />
@@ -591,24 +593,35 @@ const handleMembersConfirm = (selectedUsers) => {
   closeModal() // Закрываем модалку после подтверждения
 }
 
-// Функция для добавления участников к задаче
-const addMembersToTask = (selectedUsers, task) => {
-  if (!task.members) {
-    task.members = []
-  }
+const addMembersToTask = async (selectedUsers, task) => {
+  try {
+    // ✅ 1. Обновляем локально
+    task.members = selectedUsers.map(user => ({
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar_url || user.avatar,
+      color: getRandomColor()
+    }))
 
-  // Добавляем только тех участников, которых еще нет в задаче
-  selectedUsers.forEach(user => {
-    if (!task.members.some(member => member.id === user.id)) {
-      task.members.push({
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar,
-        color: getRandomColor()
-      })
+    console.log('👥 Обновлённые участники задачи:', task.members)
+
+    // ✅ 2. Сохраняем в БД
+    const { error } = await updateTaskDB({
+      id: task.id,
+      members: task.members
+    })
+
+    if (error) {
+      console.error('❌ Ошибка сохранения участников:', error)
+    } else {
+      console.log('✅ Участники сохранены в БД')
     }
-  })
+
+  } catch (err) {
+    console.error('❌ Ошибка addMembersToTask:', err)
+  }
 }
+
 
 // Вспомогательная функция для генерации случайного цвета
 const getRandomColor = () => {

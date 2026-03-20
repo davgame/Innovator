@@ -203,6 +203,17 @@ const renamingProjectId = ref(null)
 const newProjectName = ref('')
 const renameInput = ref(null)
 
+// Panel.vue - следим за проектами
+watch(projects, (newProjects) => {
+  console.log('📦 Проекты загружены:', newProjects)
+
+  // Когда проекты появились и ничего не выбрано
+  if (newProjects.length > 0 && !selectedProjectId.value) {
+    console.log('🎯 Выбираем первый проект:', newProjects[0].name)
+    selectProject(newProjects[0])
+  }
+})
+
 // Директива для закрытия меню при клике вне его
 const vClickOutside = {
   mounted(el, binding) {
@@ -463,11 +474,10 @@ const handleKeydown = (e) => {
 onMounted(() => {
   loadProjects()
 
-  // Также загружаем из localStorage, если там есть новый проект
-  const savedName = localStorage.getItem('newProjectName')
-  if (savedName) {
-    // Создаем проект в БД (если нужно)
-    createProjectFromLocalStorage(savedName)
+// 👇 Автоматически выбираем первый проект, если ничего не выбрано
+  if (projects.value.length > 0 && !selectedProjectId.value) {
+    console.log('🎯 Автоматически выбираем первый проект:', projects.value[0].name)
+    selectProject(projects.value[0])
   }
 })
 
