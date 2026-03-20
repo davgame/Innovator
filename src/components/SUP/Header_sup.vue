@@ -1,4 +1,4 @@
-<template v-if="authStore.profile">
+<template>
   <nav class="border-gray-200 bg-[#FFFFFF]">
     <div class="flex fixed top-0 left-0 w-full shadow-2xs z-50 items-center justify-end px-6 py-4 sm:px-6 md:px-[100px] lg:px-[60px]">
 

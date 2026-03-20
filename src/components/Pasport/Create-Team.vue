@@ -43,7 +43,7 @@
       v-if="showModal"
       :project-id="computedProjectId"
       :selected-users="selectedUsers"
-      mode="create"
+      mode="edit"
       @close="showModal = false"
       @confirm="setUsers"
     />
@@ -76,10 +76,20 @@ const route = useRoute()
 const router = useRouter()
 
 const computedProjectId = computed(() => {
-  const id = props.projectId || route.query.id
-  const numericId = Number(id)
+  // Сначала проверяем props.projectId
+  if (props.projectId) {
+    return Number(props.projectId)
+  }
 
-  return Number.isNaN(numericId) ? null : numericId
+  // Потом проверяем route.query.id
+  if (route.query.id) {
+    const id = Number(route.query.id)
+    if (!isNaN(id) && id > 0) {
+      return id
+    }
+  }
+
+  return null
 })
 const authStore = useAuthStore()
 
@@ -87,21 +97,26 @@ computedProjectId
 const showModal = ref(false)
 const selectedUsers = ref([])
 
-// Создаем новый проект
 const createNewProject = async () => {
   console.log('Создаем новый проект...')
+
+  if (!authStore.user?.id) {
+    console.error('❌ Пользователь не авторизован')
+    return null
+  }
 
   const { data, error } = await supabase
     .from('projects')
     .insert({
-      name: 'Новый проект',
-      created_by: authStore.user?.id
+      name: props.projectName || 'Новый проект',
+      created_by: authStore.user.id,
+      created_at: new Date().toISOString()
     })
     .select()
     .single()
 
   if (error) {
-    console.error('Ошибка создания проекта:', error)
+    console.error('❌ Ошибка создания проекта:', error)
     return null
   }
 
@@ -109,23 +124,9 @@ const createNewProject = async () => {
     console.log('✅ Проект создан, ID:', data.id)
     return data.id
   }
+
+  return null
 }
-
-onMounted(async () => {
-  let id = props.projectId || route.query.id
-
-  if (!id) {
-    const newId = await createNewProject()
-    if (!newId) return
-
-    id = newId
-
-    // обновляем URL без перезагрузки
-    router.replace({
-      query: { ...route.query, id }
-    })
-  }
-})
 
 const props = defineProps({
   projectName: {
@@ -138,21 +139,6 @@ const props = defineProps({
   }
 })
 
-// При монтировании загружаем название из props или localStorage
-onMounted(() => {
-  console.log('📦 Create-Team получил:', {
-    name: props.projectName,
-    id: props.projectId
-  })
-
-  // Если нет props, берем из localStorage
-  if (!props.projectName) {
-    const savedName = localStorage.getItem('newProjectName')
-    if (savedName) {
-      console.log('📦 Загружаем из localStorage:', savedName)
-    }
-  }
-})
 
 // При переходе на Pasport передаем название дальше
 const goToPasport = () => {
@@ -166,15 +152,16 @@ const goToPasport = () => {
   })
 }
 
-// Загружаем участников проекта из БД
 const loadProjectMembers = async () => {
   if (!computedProjectId.value) return
 
   const { data, error } = await supabase
     .from('project_members')
     .select(`
-      *,
-      profiles!inner (
+      user_id,
+      role,
+      joined_at,
+      profiles:user_id (
         full_name,
         avatar_url
       )
@@ -191,14 +178,15 @@ const loadProjectMembers = async () => {
       id: m.user_id,
       name: m.profiles?.full_name || 'Пользователь',
       avatar: m.profiles?.avatar_url || null,
-      role: m.role || 'Участник'
+      role: m.role || 'Участник',
+      joined_at: m.joined_at
     }))
+    console.log('👥 Загружено участников:', selectedUsers.value.length)
   } else {
     selectedUsers.value = []
   }
 }
 
-// При подтверждении выбора участников
 const setUsers = async (users) => {
   console.log('🔥 Сохраняем участников:', users)
 
@@ -206,97 +194,132 @@ const setUsers = async (users) => {
 
   if (!projectId) {
     console.error('❌ Нет ID проекта')
+    alert('Ошибка: не удалось определить проект')
+    return
+  }
+
+  if (!users || users.length === 0) {
+    showModal.value = false
     return
   }
 
   try {
-    // 1. Удаляем старых участников
-    await supabase
+    // Получаем существующих участников
+    const { data: existingMembers, error: fetchError } = await supabase
       .from('project_members')
-      .delete()
-      .eq('project_id', computedProjectId.value)
+      .select('user_id')
+      .eq('project_id', projectId)
 
-    // 2. Добавляем новых участников
-    if (users && users.length > 0) {
-      const membersToInsert = users.map(user => ({
-        project_id: projectId,
-        user_id: user.id,
-        role: user.role || 'Участник',
-        joined_at: new Date().toISOString()
-      }))
+    if (fetchError) throw fetchError
 
-      const { error } = await supabase
-        .from('project_members')
-        .insert(membersToInsert)
+    const existingUserIds = existingMembers?.map(m => m.user_id) || []
 
-      if (error) throw error
+    // Только новые пользователи
+    const newUsers = users.filter(user => !existingUserIds.includes(user.id))
 
-      console.log('✅ Участники сохранены в БД')
+    if (newUsers.length === 0) {
+      console.log('⚠️ Все пользователи уже в проекте')
+      showModal.value = false
+      return
     }
 
-    // Обновляем локальный список
-    selectedUsers.value = users
+    // ✅ ПРАВИЛЬНО: используем joined_at
+    const membersToInsert = newUsers.map(user => ({
+      project_id: projectId,
+      user_id: user.id,
+      role: user.role || 'member',
+      joined_at: new Date().toISOString()
+    }))
+
+    console.log('📝 Добавляем участников:', membersToInsert)
+
+    const { error: insertError } = await supabase
+      .from('project_members')
+      .insert(membersToInsert)
+
+    if (insertError) throw insertError
+
+    console.log('✅ Участники добавлены в БД')
+
+    // Обновляем список
     await loadProjectMembers()
+    showModal.value = false
 
   } catch (error) {
     console.error('❌ Ошибка сохранения участников:', error)
+    alert(`Ошибка: ${error.message}`)
   }
 }
 
-// Удалить участника
 const removeUser = async (userId) => {
-
   console.log('🗑️ Удаляем пользователя:', userId)
 
   if (!computedProjectId.value) {
-    selectedUsers.value =
-      selectedUsers.value.filter(u => u.id !== userId)
+    // Если нет проекта, просто удаляем из локального списка
+    selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
     return
   }
 
-  const { error } = await supabase
-    .from('project_members')
-    .delete()
-    .eq('project_id', computedProjectId.value) // ← ВОТ ТУТ
-    .eq('user_id', userId)
+  try {
+    const { error } = await supabase
+      .from('project_members')
+      .delete()
+      .eq('project_id', computedProjectId.value)
+      .eq('user_id', userId)
 
-  if (error) {
+    if (error) throw error
+
+    // Обновляем локальный список
+    selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
+
+    console.log('✅ Участник удалён из БД')
+  } catch (error) {
     console.error('❌ Ошибка удаления:', error)
-    return
+    alert('Не удалось удалить участника')
   }
-
-  selectedUsers.value =
-    selectedUsers.value.filter(u => u.id !== userId)
-
-  await loadProjectMembers()
-
-  console.log('✅ Участник удалён')
 }
 
-// Загружаем участников при монтировании
+// Объедините два onMounted в один
 onMounted(async () => {
-  const projectId = props.projectId || route.query.id
+  console.log('📦 Create-Team mounted')
 
-  if (projectId) {
-    // Загружаем участников из БД
+  // 1. Создаем проект если нет ID
+  let id = props.projectId || route.query.id
+
+  if (!id) {
+    const newId = await createNewProject()
+    if (!newId) return
+
+    id = newId
+
+    // обновляем URL без перезагрузки
+    router.replace({
+      query: { ...route.query, id: newId }
+    })
+  }
+
+  // 2. Загружаем участников
+  if (id) {
     const { data, error } = await supabase
       .from('project_members')
       .select(`
         *,
         profiles (
+          id,
           full_name,
           avatar_url
         )
       `)
-      .eq('project_id', projectId)
+      .eq('project_id', id)
 
     if (!error && data) {
       selectedUsers.value = data.map(m => ({
-        id: m.user_id,
-        name: m.profiles?.full_name || 'Пользователь',
-        avatar: m.profiles?.avatar_url || null,
+        id: m.profiles.id,
+        name: m.profiles.full_name,
+        avatar: m.profiles.avatar_url,
         role: m.role || 'Участник'
       }))
+      console.log('👥 Загружено участников:', selectedUsers.value.length)
     }
   }
 })

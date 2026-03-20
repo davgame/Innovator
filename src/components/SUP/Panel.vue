@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router' // ← Добавить этот импорт!
 import Header_sup from './Header_sup.vue'
 import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ИМПОРТ
@@ -187,11 +187,6 @@ const authStore = useAuthStore()
 const projects = ref([])  // 👈 БУДЕМ ХРАНИТЬ ПРОЕКТЫ ИЗ БД
 const loading = ref(false)
 
-// Функция перехода на главную
-const goToHome = () => {
-  console.log('Переход на главную страницу')
-  router.push('/')
-}
 
 // Состояния
 const searchQuery = ref('')
@@ -226,6 +221,42 @@ const vClickOutside = {
   },
   unmounted(el) {
     document.removeEventListener('click', el.clickOutsideEvent)
+  }
+}
+
+const checkDirectQuery = async () => {
+  if (!authStore.user) return
+
+  console.log('🔍 Прямой запрос к project_members для:', authStore.user.id)
+
+  const { data: members, error: membersError } = await supabase
+    .from('project_members')
+    .select('*')
+    .eq('user_id', authStore.user.id)
+
+  console.log('📊 Данные project_members:', members)
+  console.log('❌ Ошибка:', membersError)
+
+  if (members && members.length > 0) {
+    const projectIds = members.map(m => m.project_id)
+    console.log('📋 project_ids:', projectIds)
+
+    // 👇 ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ ПРОЕКТОВ
+    const { data: projects, error: projectsError } = await supabase
+      .from('projects')
+      .select('id, name')
+      .in('id', projectIds)
+
+    console.log('📁 Найдено проектов:', projects?.length || 0)
+    console.log('📁 Проекты:', projects)
+    console.log('❌ Ошибка projects:', projectsError)
+
+    if (projects?.length === 0) {
+      console.log('⚠️ Проекты не найдены! Возможные причины:')
+      console.log('1. Нет RLS политики для чтения projects')
+      console.log('2. Проекты с такими ID не существуют')
+      console.log('3. Неправильные ID в project_members')
+    }
   }
 }
 
@@ -270,50 +301,129 @@ const toggleMenu = (projectId) => {
   }
 }
 
-// Полностью ЗАМЕНИТЕ функцию loadProjects на эту:
 const loadProjects = async () => {
   loading.value = true
   try {
-    console.log('📡 Загружаю проекты из БД...')
+    if (!authStore.user) return
 
-    // 👇 ЖДЕМ, ПОКА ЗАГРУЗИТСЯ ПОЛЬЗОВАТЕЛЬ
-    if (!authStore.user) {
-      console.log('⏳ Ожидание авторизации...')
-      // Ждем немного или выходим
-      setTimeout(() => {
-        if (authStore.user) {
-          loadProjects() // пробуем снова
-        }
-      }, 500)
-      return
-    }
+    const userId = authStore.user.id
+    console.log('👤 ID пользователя:', userId)
 
-    const { data, error } = await supabase
+    // 1. Получаем все проекты, где пользователь участник
+    const { data: memberProjects, error: memberError } = await supabase
+      .from('project_members')
+      .select('project_id')
+      .eq('user_id', userId)
+
+    if (memberError) throw memberError
+
+    const memberProjectIds = memberProjects?.map(m => m.project_id) || []
+    console.log('📋 project_ids из project_members:', memberProjectIds)
+
+    // 2. Получаем проекты, где пользователь владелец
+    const { data: ownedProjects, error: ownedError } = await supabase
       .from('projects')
       .select('*')
-      .eq('created_by', authStore.user.id)  // 👈 ТЕПЕРЬ ТОЧНО ЕСТЬ
-      .order('created_at', { ascending: false })
+      .eq('created_by', userId)
 
-    if (error) throw error
+    if (ownedError) throw ownedError
 
-    console.log('✅ Загружены проекты:', data)
+    // 3. Получаем проекты, где пользователь участник
+    let memberProjectsData = []
+    if (memberProjectIds.length > 0) {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .in('id', memberProjectIds)
 
-    // Преобразуем данные в формат для Panel
-    projects.value = data.map(p => ({
+      if (error) throw error
+      memberProjectsData = data || []
+      console.log('📁 Проекты участника:', memberProjectsData)
+    }
+
+    // 4. Объединяем и убираем дубликаты
+    const allProjects = [...(ownedProjects || []), ...memberProjectsData]
+    const uniqueProjects = allProjects.filter((p, i, arr) =>
+      i === arr.findIndex(p2 => p2.id === p.id)
+    )
+
+    console.log('✅ Всего проектов:', uniqueProjects.length)
+
+    // 5. Преобразуем для отображения
+    projects.value = uniqueProjects.map(p => ({
       id: p.id,
       name: p.name,
       fullName: p.name,
       category: p.description || 'Проект',
       color: getColorForProject(p.id),
       icon: p.name.charAt(0).toUpperCase(),
-      version: null
+      version: null,
+      isOwner: p.created_by === userId
     }))
 
+    // 6. Если есть проекты и ничего не выбрано, выбираем первый
+    if (projects.value.length > 0 && !selectedProjectId.value) {
+      selectProject(projects.value[0])
+    }
+
   } catch (error) {
-    console.error('❌ Ошибка загрузки проектов:', error)
+    console.error('❌ Ошибка:', error)
     projects.value = []
   } finally {
     loading.value = false
+  }
+}
+
+const deleteProject = async (projectId) => {
+  // Находим проект
+  const project = projects.value.find(p => p.id === projectId)
+
+  // Проверяем, может ли пользователь удалить проект
+  if (!project?.isOwner) {
+    alert('Только владелец проекта может его удалить')
+    return
+  }
+
+  if (!confirm('Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.')) return
+
+  try {
+    // Сначала удаляем участников проекта
+    await supabase
+      .from('project_members')
+      .delete()
+      .eq('project_id', projectId)
+
+    // Удаляем задачи проекта
+    await supabase
+      .from('tasks')
+      .delete()
+      .eq('project_id', projectId)
+
+    // Удаляем сам проект
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+      .eq('created_by', authStore.user.id)  // 👈 Только владелец может удалить
+
+    if (error) throw error
+
+    // Обновляем локальный список
+    projects.value = projects.value.filter(p => p.id !== projectId)
+
+    if (selectedProjectId.value === projectId) {
+      selectedProjectId.value = projects.value.length > 0 ? projects.value[0]?.id : null
+      if (selectedProjectId.value) {
+        const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
+        selectProject(firstProject)
+      }
+    }
+
+    closeMenu()
+    console.log('✅ Проект удален из БД')
+  } catch (error) {
+    console.error('❌ Ошибка удаления проекта:', error)
+    alert('Не удалось удалить проект')
   }
 }
 
@@ -348,6 +458,8 @@ const renameProject = (project) => {
     renameInput.value?.select()
   })
 }
+
+
 
 // Подтверждение переименования
 const confirmRename = async () => {
@@ -390,47 +502,53 @@ const cancelRename = () => {
   newProjectName.value = ''
 }
 
-// Удаление проекта
-const deleteProject = async (projectId) => {
-  if (!confirm('Вы уверены, что хотите удалить этот проект?')) return
+// // Удаление проекта
+// const deleteProject = async (projectId) => {
+//   if (!confirm('Вы уверены, что хотите удалить этот проект?')) return
 
-  try {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId)
+//   try {
+//     const { error } = await supabase
+//       .from('projects')
+//       .delete()
+//       .eq('id', projectId)
 
-    if (error) throw error
+//     if (error) throw error
 
-    // Удаляем из локального списка
-    projects.value = projects.value.filter(p => p.id !== projectId)
+//     // Удаляем из локального списка
+//     projects.value = projects.value.filter(p => p.id !== projectId)
 
-    if (selectedProjectId.value === projectId) {
-      selectedProjectId.value = projects.value.length > 0 ? projects.value[0].id : null
-      if (selectedProjectId.value) {
-        const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
-        selectProject(firstProject)
-      }
-    }
+//     if (selectedProjectId.value === projectId) {
+//       selectedProjectId.value = projects.value.length > 0 ? projects.value[0].id : null
+//       if (selectedProjectId.value) {
+//         const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
+//         selectProject(firstProject)
+//       }
+//     }
 
-    closeMenu()
-    console.log('✅ Проект удален из БД')
-  } catch (error) {
-    console.error('❌ Ошибка удаления проекта:', error)
-    alert('Не удалось удалить проект')
-  }
-}
+//     closeMenu()
+//     console.log('✅ Проект удален из БД')
+//   } catch (error) {
+//     console.error('❌ Ошибка удаления проекта:', error)
+//     alert('Не удалось удалить проект')
+//   }
+// }
 
 // Создание нового проекта
 const createNewBoard = async () => {
+  if (!authStore.user?.id) {
+    alert('Необходимо авторизоваться')
+    return
+  }
+
   try {
     const { data, error } = await supabase
       .from('projects')
       .insert([
         {
           name: `Новый проект ${projects.value.length + 1}`,
-          created_by: authStore.user?.id,
-          created_at: new Date().toISOString()
+          created_by: authStore.user.id,
+          created_at: new Date().toISOString(),
+          description: 'Новый проект'
         }
       ])
       .select()
@@ -446,7 +564,8 @@ const createNewBoard = async () => {
         category: 'Новый проект',
         color: getColorForProject(data.id),
         icon: data.name.charAt(0).toUpperCase(),
-        version: null
+        version: null,
+        isOwner: true  // 👈 Создатель всегда владелец
       }
 
       projects.value.unshift(newProject)
@@ -480,43 +599,6 @@ onMounted(() => {
     selectProject(projects.value[0])
   }
 })
-
-// Создание проекта из localStorage
-const createProjectFromLocalStorage = async (name) => {
-  try {
-    const { data, error } = await supabase
-      .from('projects')
-      .insert([
-        {
-          name: name,
-          created_by: authStore.user?.id,
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single()
-
-    if (!error && data) {
-      localStorage.removeItem('newProjectName')
-      await loadProjects()  // Перезагружаем список
-
-      // Выбираем новый проект
-      const newProject = {
-        id: data.id,
-        name: data.name,
-        fullName: data.name,
-        category: 'Новый проект',
-        color: getColorForProject(data.id),
-        icon: data.name.charAt(0).toUpperCase(),
-        version: null
-      }
-
-      selectProject(newProject)
-    }
-  } catch (error) {
-    console.error('Ошибка создания проекта:', error)
-  }
-}
 
 // Выбор проекта
 const selectProject = (project) => {

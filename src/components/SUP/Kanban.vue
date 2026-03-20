@@ -23,6 +23,7 @@
     @confirm="handleMembersConfirm"
   />
 
+
   <!-- Модальное окно для выбора даты -->
   <div
     v-if="showDatePicker && currentTaskForDate"
@@ -286,6 +287,7 @@ import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
 import Edit_task from './Edit_task.vue'
+import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
 import {
   fetchTasks,
   createTaskDB,      // ← добавляем
@@ -304,7 +306,6 @@ const props = defineProps({
 })
 
 const projectStore = useProjectStore()
-
 
 // 1️⃣ Добавляем ref для всех задач в колонках
 const columns = ref([
@@ -726,6 +727,65 @@ const openCreateTask = (columnId) => {
 const closeEditModal = () => {
   showEditModal.value = false
   editingTask.value = null
+}
+
+const debugTasks = async () => {
+  console.log('=== 🐛 ОТЛАДКА ЗАДАЧ ===')
+  console.log('1. projectId из props:', props.projectId)
+  console.log('2. URL:', window.location.pathname)
+
+  // Получаем ID из URL
+  const urlMatch = window.location.pathname.match(/\/sup\/project\/(\d+)/)
+  const urlProjectId = urlMatch ? Number(urlMatch[1]) : null
+  console.log('3. ProjectId из URL:', urlProjectId)
+
+  const currentProjectId = urlProjectId || Number(props.projectId)
+  console.log('4. Текущий проект ID:', currentProjectId)
+
+  // 👇 ВСЕ ЗАДАЧИ В БД
+  console.log('\n📋 ВСЕ ЗАДАЧИ В БД:')
+  const { data: allTasks, error: allError } = await supabase
+    .from('tasks')
+    .select('id, title, project_id, status')
+
+  if (allError) {
+    console.error('❌ Ошибка при загрузке всех задач:', allError)
+  } else {
+    console.table(allTasks)
+    console.log(`📊 Всего задач в БД: ${allTasks?.length || 0}`)
+
+    // Группируем по project_id
+    const grouped = {}
+    allTasks?.forEach(task => {
+      if (!grouped[task.project_id]) grouped[task.project_id] = []
+      grouped[task.project_id].push(task)
+    })
+    console.log('📁 Задачи по проектам:', grouped)
+  }
+
+  // 👇 ЗАДАЧИ ДЛЯ ТЕКУЩЕГО ПРОЕКТА
+  console.log(`\n📋 ЗАДАЧИ ДЛЯ ПРОЕКТА ${currentProjectId}:`)
+  const { data: currentTasks, error: currentError } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('project_id', currentProjectId)
+
+  if (currentError) {
+    console.error('❌ Ошибка:', currentError)
+  } else {
+    console.log(`📊 Найдено задач: ${currentTasks?.length || 0}`)
+    if (currentTasks?.length > 0) {
+      console.table(currentTasks)
+    } else {
+      console.log('⚠️ Нет задач для этого проекта')
+    }
+  }
+
+  // 👇 ТЕКУЩЕЕ СОСТОЯНИЕ КОЛОНОК
+  console.log('\n📊 ТЕКУЩЕЕ СОСТОЯНИЕ КОЛОНОК:')
+  columns.value.forEach(col => {
+    console.log(`   ${col.title} (id:${col.id}): ${col.tasks.length} задач`)
+  })
 }
 
 

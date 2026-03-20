@@ -238,6 +238,8 @@ const loadProjectMembers = async () => {
 
 
 const handleConfirm = () => {
+  console.log('📝 Подтверждение выбора пользователей:', selectedUsers.value)
+  // Просто передаем список наверх
   emit('confirm', selectedUsers.value)
   emit('close')
 }
