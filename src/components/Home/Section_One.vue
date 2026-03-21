@@ -62,6 +62,7 @@
     <div class="mt-3 lg:mt-6">
       <!-- Отступ от текста -->
       <button
+        @click="handleCreateProject"
         class="cursor-pointer flex items-center px-5 py-1 lg:px-12 lg:py-2 border-2 border-blue-500 rounded-full text-blue-500 hover:bg-blue-50 transition"
       >
         <div
@@ -71,13 +72,10 @@
               <img src="/src/assets/images/plus.png" class="w-[22px] h-auto">
             </div>
         </div>
-        <RouterLink to="/project/:projectId" @click="isOpen = false">
           <span class="font-rubik font-[590] text-[20px] lg:text-[25px] ml-4 lg:ml-6">Новый проект</span>
-        </RouterLink>
       </button>
     </div>
     <div class="flex justify-center items-center relative">
-      <!-- Синий фон -->
       <!-- Основной контейнер с фоном -->
       <div class="relative w-full">
         <!-- Изображение -->
@@ -90,7 +88,24 @@
 
 
 <script setup>
-import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
 
+const router = useRouter()
+
+const handleCreateProject = async () => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session) {
+      router.push('/authorization?tab=auth')
+      return
+    }
+
+    router.push('/project/:projectId')
+  } catch (error) {
+    console.error('Ошибка при проверке авторизации:', error)
+    router.push('/authorization?tab=auth')
+  }
+}
 </script>
