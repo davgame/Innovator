@@ -11,7 +11,13 @@
       </div>
         <!-- 🔍 ПОИСК (всегда виден, по центру) -->
       <div class="flex items-center lg:gap-4">
-        <SearchUsers />
+                <!-- Мобильный поиск (показывается только на мобилках) -->
+        <MobileSearch />
+
+        <!-- Десктопный поиск (показывается только на десктопе) -->
+        <div class="hidden lg:block">
+          <SearchUsers />
+        </div>
 
         <RouterLink
           v-if="authStore.profile"
@@ -85,8 +91,6 @@
     <div class="pt-[45px]">
       <!-- Здесь основной контент страницы -->
     </div>
-
-
 
     <!-- FULLSCREEN МЕНЮ -->
     <Transition name="slide-menu">
@@ -280,6 +284,7 @@ import { ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import SearchUsers from './SearchUsers.vue'
+import MobileSearch from '@/Profile/MobileSearch.vue'
 
 const authStore = useAuthStore()
 const avatarVersion = ref(Date.now()) // 👈 для сброса кэша

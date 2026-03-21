@@ -12,11 +12,11 @@
       >
 
       <!-- Аватар + информация (как в User.vue) -->
-      <div class="relative -mt-16 lg:-mt-20 flex flex-col lg:flex-row items-center lg:items-end gap-4 lg:gap-7 px-4 lg:px-0"
+      <div class="relative -mt-14 lg:-mt-25 flex flex-col lg:flex-row items-center lg:items-end gap-4 lg:gap-7 px-4 lg:px-0"
            :class="{'lg:ml-[100px]': true}">
 
         <!-- Контейнер для аватара и индикатора -->
-        <div class="relative lg:w-50 lg:h-50 w-24 h-24 flex-shrink-0">
+        <div class="relative lg:w-55 lg:h-55 w-24 h-24 flex-shrink-0">
           <!-- Аватар -->
           <div class="w-full h-full rounded-full overflow-hidden bg-[#CFD9FF] border-3 border-white">
             <img
@@ -43,25 +43,23 @@
 
         <!-- Информация о пользователе -->
             <div>
-    <!-- Информация о пользователе -->
-    <div class="flex flex-col lg:items-start items-center lg:mt-30  w-full">
-      <div class="flex justify-between w-full lg:gap-70">
-        <div class="flex items-center lg:gap-3 gap-[6px] lg:justify-start justify-center">
-        <h1 class="lg:text-5xl text-[19px] lg:py-2 font-bold ">
+    <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,600px)_auto] items-center w-full gap-2 lg:gap-8">
+        <div class="flex items-center justify-center lg:justify-start gap-1 lg:gap-2">
+        <h1 class="text-[19px] lg:text-4xl font-bold text-center lg:text-left">
           {{ userProfile.full_name || 'Пользователь' }}
         </h1>
         <img
           src="/src/assets/images/metka.svg"
-          class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] lg:translate-y-[6px] translate-y-[3px]"
+          class="lg:w-[35px] lg:h-[35px] w-[18px] h-[18px] flex-shrink-0 lg:translate-y-[6px] translate-y-[2px]"
           alt="metka"
         >
       </div>
-          <Edit_button
-          class="hidden lg:flex items-center translate-y-[17px] justify-center"
+          <Edit_button v-if="isOwnProfile" class="hidden lg:flex translate-y-[17px] justify-self-end"
         />
       </div>
           <!-- 👇 СТАТУС ПОЛЬЗОВАТЕЛЯ -->
-    <div class="flex items-center gap-2 lg:mt-1">
+    <div class="flex items-center justify-center gap-2 lg:mt-[10px]">
       <p
         class="lg:text-left text-center text-[15px] lg:text-[18px]"
         :class="isOnline ? 'text-green-600' : 'text-gray-500'"
@@ -74,9 +72,9 @@
       </div>
 
       <!-- Сетка с компонентами -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:mt-25">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:mt-25 mt-10">
         <User_organization
-          :edit-mode="false"
+          :edit-mode="isOwnProfile"
           :initial-organization-id="userProfile.organization_id"
         />
         <ProfileCompetencies />
@@ -97,14 +95,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
 import User_organization from './User_organization.vue'
 import ProfileCompetencies from './ProfileCompetencies.vue'
+import { useAuthStore } from '@/stores/auth'  // 👈 ДОБАВЬТЕ
 import ProfileRole from './ProfileRole.vue'
 import ProfileResume from './ProfileResume.vue'
 import Footer from '@/components/Home/Footer.vue'
 import Edit_button from './Edit_button.vue'
+
 
 const props = defineProps({
   userId: {
@@ -113,9 +113,15 @@ const props = defineProps({
   }
 })
 
+const authStore = useAuthStore()  // 👈 ДОБАВИЛИ
 const loading = ref(true)
 const userProfile = ref(null)
 let channel = null
+
+// 👈 ДОБАВЬТЕ ЭТО
+const isOwnProfile = computed(() => {
+  return authStore.user?.id === props.userId
+})
 
 onMounted(async () => {
   loading.value = true

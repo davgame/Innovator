@@ -1,8 +1,6 @@
 <template>
   <div class="rounded-2xl bg-[#FEFEFE] lg:p-6 p-4 border border-[#E3E3E3]/62">
     <h2 class="text-xl font-semibold text-gray-800 lg:mb-4 mb-4 mt-2">Объединение</h2>
-
-    <!-- Режим просмотра (по умолчанию) -->
  <!-- Режим просмотра (по умолчанию) -->
     <div v-if="!editMode" class="space-y-4">
       <div v-if="selectedOrganization" class="border border-[#E3E3E3]/62 rounded-2xl flex items-center p-3">
@@ -57,7 +55,6 @@
           </div>
         </div>
 
-        <!-- Выпадающий список -->
 <!-- Выпадающий список -->
 <div
   v-if="isOpen"
@@ -69,7 +66,7 @@
       :key="item.id"
       @click="selectItem(item)"
       class="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors flex items-center gap-3"
-      :class="{ 'bg-blue-50': selectedOrganization?.id === item.id }"
+      :class="{'bg-blue-50': selectedOrganization?.id === item.id }"
     >
       <!-- Контейнер для картинки с фиксированным размером -->
       <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">

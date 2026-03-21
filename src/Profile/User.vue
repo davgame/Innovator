@@ -68,17 +68,13 @@
     ref="imageInput"
     @change="handleImageSelect"
   />
+
     <div>
     <!-- Информация о пользователе -->
 <div class="flex flex-col lg:items-start items-center lg:mt-30 w-full">
 
   <!-- Верхняя строка -->
-<div class="grid
-    lg:grid-cols-[minmax(0,600px)_auto]
-    items-center
-    w-full
-    gap-8
-  ">
+<div class="grid lg:grid-cols-[minmax(0,600px)_auto] items-center w-full gap-8">
 
   <!-- Имя + галочка -->
   <div class="flex items-center lg:gap-2 gap-1 min-w-0">
@@ -127,7 +123,7 @@
 
   </div>
     <!-- Сетка с компонентами -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-60 lg:px-20 px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:mt-55 mt-50 lg:px-20 px-4">
       <User_organization
       :edit-mode="false"
       :initial-organization-id="authStore.profile?.organization_id"
