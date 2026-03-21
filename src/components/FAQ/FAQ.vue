@@ -17,11 +17,11 @@
     <div class="lg:hidden block relative z-0 h-full items-center">
       <div class="container mx-auto px-6 pt-22">
         <div class="max-w-xl">
-          <h1 class="text-[42px] md:text-7xl font-bold text-[#308AED] lg:mb-3 leading-tight">Центр помощи</h1>
+          <h1 class="text-[30px] md:text-7xl font-bold text-[#308AED] lg:mb-3 leading-tight">ЦЕНТР ПОМОЩИ</h1>
         </div>
       </div>
     </div>
-  <div class="container mx-auto px-6 lg:py-35 py-3">
+  <div class="container mx-auto px-6 lg:py-35">
     <div class="flex flex-col lg:flex-row gap-12">
       <!-- Левая колонка (30%) -->
       <div class="lg:w-1/3">
