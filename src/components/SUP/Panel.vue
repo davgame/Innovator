@@ -41,7 +41,6 @@
         </button>
       </div>
 
-
       <!-- Список проектов -->
       <div class="space-y-2">
         <div
@@ -110,7 +109,7 @@
               Переименовать
             </button>
             <button
-              @click.stop="deleteProject(project.id)"
+              @click.stop="openDeleteModal(project)"
               class="w-full px-4 py-2 text-left text-red-600 hover:bg-gray-50 flex items-center"
             >
               <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,45 +139,33 @@
         V.02
       </div>
     </div>
-
-    <!-- Модальное окно для переименования -->
-    <div v-if="isRenaming" class="fixed inset-0 bg-[#D3D3D3]/80 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-xl p-6 w-96">
-        <h3 class="text-lg font-semibold mb-4">Переименовать проект</h3>
-        <input
-          type="text"
-          v-model="newProjectName"
-          @keyup.enter="confirmRename"
-          placeholder="Введите новое название"
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          ref="renameInput"
-        />
-        <div class="flex justify-end space-x-4 mt-4">
-          <button
-            @click="cancelRename"
-            class="cursor-pointer px-4 py-2 border border-[#9A9A9A]/20 hover:bg-gray-100 rounded-[10px] text-gray-600 hover:text-gray-800"
-          >
-            Отмена
-          </button>
-          <button
-            @click="confirmRename"
-            class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-[10px] hover:bg-blue-600"
-          >
-            Сохранить
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
+    <!-- Модальное окно удаления проекта -->
+    <ConfirmDelete
+      v-if="showDeleteModal"
+      :show="showDeleteModal"
+      :project="deletingProject"
+      @close="showDeleteModal = false"
+      @deleted="handleProjectDeleted"
+    />
+    <ConfirmRename
+      v-if="showRenameModal"
+      :show="showRenameModal"
+      :project="renamingProject"
+      @close="showRenameModal = false"
+      @confirm="handleRenameConfirm"
+    />
 </template>
 
 <script setup>
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router' // ← Добавить этот импорт!
 import Header_sup from './Header_sup.vue'
-import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ИМПОРТ
-import { useAuthStore } from '@/stores/auth'  // 👈 ДЛЯ ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ
+import { supabase } from '@/lib/supabase'  //ДОБАВЬТЕ ИМПОРТ
+import { useAuthStore } from '@/stores/auth'  //ДЛЯ ПОЛУЧЕНИЯ ПОЛЬЗОВАТЕЛЯ
 import { watch } from 'vue'  // если нет импорта
+import ConfirmDelete from './ConfirmDelete.vue'
+import ConfirmRename from './ConfirmRename.vue'
 
 // Эмит событий
 const emit = defineEmits(['project-selected', 'project-renamed', 'project-deleted', 'project-created'])
@@ -186,17 +173,15 @@ const router = useRouter() // ← Добавить эту строку!
 const authStore = useAuthStore()
 const projects = ref([])  // 👈 БУДЕМ ХРАНИТЬ ПРОЕКТЫ ИЗ БД
 const loading = ref(false)
-
-
 // Состояния
+const showDeleteModal = ref(false)
+const deletingProject = ref(null)
 const searchQuery = ref('')
 const hoveredProjectId = ref(null)
 const selectedProjectId = ref(null) // Или оставить как ref(1)
 const menuOpenId = ref(null)
-const isRenaming = ref(false)
-const renamingProjectId = ref(null)
-const newProjectName = ref('')
-const renameInput = ref(null)
+const showRenameModal = ref(false)
+const renamingProject = ref(null)
 
 // Panel.vue - следим за проектами
 watch(projects, (newProjects) => {
@@ -224,38 +209,32 @@ const vClickOutside = {
   }
 }
 
-const checkDirectQuery = async () => {
-  if (!authStore.user) return
+const openDeleteModal = (project) => {
+  if (!project?.isOwner) {
+    alert('Только владелец проекта может его удалить')
+    return
+  }
 
-  console.log('🔍 Прямой запрос к project_members для:', authStore.user.id)
+  showDeleteModal.value = true
+  deletingProject.value = project
 
-  const { data: members, error: membersError } = await supabase
-    .from('project_members')
-    .select('*')
-    .eq('user_id', authStore.user.id)
+  // разделяем lifecycle
+  setTimeout(() => {
+    closeMenu()
+  }, 0)
+}
 
-  console.log('📊 Данные project_members:', members)
-  console.log('❌ Ошибка:', membersError)
+// Обработчик успешного удаления (только обновление локального списка)
+const handleProjectDeleted = (deletedProjectId) => {
+  // Удаляем из локального списка
+  projects.value = projects.value.filter(p => p.id !== deletedProjectId)
 
-  if (members && members.length > 0) {
-    const projectIds = members.map(m => m.project_id)
-    console.log('📋 project_ids:', projectIds)
-
-    // 👇 ПРОВЕРЯЕМ СУЩЕСТВОВАНИЕ ПРОЕКТОВ
-    const { data: projects, error: projectsError } = await supabase
-      .from('projects')
-      .select('id, name')
-      .in('id', projectIds)
-
-    console.log('📁 Найдено проектов:', projects?.length || 0)
-    console.log('📁 Проекты:', projects)
-    console.log('❌ Ошибка projects:', projectsError)
-
-    if (projects?.length === 0) {
-      console.log('⚠️ Проекты не найдены! Возможные причины:')
-      console.log('1. Нет RLS политики для чтения projects')
-      console.log('2. Проекты с такими ID не существуют')
-      console.log('3. Неправильные ID в project_members')
+  // Если удалили выбранный проект, выбираем первый
+  if (selectedProjectId.value === deletedProjectId) {
+    selectedProjectId.value = projects.value.length > 0 ? projects.value[0]?.id : null
+    if (selectedProjectId.value) {
+      const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
+      selectProject(firstProject)
     }
   }
 }
@@ -374,59 +353,6 @@ const loadProjects = async () => {
   }
 }
 
-const deleteProject = async (projectId) => {
-  // Находим проект
-  const project = projects.value.find(p => p.id === projectId)
-
-  // Проверяем, может ли пользователь удалить проект
-  if (!project?.isOwner) {
-    alert('Только владелец проекта может его удалить')
-    return
-  }
-
-  if (!confirm('Вы уверены, что хотите удалить этот проект? Это действие нельзя отменить.')) return
-
-  try {
-    // Сначала удаляем участников проекта
-    await supabase
-      .from('project_members')
-      .delete()
-      .eq('project_id', projectId)
-
-    // Удаляем задачи проекта
-    await supabase
-      .from('tasks')
-      .delete()
-      .eq('project_id', projectId)
-
-    // Удаляем сам проект
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId)
-      .eq('created_by', authStore.user.id)  // 👈 Только владелец может удалить
-
-    if (error) throw error
-
-    // Обновляем локальный список
-    projects.value = projects.value.filter(p => p.id !== projectId)
-
-    if (selectedProjectId.value === projectId) {
-      selectedProjectId.value = projects.value.length > 0 ? projects.value[0]?.id : null
-      if (selectedProjectId.value) {
-        const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
-        selectProject(firstProject)
-      }
-    }
-
-    closeMenu()
-    console.log('✅ Проект удален из БД')
-  } catch (error) {
-    console.error('❌ Ошибка удаления проекта:', error)
-    alert('Не удалось удалить проект')
-  }
-}
-
 // Добавьте после объявления переменных
 watch(() => authStore.user, (newUser) => {
   console.log('👤 Пользователь изменился:', newUser)
@@ -446,20 +372,44 @@ const closeMenu = () => {
   hoveredProjectId.value = null
 }
 
-// Переименование проекта
 const renameProject = (project) => {
-  renamingProjectId.value = project.id
-  newProjectName.value = project.name
-  isRenaming.value = true
-  closeMenu()
+  showRenameModal.value = true
+  renamingProject.value = project
 
-  nextTick(() => {
-    renameInput.value?.focus()
-    renameInput.value?.select()
-  })
+  setTimeout(() => {
+    closeMenu()
+  }, 0)
 }
 
+const handleRenameConfirm = async ({ id, name }) => {
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .update({ name })
+      .eq('id', id)
 
+    if (error) throw error
+
+    const projectIndex = projects.value.findIndex(p => p.id === id)
+
+    if (projectIndex !== -1) {
+      projects.value[projectIndex].name = name
+      projects.value[projectIndex].fullName = name
+
+      if (selectedProjectId.value === id) {
+        selectProject(projects.value[projectIndex])
+      }
+
+      emit('project-renamed', projects.value[projectIndex])
+    }
+
+  } catch (error) {
+    console.error('❌ Ошибка:', error)
+    alert('Не удалось переименовать проект')
+  } finally {
+    showRenameModal.value = false
+  }
+}
 
 // Подтверждение переименования
 const confirmRename = async () => {
@@ -501,37 +451,6 @@ const cancelRename = () => {
   renamingProjectId.value = null
   newProjectName.value = ''
 }
-
-// // Удаление проекта
-// const deleteProject = async (projectId) => {
-//   if (!confirm('Вы уверены, что хотите удалить этот проект?')) return
-
-//   try {
-//     const { error } = await supabase
-//       .from('projects')
-//       .delete()
-//       .eq('id', projectId)
-
-//     if (error) throw error
-
-//     // Удаляем из локального списка
-//     projects.value = projects.value.filter(p => p.id !== projectId)
-
-//     if (selectedProjectId.value === projectId) {
-//       selectedProjectId.value = projects.value.length > 0 ? projects.value[0].id : null
-//       if (selectedProjectId.value) {
-//         const firstProject = projects.value.find(p => p.id === selectedProjectId.value)
-//         selectProject(firstProject)
-//       }
-//     }
-
-//     closeMenu()
-//     console.log('✅ Проект удален из БД')
-//   } catch (error) {
-//     console.error('❌ Ошибка удаления проекта:', error)
-//     alert('Не удалось удалить проект')
-//   }
-// }
 
 // Создание нового проекта
 const createNewBoard = async () => {
@@ -578,14 +497,6 @@ const createNewBoard = async () => {
   } catch (error) {
     console.error('❌ Ошибка создания проекта:', error)
     alert('Не удалось создать проект')
-  }
-}
-
-
-// Обработчики клавиш
-const handleKeydown = (e) => {
-  if (e.key === 'Escape' && isRenaming.value) {
-    cancelRename()
   }
 }
 

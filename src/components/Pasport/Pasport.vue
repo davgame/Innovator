@@ -280,7 +280,7 @@
 <script setup>
 import { ref, computed, onUnmounted,onMounted } from 'vue'
 import Header from '../Home/Header.vue';
-import { useRouter } from 'vue-router'  // 👈 ДОБАВЬТЕ ЭТУ СТРОКУ!
+import { useRouter } from 'vue-router'  //ДОБАВЬТЕ ЭТУ СТРОКУ!
 
 
 const text = ref('')
@@ -344,7 +344,6 @@ const selectedOrganization = ref(
   organizations.value.find(item => item.isDefault) || organizations.value[0]
 )
 
-// УНИКАЛЬНЫЕ организации (без дубликатов)
 const uniqueOrganizations = computed(() => {
   // Фильтруем уникальные по имени
   const unique = []

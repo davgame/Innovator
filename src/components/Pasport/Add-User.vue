@@ -128,7 +128,6 @@
 import { ref, onMounted, watch} from 'vue'
 import { supabase } from '@/lib/supabase'
 
-
 const emit = defineEmits(['close', 'confirm'])
 // 👇 Объявляем все переменные
 const searchQuery = ref('')
@@ -204,7 +203,7 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  mode: {  // 👈 ДОБАВЬТЕ ЭТО
+  mode: {  //ДОБАВЬТЕ ЭТО
     type: String,
     default: 'edit'
   }
@@ -235,7 +234,6 @@ const loadProjectMembers = async () => {
     }))
   }
 }
-
 
 const handleConfirm = () => {
   console.log('📝 Подтверждение выбора пользователей:', selectedUsers.value)

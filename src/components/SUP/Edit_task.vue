@@ -189,7 +189,6 @@ function close() {
   emit('close')
 }
 
-
 /* Сохранить */
 function save() {
   const updatedTask = {
@@ -302,10 +301,6 @@ watch(() => props.show, (newVal) => {
   }
 }, { immediate: false })
 </script>
-
-
-
-
 
 <style scoped>
 /* Фон */

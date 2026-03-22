@@ -222,7 +222,7 @@ const fetchSuggestions = async () => {
   loading.value = true
   error.value = ''
   hasSearched.value = true
-  suggestions.value = []
+  loading.value = true
   selectedIndex.value = -1
 
   try {
@@ -330,6 +330,4 @@ onUnmounted(() => {
   clearTimeout(inputTimer)
 })
 
-// Автоматически загружаем пример при открытии
-//fetchSuggestions()
 </script>

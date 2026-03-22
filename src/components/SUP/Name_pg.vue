@@ -88,7 +88,7 @@ const loadProjectMembers = async (id) => {
   try {
     console.log('📡 Загружаю участников для проекта:', id)
 
-    // 👇 УБИРАЕМ !inner - делаем LEFT JOIN
+    //УБИРАЕМ !inner - делаем LEFT JOIN
     const { data, error } = await supabase
       .from('project_members')
       .select(`
@@ -98,7 +98,7 @@ const loadProjectMembers = async (id) => {
           full_name,
           avatar_url
         )
-      `)  // 👈 было profiles!inner, стало просто profiles
+      `)  //было profiles!inner, стало просто profiles
       .eq('project_id', id)
 
     if (error) {
@@ -114,7 +114,7 @@ const loadProjectMembers = async (id) => {
         const profile = m.profiles || {}
 
         return {
-          id: m.user_id,  // 👈 ИСПРАВЛЕНО: используем user_id из project_members
+          id: m.user_id,  // используем user_id из project_members
           name: profile.full_name || 'Пользователь',
           avatar: profile.avatar_url || null,
           role: m.role || 'Участник'
@@ -158,7 +158,7 @@ const closeModal = () => {
 const handleMembersConfirm = async (users) => {
   console.log('📥 Получены участники из модалки:', users)
 
-  // 1️⃣ Сохраняем изменения в БД
+  // Сохраняем изменения в БД
   const { error: deleteError } = await supabase
     .from('project_members')
     .delete()
@@ -187,7 +187,7 @@ const handleMembersConfirm = async (users) => {
     }
   }
 
-  // 2️⃣ Обновляем список на фронте
+  //Обновляем список на фронте
   await loadProjectMembers(projectId.value)
 
   showMemberModal.value = false
@@ -209,7 +209,7 @@ const displayName = computed(() => {
 watch(() => props.project, (newProject) => {
   if (newProject?.id) {
     projectId.value = newProject.id
-    loadProjectMembers(newProject.id)  // 👈 ТОЛЬКО ИЗ БД
+    loadProjectMembers(newProject.id)
   }
 }, { immediate: true })
 

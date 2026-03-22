@@ -196,7 +196,7 @@
         >
           <router-link
             to="/"
-            click.prevent="goToPage('/')"
+            @click="isOpen = false"
             class="hover:text-[#FFBA26] ml-auto mb-2"
           >
             главная

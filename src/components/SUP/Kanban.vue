@@ -164,7 +164,7 @@
             <!-- Нижняя часть: участники и дата -->
             <div class="flex items-center justify-between mt-4">
               <!-- Участники задачи -->
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-1 -space-x-4">
                 <!-- Аватары участников -->
                 <div
                   v-for="member in element.members || []"
@@ -176,7 +176,7 @@
                   <img
                     v-if="member.avatar"
                     :src="member.avatar"
-                    class="w-full h-full object-cover"
+                    class="w-full h-full object-cover hover:scale-105"
                     :alt="member.name"
                   />
                   <div
@@ -189,7 +189,7 @@
 
                 <!-- Кнопка добавления участника -->
                 <button
-                  class="border border-[#F2F2F2] w-8 h-8 text-[#838886] text-[24px] rounded-full flex items-center justify-center ml-1"
+                  class="border border-[#F2F2F2] w-8 h-8 text-[#838886] text-[24px] rounded-full flex items-center justify-center ml-4"
                   @click.stop="openAddMemberToTask(element)"
                   title="Добавить участника"
                 >

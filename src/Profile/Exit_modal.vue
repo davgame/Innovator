@@ -7,19 +7,19 @@
       <!-- Модальное окно -->
       <div class="relative bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
         <!-- Заголовок -->
-        <div class="px-6 py-4 border-b border-gray-200">
+        <div class="px-6 py-5 border-b border-gray-200">
           <h2 class="text-xl font-semibold text-gray-900">Выход из аккаунта</h2>
         </div>
 
         <!-- Содержимое -->
-        <div class="px-6 py-4">
+        <div class="px-6 py-5">
           <p class="text-gray-600">
             Вы действительно хотите выйти из аккаунта?
           </p>
         </div>
 
         <!-- Кнопки действий -->
-        <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+        <div class="px-6 py-5 bg-gray-50 flex justify-end gap-3">
           <button
             @click="close"
             class="cursor-pointer px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
