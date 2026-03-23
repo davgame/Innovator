@@ -1,4 +1,7 @@
 <template>
+      <!-- Если мобильная версия – показываем MobileLayout -->
+    <MobileLayout v-if="isMobile" :projectId="$route.params.projectId" />
+    <div v-else>
     <div class="flex fixed top-0 left-0 w-full z-50 items-center justify-between px-6 py-6 sm:px-6 md:px-[100px] lg:px-[80px]">
     <div class="ml-auto flex items-center gap-2">
       <Header_sup/>
@@ -26,16 +29,20 @@
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
+import { useBreakpoint } from './useBreakpoint'
 import Panel from './Panel.vue'
 import Name_pg from './Name_pg.vue'
 import Kanban from './Kanban.vue'
 import Header_sup from './Header_sup.vue'
+import MobileLayout from './MobileLayout.vue'
+
 
 // 👇 ДОБАВЛЯЕМ ОБЪЯВЛЕНИЕ PROPS
 const props = defineProps({
@@ -45,6 +52,8 @@ const props = defineProps({
   }
 })
 
+
+const { isMobile } = useBreakpoint(768)  // ← ДОБАВИТЬ
 const route = useRoute()
 const router = useRouter()  // 👈 ТЕПЕРЬ router ОПРЕДЕЛЕН!
 const projectStore = useProjectStore()

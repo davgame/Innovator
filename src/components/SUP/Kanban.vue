@@ -1,5 +1,9 @@
 <template>
+    <!-- Если мобильная версия – показываем MobileKanban -->
+  <MobileKanban v-if="isMobile" :projectId="projectId" />
 
+    <!-- Иначе показываем ПК версию -->
+  <div v-else>
   <!--Создать задачу-->
   <Task
     :show="showTaskModal"
@@ -22,7 +26,6 @@
     @close="closeModal"
     @confirm="handleMembersConfirm"
   />
-
 
   <!-- Модальное окно для выбора даты -->
   <div
@@ -65,6 +68,7 @@
         </button>
       </div>
     </div>
+  </div>
   </div>
 
   <div class="flex gap-6 px-3 pb-4 h-[calc(70vh-55px)] overflow-x-auto overflow-y-hidden">
@@ -286,6 +290,8 @@ import draggable from 'vuedraggable'
 import AddUser from '../Pasport/Add-User.vue'
 import ContextMenu from './ContextMenu.vue'
 import Task from './Task.vue'
+import { useBreakpoint } from './useBreakpoint'
+import MobileKanban from './MobileKanban.vue'
 import Edit_task from './Edit_task.vue'
 import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
 import {
@@ -306,6 +312,7 @@ const props = defineProps({
 })
 
 const projectStore = useProjectStore()
+const { isMobile } = useBreakpoint(768)
 
 // 1️⃣ Добавляем ref для всех задач в колонках
 const columns = ref([

@@ -12,6 +12,8 @@ import Error_502 from '@/components/Error/Error_502.vue'
 import User from '@/Profile/User.vue'
 import UserProfile from '@/Profile/UserProfile.vue'
 import Edit_profile from '@/Profile/Edit_profile.vue'
+import SupWrapper from '@/components/SUP/SupWrapper.vue'
+import KanbanWrapper from '@/components/SUP/KanbanWrapper.vue'
 
 
 const router = createRouter({
@@ -36,6 +38,23 @@ const router = createRouter({
       path: '/project/:projectId',
       name: 'Project',
       component: Start
+    },
+    {
+      path: '/sup',
+      component: SupWrapper, // 👈 используем обёртку
+      children: [
+        {
+          path: '', // /sup
+          name: 'sup-default',
+          component: KanbanWrapper // 👈 обёртка для канбана
+        },
+        {
+          path: 'project/:projectId', // /sup/project/48
+          name: 'sup-project',
+          component: KanbanWrapper, // 👈 обёртка для канбана
+          props: true
+        }
+      ]
     },
     {
       path: '/Next_team',
