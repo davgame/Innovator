@@ -60,20 +60,27 @@ export const useAuthStore = defineStore('auth', {
 
     async signUp(email, password, fullName) {
       this.loading = true
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: fullName } }
-      })
-
-      if (!error && data.user) {
-        await supabase.from('profiles').insert({
-          id: data.user.id,
-          full_name: fullName
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } }
         })
+
+        if (!error && data.user) {
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            full_name: fullName
+          })
+        }
+
+        return { data, error }
+      } catch (err) {
+        console.error('❌ Ошибка регистрации:', err)
+        return { data: null, error: err }
+      } finally {
+        this.loading = false  // 👈 ВАЖНО: сбрасываем в любом случае
       }
-      this.loading = false
-      return { data, error }
     },
 
     // auth.js - убедитесь, что функция работает
@@ -141,7 +148,7 @@ export const useAuthStore = defineStore('auth', {
       return { data, error }
     },
 
-    
+
     // auth.js
     async updateLastSeen() {
       if (!this.user?.id) return

@@ -98,14 +98,14 @@
         <div class="px-6 py-4 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
           <button
             @click="closeModal"
-            class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+            class="cursor-pointer px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
           >
             Отмена
           </button>
           <button
             @click="saveImage"
             :disabled="!croppedImage"
-            class="px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+            class="cursor-pointer px-6 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
           >
             Сохранить
           </button>

@@ -250,7 +250,7 @@
     </div>
 
     <!-- Имя пользователя -->
-    <p class="text-gray-800 font-medium truncate max-w-xs text-[12px] lg:text-[16px] mt-2">
+    <p class="text-gray-800 font-medium truncate max-w-xs text-[17px] lg:text-[16px] mt-2">
       {{ userName || 'Федосьев Георгий' }}
     </p>
   </div> <!-- Закрываем flex-col контейнер -->
@@ -271,7 +271,7 @@
           hover:bg-blue-600 transition cursor-pointer"
     @click="completeRegistration"
   >
-     {{ authStore.loading ? 'Регистрация...' : 'Завершить регистрацию' }}
+     {{ authStore.loading ? 'Регистрация' : 'Завершить регистрацию' }}
   </button>
 
   <!-- Кнопка "Назад" на шаг 2 (ВНУТРИ шага 3) -->
@@ -319,6 +319,7 @@ const avatarPreview = ref(''); // Для отображения сохранен
 // ... существующие переменные
 const uploadProgress = ref(0)
 const isUploading = ref(false)
+const pdfPreview = ref(null)
 
 const emit = defineEmits(['complete']);
 
@@ -411,6 +412,36 @@ const triggerImageInput = () => {
     console.error('imageInput ref is null');
   }
 };
+
+// Функция для валидации и установки PDF файла
+const validateAndSetPdfFile = (file) => {
+  // Проверяем, что файл существует
+  if (!file) return false
+
+  // Проверяем тип файла (PDF)
+  if (file.type !== 'application/pdf') {
+    alert('Пожалуйста, загрузите файл в формате PDF')
+    return false
+  }
+
+  // Проверяем размер файла (например, не более 5MB)
+  const maxSize = 5 * 1024 * 1024 // 5MB
+  if (file.size > maxSize) {
+    alert('Размер файла не должен превышать 5MB')
+    return false
+  }
+
+  // Устанавливаем файл
+  pdfFile.value = file
+
+  // Создаем preview URL
+  if (pdfPreview.value) {
+    URL.revokeObjectURL(pdfPreview.value)
+  }
+  pdfPreview.value = URL.createObjectURL(file)
+
+  return true
+}
 
 // Обработчик drag-and-drop
 const handleDrop = (event) => {
@@ -602,26 +633,65 @@ const dataURLtoFile = (dataurl, filename) => {
 
 
 const completeRegistration = async () => {
-  const { error } = await authStore.signUp(
-    email.value,
-    password.value,
-    userName.value
-  )
-
-  if (error) {
-    alert('Ошибка регистрации: ' + error.message)
+  // Валидация
+  if (!userName.value || !email.value || !password.value) {
+    alert('Заполните все поля')
     return
   }
-  defineProps
-  await authStore.updateUserStatus('online')
-  await authStore.refreshUser()
 
-  // Если есть аватар - загружаем после регистрации
-  if (avatarPreview.value && authStore.user?.id) {
-    await uploadAvatarToStorage(avatarPreview.value, authStore.user.id)
+  const nameWords = userName.value.trim().split(/\s+/)
+  if (nameWords.length < 2) {
+    alert('Введите имя и фамилию')
+    return
   }
 
-  router.push('/')
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    alert('Введите корректный email')
+    return
+  }
+
+  if (password.value.length < 6) {
+    alert('Пароль должен содержать минимум 6 символов')
+    return
+  }
+
+  // 👇 Используем authStore.loading, он уже есть
+  try {
+    const { error } = await authStore.signUp(
+      email.value,
+      password.value,
+      userName.value
+    )
+
+    if (error) {
+      if (error.message?.includes('User already registered')) {
+        alert('Пользователь с таким email уже зарегистрирован')
+      } else {
+        alert('Ошибка регистрации: ' + error.message)
+      }
+      return
+    }
+
+    // 👇 Убираем defineProps
+    await authStore.updateUserStatus('online')
+    await authStore.refreshUser()
+
+    if (avatarPreview.value && authStore.user?.id) {
+      await uploadAvatarToStorage(avatarPreview.value, authStore.user.id)
+    }
+
+    if (pdfFile.value && authStore.user?.id) {
+      await uploadFile()
+    }
+
+    router.push('/')
+
+  } catch (err) {
+    console.error('❌ Ошибка:', err)
+    alert('Произошла ошибка при регистрации')
+  }
+  // finally не нужен, т.к. authStore.signUp уже сбрасывает loading
 }
 
 const uploadAvatarToStorage = async (imageDataUrl, userId) => {

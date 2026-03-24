@@ -83,7 +83,7 @@
 
           <!-- Кнопка меню (три точки) - появляется при наведении -->
           <button
-            v-if="shouldShowMenuButton(project.id)"
+            v-if="shouldShowMenuButton(project.id) && project.isOwner"
             @click.stop="toggleMenu(project.id)"
             class="ml-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded transition-colors"
             title="Действия с проектом"
@@ -256,9 +256,12 @@ const getShortCategory = (category) => {
   return category;
 }
 
-// Проверка, должна ли показываться кнопка меню
+// Проверка, должна ли показываться кнопка меню (только для владельцев)
 const shouldShowMenuButton = (projectId) => {
-  return hoveredProjectId.value === projectId || menuOpenId.value === projectId
+  const project = projects.value.find(p => p.id === projectId)
+  if (!project) return false
+  // Показываем кнопку только если пользователь владелец И (наведение ИЛИ открыто меню)
+  return project.isOwner && (hoveredProjectId.value === projectId || menuOpenId.value === projectId)
 }
 
 // Управление наведением

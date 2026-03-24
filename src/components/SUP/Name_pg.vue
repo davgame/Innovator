@@ -30,7 +30,7 @@
 
           <!-- Кнопка добавления участника -->
           <button
-            class="w-10 h-10 rounded-full border-2 border-white bg-[#F2F2F2] text-[#838886] text-[24px] flex items-center justify-center hover:bg-[#4286F7] hover:text-white transition-all duration-200 ml-1"
+            class="cursor-pointer w-10 h-10 rounded-full border-2 border-white bg-[#F2F2F2] text-[#838886] text-[24px] flex items-center justify-center hover:bg-[#4286F7] hover:text-white transition-all duration-200 ml-1"
             @click.stop="openAddMemberModal"
             title="Добавить участника"
           >
