@@ -118,12 +118,12 @@
           @click="toggleUser(user)"
         >
           <img :src="user.avatar_url" class="w-7 h-7 rounded-full" />
-          <span class="text-[13px] lg:pr-2">{{ user.name }}</span>
+          <span class="text-[13px]">{{ user.name }}</span>
 
           <!-- Checkbox -->
           <div
             v-if="isOwner"
-            class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors shrink-0"
+            class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors shrink-0 lg:mr-[3px]"
             :class="isSelected(user)
               ? 'bg-[#4286F7] border-[#4286F7]'
               : 'border-[#CBCBCB]'"

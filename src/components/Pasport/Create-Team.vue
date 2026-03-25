@@ -31,7 +31,7 @@
             <p class="text-sm font-medium">{{ user.name }}</p>
             <p class="text-xs text-gray-400">{{ user.role }}</p>
           </div>
-          <button @click="removeUser(user.id)">✕</button>
+          <button class="cursor-pointer hover:text-[#4286F7]" @click="removeUser(user.id)">✕</button>
         </div>
       </div>
     </div>

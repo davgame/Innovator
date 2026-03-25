@@ -7,11 +7,29 @@
       <!--Первая колонка-->
       <div class="lg:w-[380px] px-3">
         <p class="font-semibold lg:text-[22px] text-[19px] text-[#32383E]">Руководитель проекта</p>
+
+
         <div class="border border-[#CBCBCB] rounded-[61px] lg:p-3 p-2 flex items-center space-x-2 mt-5 lg:max-w-[370px] w-full px-2">
-          <img src="/src/assets/images/David.png" alt="" class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full">
+
+<!-- Аватар пользователя -->
+          <div class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full overflow-hidden bg-blue-100 flex-shrink-0">
+            <img
+              v-if="currentUser?.avatar_url"
+              :src="currentUser.avatar_url"
+              alt="Avatar"
+              class="w-full h-full object-cover"
+            />
+            <div v-else class="w-full h-full flex items-center justify-center text-2xl text-blue-500">
+              {{ getInitials(currentUser?.full_name) }}
+            </div>
+          </div>
           <div>
-            <h3 class="text-[#32383E] lg:text-[20px] tex-[15px] lg:pl-4 pl-2 font-medium">Шорвоглян Давид</h3>
-            <p class="lg:text-[14px] text-[13px] text-[#4286F7] lg:pl-4 pl-2">Инженер</p>
+            <h3 class="text-[#32383E] lg:text-[20px] text-[15px] lg:pl-4 pl-2 font-medium">
+              {{ currentUser?.full_name || 'Загрузка...' }}
+            </h3>
+            <p class="lg:text-[14px] text-[13px] text-[#4286F7] lg:pl-4 pl-2">
+              {{ currentUser?.role || 'Руководитель' }}
+            </p>
           </div>
         </div>
 
@@ -144,7 +162,7 @@
             <span class="text-[#4286F7] text-[16px]">{{ tag }}</span>
             <button
               @click="removeTag(index)"
-              class="text-gray-400 hover:text-red-500 text-[20px]"
+              class="cursor-pointer text-gray-400 hover:text-red-500 text-[20px]"
             >
               ×
             </button>
@@ -154,7 +172,7 @@
           <button
             v-if="selectedTags.length < 5"
             @click="openModal"
-            class="border border-[#CBCBCB] rounded-full px-4 py-2 flex items-center gap-1 text-gray-400 hover:text-blue-500 hover:border-blue-400 transition-colors"
+            class="cursor-pointer border border-[#CBCBCB] rounded-full px-4 py-2 flex items-center gap-1 text-gray-400 hover:text-blue-500 hover:border-blue-400 transition-colors"
           >
             <span>+</span>
             <span>Добавить тег</span>
@@ -278,15 +296,19 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted,onMounted } from 'vue'
+import { ref, computed, onUnmounted, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import Header from '../Home/Header.vue';
-import { useRouter } from 'vue-router'  //ДОБАВЬТЕ ЭТУ СТРОКУ!
 
 
 const text = ref('')
 const errorMessage = ref('')
 const isOpen = ref(false)
 const dropdownRef = ref(null)
+const currentUser = ref(null)
+const isLoading = ref(true)
+const authStore = useAuthStore()  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
 
 // Данные организаций
 const organizations = ref([
@@ -343,6 +365,78 @@ onMounted(() => {
 const selectedOrganization = ref(
   organizations.value.find(item => item.isDefault) || organizations.value[0]
 )
+
+// 👇 ДОБАВЛЯЕМ ФУНКЦИЮ getInitials
+const getInitials = (fullName) => {
+  if (!fullName) return '?'
+  const parts = fullName.trim().split(' ')
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase()
+  }
+  return fullName[0].toUpperCase()
+}
+
+// Загружаем данные пользователя
+const loadCurrentUser = async () => {
+  isLoading.value = true
+  console.log('📡 Загружаем текущего пользователя...')
+  console.log('authStore.user:', authStore.user)
+  console.log('authStore.profile:', authStore.profile)
+
+  try {
+    // Проверяем, есть ли пользователь
+    if (!authStore.user?.id) {
+      console.log('⚠️ Нет авторизованного пользователя')
+      currentUser.value = null
+      isLoading.value = false
+      return
+    }
+
+    // Если профиль уже есть в store
+    if (authStore.profile) {
+      currentUser.value = authStore.profile
+      console.log('✅ Профиль из store:', currentUser.value)
+      isLoading.value = false
+      return
+    }
+
+    // Если профиля нет, пробуем обновить
+    console.log('🔄 Обновляем профиль...')
+    await authStore.refreshUser()
+
+    // Ждём немного для загрузки
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    if (authStore.profile) {
+      currentUser.value = authStore.profile
+      console.log('✅ Профиль загружен:', currentUser.value)
+    } else {
+      // Создаём временный объект из user
+      currentUser.value = {
+        id: authStore.user.id,
+        full_name: authStore.user.user_metadata?.full_name || authStore.user.email || 'Пользователь',
+        email: authStore.user.email,
+        avatar_url: null
+      }
+      console.log('📝 Создан временный профиль:', currentUser.value)
+    }
+  } catch (err) {
+    console.error('❌ Ошибка загрузки профиля:', err)
+    currentUser.value = null
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Следим за изменением профиля в store
+watch(() => authStore.profile, (newProfile) => {
+  if (newProfile) {
+    console.log('🔄 Profile изменился в store:', newProfile)
+    currentUser.value = newProfile
+    isLoading.value = false
+  }
+}, { immediate: true, deep: true })
+
 
 const uniqueOrganizations = computed(() => {
   // Фильтруем уникальные по имени
