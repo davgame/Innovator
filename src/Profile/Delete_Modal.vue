@@ -22,13 +22,13 @@
         <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
           <button
             @click="close"
-            class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+            class="cursor-pointer px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
           >
             Отмена
           </button>
           <button
             @click="confirm"
-            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            class="cursor-pointer px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
             Удалить
           </button>

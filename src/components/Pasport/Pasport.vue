@@ -11,17 +11,20 @@
 
         <div class="border border-[#CBCBCB] rounded-[61px] lg:p-3 p-2 flex items-center space-x-2 mt-5 lg:max-w-[370px] w-full px-2">
 
-<!-- Аватар пользователя -->
-          <div class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full overflow-hidden bg-blue-100 flex-shrink-0">
+        <!-- Аватар пользователя -->
+          <div class="lg:w-[72px] w-[62px] lg:h-[72px] h-[62px] rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
             <img
               v-if="currentUser?.avatar_url"
               :src="currentUser.avatar_url"
               alt="Avatar"
               class="w-full h-full object-cover"
             />
-            <div v-else class="w-full h-full flex items-center justify-center text-2xl text-blue-500">
-              {{ getInitials(currentUser?.full_name) }}
-            </div>
+            <img
+              v-else
+              src="/src/assets/images/Emodzi.svg"
+              class="w-full h-full object-cover p-2 lg:p-3"
+              alt="Default avatar"
+            />
           </div>
           <div>
             <h3 class="text-[#32383E] lg:text-[20px] text-[15px] lg:pl-4 pl-2 font-medium">
@@ -124,7 +127,7 @@
         maxlength="1000"
         @input="checkText"
         :class="[
-          'lg:w-92 w-69 lg:h-68 h-58 px-4 py-3 border rounded-[30px] hover:border-blue-500 resize-none block mx-auto',
+          'lg:w-92 w-76 lg:h-68 h-58 px-4 py-3 border rounded-[30px] hover:border-blue-500 resize-none block mx-auto',
           hasError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
         ]"
         placeholder="Введите ваш текст здесь..."

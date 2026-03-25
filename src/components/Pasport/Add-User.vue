@@ -73,13 +73,27 @@
           class="flex items-center gap-3 p-2 rounded-[14px]"
           :class="{ 'bg-yellow-50': member.isOwner }"
         >
-          <img :src="member.avatar_url" class="w-9 h-9 rounded-full object-cover" />
-          <div class="flex-1">
-            <p class="text-[14px] font-medium">{{ member.full_name }}</p>
-            <p class="text-[12px] text-[#6C727C]">
-              {{ member.role || 'Участник' }}
-            </p>
-          </div>
+        <!-- Аватар с заглушкой -->
+        <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+          <img
+            v-if="member.avatar_url"
+            :src="member.avatar_url"
+            class="w-full h-full object-cover"
+            @error="handleImageError"
+          />
+          <img
+            v-else
+            src="/src/assets/images/Emodzi.svg"
+            class="w-full h-full object-cover p-1.5"
+            alt="Default avatar"
+          />
+        </div>
+        <div class="flex-1">
+          <p class="text-[14px] font-medium">{{ member.full_name }}</p>
+          <p class="text-[12px] text-[#6C727C]">
+            {{ member.role || 'Участник' }}
+          </p>
+        </div>
 
           <!-- Чекбокс для владельца (только для не-владельцев и не себя) -->
           <div

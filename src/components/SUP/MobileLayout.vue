@@ -16,6 +16,7 @@
 
     <add-user
       v-if="showMemberModal"
+      :project-id="currentProject?.id || currentProjectId"
       :selected-users="currentTaskForMembers?.members || []"
       mode="task"
       @close="closeMemberModal"

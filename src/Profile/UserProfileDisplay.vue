@@ -18,19 +18,19 @@
         <!-- Контейнер для аватара и индикатора -->
         <div class="relative lg:w-55 lg:h-55 w-24 h-24 flex-shrink-0">
           <!-- Аватар -->
-          <div class="w-full h-full rounded-full overflow-hidden bg-[#CFD9FF] border-3 border-white">
+          <div class="w-full h-full flex items-center justify-center rounded-full overflow-hidden bg-[#CFD9FF] border-3 border-white">
             <img
               v-if="userProfile.avatar_url"
               :src="userProfile.avatar_url + '?v=' + new Date().getTime()"
               class="w-full h-full object-cover"
               alt="Avatar"
             />
-            <div
+            <img
               v-else
-              class="w-full h-full flex items-center justify-center text-white text-xl lg:text-2xl font-bold"
+              src="/src/assets/images/Emodzi.svg"
+              class="lg:w-[120px] lg:h-[120px] w-[45px] h-[45px] object-cover"
             >
-              {{ getUserInitials(userProfile.full_name) }}
-            </div>
+            </img>
           </div>
 
           <!-- Индикатор онлайн/офлайн -->

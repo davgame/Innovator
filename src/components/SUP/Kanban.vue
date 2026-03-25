@@ -21,6 +21,7 @@
   <!-- Модальное окно для добавления участников -->
   <add-user
     v-if="showMemberModal"
+    :project-id="String(projectId)"
     :selected-users="currentTaskForMembers?.members || []"
     mode="task"
     @close="closeModal"
@@ -36,7 +37,7 @@
     <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
       <div class="flex justify-between items-center mb-4">
         <h3 class="font-semibold text-lg">Выберите дату</h3>
-        <button @click="closeDatePicker" class="text-gray-400 hover:text-gray-600">
+        <button @click="closeDatePicker" class="cursor-pointer text-gray-400 hover:text-gray-600">
           ✕
         </button>
       </div>
@@ -50,19 +51,19 @@
       <div class="mt-4 flex gap-2">
         <button
           @click="setToday"
-          class="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          class="cursor-pointer flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
         >
           Сегодня
         </button>
         <button
           @click="clearDate"
-          class="flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+          class="cursor-pointer flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
         >
           Очистить
         </button>
         <button
           @click="saveDate"
-          class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+          class="cursor-pointer flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
         >
           Сохранить
         </button>
@@ -136,7 +137,7 @@
               <!-- Кнопка с тремя точками -->
               <button
                 @click.stop="toggleContextMenu(element)"
-                class="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                class="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -193,7 +194,8 @@
 
                 <!-- Кнопка добавления участника -->
                 <button
-                  class="border border-[#F2F2F2] w-8 h-8 text-[#838886] text-[24px] rounded-full flex items-center justify-center ml-4"
+                  class="border border-[#F2F2F2] w-8 h-8 text-[#838886] text-[24px] rounded-full flex items-center justify-center"
+                  :class="element.members?.length > 0 ? 'ml-4' : ''"
                   @click.stop="openAddMemberToTask(element)"
                   title="Добавить участника"
                 >
@@ -204,7 +206,7 @@
               <!-- Кнопка календаря с датой -->
               <button
                 @click.stop="openDatePicker(element)"
-                class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                class="cursor-pointer flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
                 :class="element.deadline ? 'text-gray-700' : 'text-gray-400'"
               >
                 <img src="/src/assets/images/calendar.svg" alt="" class="w-4 h-4 mr-1">

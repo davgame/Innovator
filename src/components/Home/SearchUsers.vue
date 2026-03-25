@@ -53,21 +53,21 @@
         class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
         @click="goToUserProfile(user.id)"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center gap-3 ">
           <!-- Аватар пользователя -->
-          <div class="w-10 h-10 rounded-full overflow-hidden bg-blue-500 flex-shrink-0">
+          <div class="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
             <img
               v-if="user.avatar_url"
               :src="user.avatar_url"
               class="w-full h-full object-cover"
               alt="Avatar"
             />
-            <div
+            <img
               v-else
-              class="w-full h-full flex items-center justify-center text-white font-medium"
+              src="/src/assets/images/Emodzi.svg"
+              class="lg:w-[24px] lg:h-[24px] w-[45px] h-[45px] object-cover"
             >
-              {{ getUserInitials(user.full_name) }}
-            </div>
+            </img>
           </div>
 
           <!-- Информация -->
