@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { shallowRef , onMounted, onUnmounted } from 'vue'
 import Kanban from './Kanban.vue'
 import MobileKanban from './MobileKanban.vue'
 
@@ -14,7 +14,7 @@ const props = defineProps({
   }
 })
 
-const currentComponent = ref(Kanban)
+const currentComponent = shallowRef(Kanban)
 
 const checkScreenSize = () => {
   const isMobile = window.innerWidth < 768

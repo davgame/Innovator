@@ -3,11 +3,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { shallowRef , onMounted, onUnmounted } from 'vue'
 import SupPage from './SupPage.vue'
 import MobileLayout from './MobileLayout.vue'
 
-const currentComponent = ref(SupPage)
+const currentComponent = shallowRef(SupPage)
 
 const checkScreenSize = () => {
   const isMobile = window.innerWidth < 768
