@@ -2,7 +2,7 @@
   <div class="flex flex-col h-full bg-gray-50">
     <!-- Название канбан-доски (как на рисунке 2) -->
     <div class="bg-white px-6 pt-4">
-      <h2 class="text-[42px] font-bold text-gray-900">
+      <h2 class="text-4xl font-bold text-gray-900">
         {{ boardName || 'Канбан-доска' }}
       </h2>
     </div>
@@ -13,14 +13,14 @@
         v-for="tab in tabs"
         :key="tab.id"
         @click="activeTab = tab.id"
-        class="flex-1 py-4 text-center font-medium transition-colors relative text-sm"
+        class="flex-1 py-4 text-center font-medium transition-colors relative text-[15px]"
         :class="activeTab === tab.id ? 'text-blue-600' : 'text-gray-500'"
       >
         {{ tab.title }}
         <span class="ml-1 text-sm">{{ getTasksByStatus(tab.id).length }}</span>
         <div
           v-if="activeTab === tab.id"
-          class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+          class="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-600"
         ></div>
       </button>
     </div>

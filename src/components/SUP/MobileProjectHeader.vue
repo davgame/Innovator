@@ -83,6 +83,4 @@ const tabs = ref([
 
 const activeTab = ref(1)
 
-// Передаём активную вкладку наружу (если нужно)
-// можно добавить watch и emit
 </script>

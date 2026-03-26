@@ -20,7 +20,7 @@
         :project="currentProject"
         @update-name="updateProjectName"
       />
-      <!-- 👇 ВАЖНО: здесь отображаются дочерние маршруты -->
+      <!-- Здесь отображаются дочерние маршруты -->
       <router-view :projectId="String(currentProject?.id)"/>
 
       <!-- Контент -->

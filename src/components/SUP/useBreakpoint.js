@@ -1,7 +1,8 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 export function useBreakpoint(breakpoint = 768) {
-  const isMobile = ref(false)
+    // Определяем значение при создании
+  const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < breakpoint : false)
 
   const checkWidth = () => {
     const newValue = window.innerWidth < breakpoint

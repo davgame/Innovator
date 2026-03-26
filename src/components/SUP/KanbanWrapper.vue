@@ -14,7 +14,14 @@ const props = defineProps({
   }
 })
 
+// Определяем правильный компонент
+let initialComponent = KanbanDesktop
+if (typeof window !== 'undefined' && window.innerWidth < 768) {
+  initialComponent = MobileKanban
+}
+
 const currentComponent = shallowRef(Kanban)
+
 
 const checkScreenSize = () => {
   const isMobile = window.innerWidth < 768

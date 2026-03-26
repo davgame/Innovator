@@ -2,12 +2,15 @@
   <div class="p-4">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-lg font-semibold">Мои проекты</h2>
-      <button
-        @click="createProject"
-        class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600"
-      >
-        +
-      </button>
+        <button
+          @click="createProject"
+          class="flex items-center justify-center w-8 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+          title="Создать новую доску"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
     </div>
 
     <div v-if="loading" class="text-center py-8">
@@ -24,15 +27,15 @@
       </button>
     </div>
 
-    <div v-else class="space-y-2">
+    <div v-else class="space-y-4">
       <div
         v-for="project in projects"
         :key="project.id"
         @click="selectProject(project)"
-        class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
+        class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-gray-100"
       >
         <div
-          class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
+          class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-medium text-lg"
           :style="{ backgroundColor: project.color }"
         >
           {{ project.icon }}

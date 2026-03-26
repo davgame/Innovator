@@ -8,6 +8,11 @@ import SupPage from './SupPage.vue'
 import MobileLayout from './MobileLayout.vue'
 
 const currentComponent = shallowRef(SupPage)
+// Определяем правильный компонент
+let initialComponent = SupPage
+if (typeof window !== 'undefined' && window.innerWidth < 768) {
+  initialComponent = MobileLayout
+}
 
 const checkScreenSize = () => {
   const isMobile = window.innerWidth < 768
