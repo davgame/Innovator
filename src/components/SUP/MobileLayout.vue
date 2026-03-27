@@ -44,7 +44,7 @@
       :active-menu="activeMenu"
       @open-projects="openProjectsModal"
       @open-search="openSearchModal"
-      @open-members="openMembersModal"
+      @open-members="openMembersPage"
     />
 
     <!-- Модалка проектов -->
@@ -92,174 +92,143 @@
       </div>
     </Transition>
 
-        <!-- Модалка участников -->
-      <div v-if="showMembersModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-2 sm:p-0">
-        <!-- Modal -->
+    <!-- Страница участников (вместо модалки) -->
+<Transition name="modal-slide">
+  <div v-if="showMembersPage" class="fixed inset-0 z-50 bg-white flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200">
+      <h2 class="text-[18px] font-semibold">
+        {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
+      </h2>
+      <button
+        @click="closeMembersPage"
+        class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="relative p-4 border-b border-gray-200">
+      <input
+        v-model="memberSearchQuery"
+        @input="searchUsersToAdd"
+        type="text"
+        :disabled="!isProjectOwner"
+        placeholder="Начните ввод..."
+        class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
+        :class="{ 'bg-gray-100 cursor-not-allowed': !isProjectOwner }"
+      />
+    </div>
+
+    <!-- Users list -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-2">
+      <!-- Результаты поиска -->
+      <div
+        v-for="user in memberSearchResults"
+        v-if="memberSearchResults.length > 0"
+        :key="user.id"
+        class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#F6F8FA]"
+      >
+        <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+          <img v-if="user.avatar_url" :src="user.avatar_url" class="w-full h-full object-cover" />
+          <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" />
+        </div>
+        <div class="flex-1">
+          <p class="text-[14px] font-medium">{{ user.full_name }}</p>
+          <p class="text-[12px] text-[#6C727C]">Участник</p>
+        </div>
         <div
-          class="bg-white w-full max-w-[420px] sm:w-[420px] max-h-[80vh] rounded-[22px] p-4 flex flex-col relative"
+          v-if="isProjectOwner"
+          class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
+          :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+          @click.stop="toggleUserToAdd(user)"
         >
-          <!-- Header -->
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-[18px] font-semibold">
-              {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
-            </h2>
-            <button
-              @click="closeMembersModal"
-              class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
-            >
-              ✕
-            </button>
-          </div>
-
-          <!-- Search -->
-          <div class="relative mb-2">
-            <input
-              v-model="memberSearchQuery"
-              @input="searchUsersToAdd"
-              type="text"
-              :disabled="!isProjectOwner"
-              placeholder="Начните ввод..."
-              class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
-              :class="{ 'bg-gray-100 cursor-not-allowed': !isProjectOwner }"
-            />
-          </div>
-
-          <!-- Users list (scroll) -->
-          <div
-            class="flex-1 overflow-y-auto space-y-2 pr-1"
-            :style="{ maxHeight: '400px' }"
-          >
-            <!-- Результаты поиска -->
-            <div
-              v-for="user in memberSearchResults"
-              v-if="memberSearchResults.length > 0"
-              :key="user.id"
-              class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#F6F8FA]"
-            >
-              <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
-                <img
-                  v-if="user.avatar_url"
-                  :src="user.avatar_url"
-                  class="w-full h-full object-cover"
-                />
-                <img
-                  v-else
-                  src="/src/assets/images/Emodzi.svg"
-                  class="w-full h-full object-cover p-1.5"
-                />
-              </div>
-              <div class="flex-1">
-                <p class="text-[14px] font-medium">{{ user.full_name }}</p>
-                <p class="text-[12px] text-[#6C727C]">Участник</p>
-              </div>
-              <div
-                v-if="isProjectOwner"
-                class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
-                :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-                @click.stop="toggleUserToAdd(user)"
-              >
-                <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div v-else class="w-5 h-5"></div>
-            </div>
-
-            <!-- Список участников проекта (когда нет поиска) -->
-            <div
-              v-for="member in projectMembers"
-              v-if="memberSearchResults.length === 0 && member"
-              :key="member.id"
-              class="flex items-center gap-3 p-2 rounded-[14px]"
-              :class="{ 'bg-yellow-50': member.isOwner === true }"
-            >
-              <!-- Аватар с заглушкой -->
-              <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
-                <img
-                  v-if="member.avatar_url"
-                  :src="member.avatar_url"
-                  class="w-full h-full object-cover"
-                  @error="handleAvatarError"
-                />
-                <img
-                  v-else
-                  src="/src/assets/images/Emodzi.svg"
-                  class="w-full h-full object-cover p-1.5"
-                  alt="Default avatar"
-                />
-              </div>
-              <div class="flex-1">
-                <p class="text-[14px] font-medium">{{ member.full_name || member.name || 'Пользователь' }}</p>
-                <p class="text-[12px] text-[#6C727C]">
-                  {{ member.role || 'Участник' }}
-                </p>
-              </div>
-
-              <!-- Чекбокс для владельца (только для не-владельцев и не себя) -->
-              <div
-                v-if="isProjectOwner && member.id !== currentUserId && member.isOwner !== true"
-                class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
-                :class="isMemberSelectedToRemove(member) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-                @click.stop="toggleMemberToRemove(member)"
-              >
-                <svg v-if="isMemberSelectedToRemove(member)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-
-              <!-- Звездочка для владельца -->
-              <div v-else-if="member.isOwner === true" class="w-5 h-5 text-yellow-500">
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <!-- Selected preview -->
-          <div
-            v-if="usersToAdd.length > 0 && memberSearchResults.length > 0"
-            class="flex gap-2 flex-wrap mt-3"
-          >
-            <div
-              v-for="user in usersToAdd"
-              :key="user.id"
-              class="flex items-center gap-2 bg-[#F6F8FA] px-1 py-1 rounded-full"
-              @click="toggleUserToAdd(user)"
-            >
-              <img :src="user.avatar_url" class="w-7 h-7 rounded-full" />
-              <span class="text-[13px]">{{ user.full_name }}</span>
-              <div
-                class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center transition-colors shrink-0"
-                :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-                @click.stop="toggleUserToAdd(user)"
-              >
-                <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer button -->
-          <button
-            v-if="isProjectOwner"
-            @click="handleMemberConfirm"
-            class="cursor-pointer mt-4 bg-[#222222] hover:bg-[#4286F7] text-white py-2 rounded-[14px] text-[15px] font-medium transition-colors"
-          >
-            Готово
-          </button>
-
-          <!-- Кнопка для обычного участника (только закрыть) -->
-          <button
-            v-else
-            @click="closeMembersModal"
-            class="cursor-pointer mt-5 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-[14px] text-[15px] font-medium transition-colors"
-          >
-            Закрыть
-          </button>
+          <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
       </div>
+
+      <!-- Список участников проекта -->
+      <div
+        v-for="member in projectMembers"
+        v-if="memberSearchResults.length === 0"
+        :key="member.id"
+        class="flex items-center gap-3 p-2 rounded-[14px]"
+        :class="{ 'bg-yellow-50': member.isOwner === true }"
+      >
+        <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+          <img v-if="member.avatar_url" :src="member.avatar_url" class="w-full h-full object-cover" @error="handleAvatarError" />
+          <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" alt="Default avatar" />
+        </div>
+        <div class="flex-1">
+          <p class="text-[14px] font-medium">{{ member.full_name || member.name || 'Пользователь' }}</p>
+          <p class="text-[12px] text-[#6C727C]">{{ member.role || 'Участник' }}</p>
+        </div>
+        <div
+          v-if="isProjectOwner && member.id !== currentUserId"
+          class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
+          :class="!isMemberSelectedToRemove(member) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+          @click.stop="toggleMemberToRemove(member)"
+        >
+            <svg v-if="!isMemberSelectedToRemove(member)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <div v-else-if="member.isOwner === true" class="w-5 h-5 text-yellow-500">
+          <svg fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        </div>
+        <div v-else class="w-5 h-5"></div>
+      </div>
+    </div>
+
+    <!-- Selected preview -->
+    <div
+      v-if="usersToAdd.length > 0 && memberSearchResults.length > 0"
+      class="flex gap-2 flex-wrap p-4 border-t border-gray-200"
+    >
+      <div
+        v-for="user in usersToAdd"
+        :key="user.id"
+        class="flex items-center gap-2 bg-[#F6F8FA] px-2 py-1 rounded-full"
+        @click="toggleUserToAdd(user)"
+      >
+        <img :src="user.avatar_url" class="w-6 h-6 rounded-full" />
+        <span class="text-[12px]">{{ user.full_name }}</span>
+        <div
+          class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center"
+          :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+          @click.stop="toggleUserToAdd(user)"
+        >
+          <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer button -->
+    <div v-if="isProjectOwner" class="p-4 border-t border-gray-200">
+      <button
+        @click="handleMemberConfirm"
+        class="w-full py-2 bg-[#222222] hover:bg-[#4286F7] text-white rounded-lg transition-colors"
+      >
+        Готово
+      </button>
+    </div>
+    <div v-else class="p-4 border-t border-gray-200">
+      <button
+        @click="closeMembersPage"
+        class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+      >
+        Закрыть
+      </button>
+    </div>
+  </div>
+</Transition>
   </div>
 </template>
 
@@ -275,7 +244,7 @@ import Task from './Task.vue'
 import Edit_task from './Edit_task.vue'
 import AddUser from '../Pasport/Add-User.vue'
 import PanelMobile from './PanelMobile.vue'
-import { useAuthStore } from '@/stores/auth'  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
+import { useAuthStore } from '@/stores/auth'
 
 import { createTaskDB, updateTaskDB } from '@/services/taskService'
 
@@ -286,19 +255,22 @@ const props = defineProps({
   }
 })
 
-const authStore = useAuthStore()  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
+const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const projectStore = useProjectStore()
 const currentProject = ref(null)
 const mobileKanbanRef = ref(null)
 const projectMembers = ref([])
-const membersToRemove = ref([])  // 👈 Убедитесь, что это есть
+const isProjectOwner = ref(false)
+
+// Для страницы участников
+const showMembersPage = ref(false)
 const memberSearchQuery = ref('')
 const memberSearchResults = ref([])
 const usersToAdd = ref([])
+const membersToRemove = ref([])
 const memberSearchTimer = ref(null)
-const isProjectOwner = ref(false)
 
 
 // Состояния модалок
@@ -331,16 +303,13 @@ const initProjectId = () => {
 }
 
 
-// Проверка, выбран ли участник для удаления
+// Проверка выбран ли участник для удаления
 const isMemberSelectedToRemove = (member) => {
-  if (!membersToRemove.value || !member) return false
   return membersToRemove.value.some(m => m.id === member.id)
 }
 
 // Добавить/убрать участника для удаления
 const toggleMemberToRemove = (member) => {
-  if (!member) return
-
   if (isMemberSelectedToRemove(member)) {
     membersToRemove.value = membersToRemove.value.filter(m => m.id !== member.id)
   } else {
@@ -369,6 +338,64 @@ const loadProject = async (id) => {
   } catch (err) {
     console.error('Ошибка загрузки проекта:', err)
   }
+}
+
+// Открыть страницу участников
+const openMembersPage = () => {
+  if (!currentProject.value?.id) {
+    console.log('⚠️ Нет выбранного проекта')
+    return
+  }
+
+  activeMenu.value = 'members'
+  usersToAdd.value = []
+  membersToRemove.value = []
+  memberSearchQuery.value = ''
+  memberSearchResults.value = []
+
+  checkProjectOwner()
+  loadProjectMembers()
+  showMembersPage.value = true
+}
+
+// Закрыть страницу участников
+const closeMembersPage = () => {
+  activeMenu.value = null
+  showMembersPage.value = false
+}
+
+// Поиск пользователей
+const searchUsersToAdd = async () => {
+  const query = memberSearchQuery.value.trim()
+  if (!query || query.length < 2) {
+    memberSearchResults.value = []
+    return
+  }
+
+  try {
+    const existingIds = projectMembers.value.map(m => m.id)
+    let dbQuery = supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .ilike('full_name', `%${query}%`)
+      .limit(10)
+
+    if (existingIds.length > 0) {
+      dbQuery = dbQuery.not('id', 'in', `(${existingIds.join(',')})`)
+    }
+
+    const { data, error } = await dbQuery
+    if (error) throw error
+    memberSearchResults.value = data || []
+  } catch (err) {
+    console.error('Ошибка поиска:', err)
+    memberSearchResults.value = []
+  }
+}
+
+// Проверка выбран ли пользователь для добавления
+const isUserSelectedToAdd = (user) => {
+  return usersToAdd.value.some(u => u.id === user.id)
 }
 
 // Загрузка участников проекта
@@ -487,45 +514,7 @@ const closeSearchModal = () => {
   showSearchModal.value = false
 }
 
-// Поиск пользователей для добавления
-const searchUsersToAdd = async () => {
-  const query = memberSearchQuery.value.trim()
 
-  if (!query || query.length < 2) {
-    memberSearchResults.value = []
-    return
-  }
-
-  try {
-    // Получаем ID уже существующих участников
-    const existingIds = projectMembers.value.map(m => m.id)
-
-    let dbQuery = supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url')
-      .ilike('full_name', `%${query}%`)
-      .limit(10)
-
-    // Исключаем уже добавленных
-    if (existingIds.length > 0) {
-      dbQuery = dbQuery.not('id', 'in', `(${existingIds.join(',')})`)
-    }
-
-    const { data, error } = await dbQuery
-
-    if (error) throw error
-    memberSearchResults.value = data || []
-  } catch (err) {
-    console.error('Ошибка поиска:', err)
-    memberSearchResults.value = []
-  }
-}
-
-// Проверка, выбран ли пользователь для добавления
-const isUserSelectedToAdd = (user) => {
-  if (!usersToAdd.value || !user) return false
-  return usersToAdd.value.some(u => u.id === user.id)
-}
 
 // Добавить/убрать пользователя для добавления
 const toggleUserToAdd = (user) => {
@@ -583,39 +572,13 @@ const handleMemberConfirm = async () => {
     memberSearchQuery.value = ''
     memberSearchResults.value = []
 
-    closeMembersModal()
+    closeMembersPage()
   } catch (err) {
     console.error('Ошибка сохранения:', err)
     alert('Не удалось сохранить изменения')
   }
 }
 
-
-
-const openMembersModal = async () => {
-  if (!currentProject.value?.id) {
-    console.log('⚠️ Нет выбранного проекта')
-    return
-  }
-
-  activeMenu.value = 'members'
-
-  usersToAdd.value = []
-  membersToRemove.value = []
-  memberSearchQuery.value = ''
-  memberSearchResults.value = []
-
-  await checkProjectOwner()
-  await loadProjectMembers()
-
-  // 👇 Отладка
-  console.log('📊 После загрузки:')
-  console.log('   projectMembers:', projectMembers.value)
-  console.log('   isProjectOwner:', isProjectOwner.value)
-  console.log('   currentUserId:', currentUserId.value)
-
-  showMembersModal.value = true
-}
 
 // Создание задачи
 const openCreateTask = (columnId) => {
@@ -787,6 +750,16 @@ watch(() => props.projectId, (newId) => {
     console.log('🔄 props.projectId изменился:', newId)
     currentProjectId.value = newId
   }
+})
+
+// Дебаунс для поиска
+watch(memberSearchQuery, (newValue) => {
+  if (memberSearchTimer.value) clearTimeout(memberSearchTimer.value)
+  if (!newValue.trim() || newValue.length < 2) {
+    memberSearchResults.value = []
+    return
+  }
+  memberSearchTimer.value = setTimeout(searchUsersToAdd, 500)
 })
 
 // Дебаунс для поиска
