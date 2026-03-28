@@ -14,10 +14,10 @@
         <button class="primary rounded-[12px] w-30 h-11 font-medium cursor-pointer" @click="save">Сохранить</button>
         <button class=" border border-[#000000]/15 rounded-[12px] w-30 font-medium text-[#454545] hover:bg-[#F9F9F9] cursor-pointer" @click="close">Отмена</button>
       </div>
-      <div class="w-full h-px bg-[#D3D3D3]/80 mb-4"></div>
+      <div class="w-full h-px bg-[#D3D3D3]/80 lg:mb-4"></div>
 
       <!-- Body -->
-      <h1 class="text-[25px] font-bold pb-4">Редактировать задачу</h1>
+      <h1 class="lg:text-[25px] text-[20px] font-bold lg:pb-4 py-6">Редактировать задачу</h1>
 
       <!-- Название задачи с крестиком ВНУТРИ -->
       <div class="relative">

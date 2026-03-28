@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pb-16">
+  <div class="h-screen flex flex-col overflow-hidden">
     <!-- Модальные окна -->
     <Task
       :show="showTaskModal"
@@ -23,11 +23,13 @@
       @confirm="handleMembersConfirm"
     />
 
-    <!-- Верхняя шапка (Header_sup) -->
-    <Header_sup />
+    <div class="flex-shrink-0">
+      <!-- Верхняя шапка (Header_sup) -->
+      <Header_sup />
+    </div>
 
     <!-- Контент -->
-    <div class="bg-gray-50 min-h-screen mt-14">
+    <div class="flex-1 flex flex-col overflow-hidden bg-gray-50">
       <MobileKanban
         ref="mobileKanbanRef"
         :key="currentProjectId"
@@ -36,6 +38,7 @@
         @open-create-task="openCreateTask"
         @open-edit-task="openEditTask"
         @open-add-members="openAddMembersModal"
+        @open-date-picker="handleOpenDatePicker"
       />
     </div>
 
@@ -47,8 +50,50 @@
       @open-members="openMembersPage"
     />
 
-    <!-- Модалка проектов -->
+    <!-- Модальное окно для выбора даты -->
+  <div
+    v-if="showDatePicker && currentTaskForDate"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    @click.self="closeDatePicker"
+  >
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold text-lg">Выберите дату</h3>
+        <button @click="closeDatePicker" class="cursor-pointer text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      </div>
 
+      <input
+        v-model="tempSelectedDate"
+        type="date"
+        class="w-full p-3 border border-gray-300 rounded-lg"
+      />
+
+      <div class="mt-4 flex gap-2">
+        <button
+          @click="setToday"
+          class="cursor-pointer flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+        >
+          Сегодня
+        </button>
+        <button
+          @click="clearDate"
+          class="cursor-pointer flex-1 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg"
+        >
+          Очистить
+        </button>
+        <button
+          @click="saveDate"
+          class="cursor-pointer flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+        >
+          Сохранить
+        </button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Модалка проектов -->
     <Transition name="modal-slide">
       <div v-if="showProjectsModal" class="fixed inset-0 z-50 bg-white flex flex-col">
         <div class="flex items-center justify-between p-4 py-5 border-b border-gray-200">
@@ -93,142 +138,142 @@
     </Transition>
 
     <!-- Страница участников (вместо модалки) -->
-<Transition name="modal-slide">
-  <div v-if="showMembersPage" class="fixed inset-0 z-50 bg-white flex flex-col">
-    <!-- Header -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-200">
-      <h2 class="text-[18px] font-semibold">
-        {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
-      </h2>
-      <button
-        @click="closeMembersPage"
-        class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
-      >
-        ✕
-      </button>
-    </div>
-
-    <!-- Search -->
-    <div class="relative p-4 border-b border-gray-200">
-      <input
-        v-model="memberSearchQuery"
-        @input="searchUsersToAdd"
-        type="text"
-        :disabled="!isProjectOwner"
-        placeholder="Начните ввод..."
-        class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
-        :class="{ 'bg-gray-100 cursor-not-allowed': !isProjectOwner }"
-      />
-    </div>
-
-    <!-- Users list -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-2">
-      <!-- Результаты поиска -->
-      <div
-        v-for="user in memberSearchResults"
-        v-if="memberSearchResults.length > 0"
-        :key="user.id"
-        class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#F6F8FA]"
-      >
-        <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
-          <img v-if="user.avatar_url" :src="user.avatar_url" class="w-full h-full object-cover" />
-          <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" />
+    <Transition name="modal-slide">
+      <div v-if="showMembersPage" class="fixed inset-0 z-50 bg-white flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 class="text-[18px] font-semibold">
+            {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
+          </h2>
+          <button
+            @click="closeMembersPage"
+            class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
+          >
+            ✕
+          </button>
         </div>
-        <div class="flex-1">
-          <p class="text-[14px] font-medium">{{ user.full_name }}</p>
-          <p class="text-[12px] text-[#6C727C]">Участник</p>
+
+        <!-- Search -->
+        <div class="relative p-4 border-b border-gray-200">
+          <input
+            v-model="memberSearchQuery"
+            @input="searchUsersToAdd"
+            type="text"
+            :disabled="!isProjectOwner"
+            placeholder="Начните ввод..."
+            class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
+            :class="{ 'bg-gray-100 cursor-not-allowed': !isProjectOwner }"
+          />
         </div>
+
+        <!-- Users list -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+          <!-- Результаты поиска -->
+          <div
+            v-for="user in memberSearchResults"
+            v-if="memberSearchResults.length > 0"
+            :key="user.id"
+            class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#F6F8FA]"
+          >
+            <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+              <img v-if="user.avatar_url" :src="user.avatar_url" class="w-full h-full object-cover" />
+              <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" />
+            </div>
+            <div class="flex-1">
+              <p class="text-[14px] font-medium">{{ user.full_name }}</p>
+              <p class="text-[12px] text-[#6C727C]">Участник</p>
+            </div>
+            <div
+              v-if="isProjectOwner"
+              class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
+              :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+              @click.stop="toggleUserToAdd(user)"
+            >
+              <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Список участников проекта -->
+          <div
+            v-for="member in projectMembers"
+            v-if="memberSearchResults.length === 0"
+            :key="member.id"
+            class="flex items-center gap-3 p-2 rounded-[14px]"
+            :class="{ 'bg-yellow-50': member.isOwner === true }"
+          >
+            <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+              <img v-if="member.avatar_url" :src="member.avatar_url" class="w-full h-full object-cover" @error="handleAvatarError" />
+              <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" alt="Default avatar" />
+            </div>
+            <div class="flex-1">
+              <p class="text-[14px] font-medium">{{ member.full_name || member.name || 'Пользователь' }}</p>
+              <p class="text-[12px] text-[#6C727C]">{{ member.role || 'Участник' }}</p>
+            </div>
+            <div
+              v-if="isProjectOwner && member.id !== currentUserId"
+              class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
+              :class="!isMemberSelectedToRemove(member) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+              @click.stop="toggleMemberToRemove(member)"
+            >
+                <svg v-if="!isMemberSelectedToRemove(member)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <div v-else-if="member.isOwner === true" class="w-5 h-5 text-yellow-500">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </div>
+            <div v-else class="w-5 h-5"></div>
+          </div>
+        </div>
+
+        <!-- Selected preview -->
         <div
-          v-if="isProjectOwner"
-          class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
-          :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-          @click.stop="toggleUserToAdd(user)"
+          v-if="usersToAdd.length > 0 && memberSearchResults.length > 0"
+          class="flex gap-2 flex-wrap p-4 border-t border-gray-200"
         >
-          <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
+          <div
+            v-for="user in usersToAdd"
+            :key="user.id"
+            class="flex items-center gap-2 bg-[#F6F8FA] px-2 py-1 rounded-full"
+            @click="toggleUserToAdd(user)"
+          >
+            <img :src="user.avatar_url" class="w-6 h-6 rounded-full" />
+            <span class="text-[12px]">{{ user.full_name }}</span>
+            <div
+              class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center"
+              :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+              @click.stop="toggleUserToAdd(user)"
+            >
+              <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer button -->
+        <div v-if="isProjectOwner" class="p-4 border-t border-gray-200">
+          <button
+            @click="handleMemberConfirm"
+            class="w-full py-2 bg-[#222222] hover:bg-[#4286F7] text-white rounded-lg transition-colors"
+          >
+            Готово
+          </button>
+        </div>
+        <div v-else class="p-4 border-t border-gray-200">
+          <button
+            @click="closeMembersPage"
+            class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Закрыть
+          </button>
         </div>
       </div>
-
-      <!-- Список участников проекта -->
-      <div
-        v-for="member in projectMembers"
-        v-if="memberSearchResults.length === 0"
-        :key="member.id"
-        class="flex items-center gap-3 p-2 rounded-[14px]"
-        :class="{ 'bg-yellow-50': member.isOwner === true }"
-      >
-        <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
-          <img v-if="member.avatar_url" :src="member.avatar_url" class="w-full h-full object-cover" @error="handleAvatarError" />
-          <img v-else src="/src/assets/images/Emodzi.svg" class="w-full h-full object-cover p-1.5" alt="Default avatar" />
-        </div>
-        <div class="flex-1">
-          <p class="text-[14px] font-medium">{{ member.full_name || member.name || 'Пользователь' }}</p>
-          <p class="text-[12px] text-[#6C727C]">{{ member.role || 'Участник' }}</p>
-        </div>
-        <div
-          v-if="isProjectOwner && member.id !== currentUserId"
-          class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer"
-          :class="!isMemberSelectedToRemove(member) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-          @click.stop="toggleMemberToRemove(member)"
-        >
-            <svg v-if="!isMemberSelectedToRemove(member)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-            </svg>
-        </div>
-        <div v-else-if="member.isOwner === true" class="w-5 h-5 text-yellow-500">
-          <svg fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        </div>
-        <div v-else class="w-5 h-5"></div>
-      </div>
-    </div>
-
-    <!-- Selected preview -->
-    <div
-      v-if="usersToAdd.length > 0 && memberSearchResults.length > 0"
-      class="flex gap-2 flex-wrap p-4 border-t border-gray-200"
-    >
-      <div
-        v-for="user in usersToAdd"
-        :key="user.id"
-        class="flex items-center gap-2 bg-[#F6F8FA] px-2 py-1 rounded-full"
-        @click="toggleUserToAdd(user)"
-      >
-        <img :src="user.avatar_url" class="w-6 h-6 rounded-full" />
-        <span class="text-[12px]">{{ user.full_name }}</span>
-        <div
-          class="cursor-pointer w-5 h-5 rounded-[6px] border flex items-center justify-center"
-          :class="isUserSelectedToAdd(user) ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
-          @click.stop="toggleUserToAdd(user)"
-        >
-          <svg v-if="isUserSelectedToAdd(user)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- Footer button -->
-    <div v-if="isProjectOwner" class="p-4 border-t border-gray-200">
-      <button
-        @click="handleMemberConfirm"
-        class="w-full py-2 bg-[#222222] hover:bg-[#4286F7] text-white rounded-lg transition-colors"
-      >
-        Готово
-      </button>
-    </div>
-    <div v-else class="p-4 border-t border-gray-200">
-      <button
-        @click="closeMembersPage"
-        class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-      >
-        Закрыть
-      </button>
-    </div>
-  </div>
-</Transition>
+    </Transition>
   </div>
 </template>
 
@@ -245,8 +290,7 @@ import Edit_task from './Edit_task.vue'
 import AddUser from '../Pasport/Add-User.vue'
 import PanelMobile from './PanelMobile.vue'
 import { useAuthStore } from '@/stores/auth'
-
-import { createTaskDB, updateTaskDB } from '@/services/taskService'
+import { createTaskDB, updateTaskDB,  } from '@/services/taskService'
 
 const props = defineProps({
   projectId: {
@@ -279,12 +323,14 @@ const showEditModal = ref(false)
 const showMemberModal = ref(false)
 const showProjectsModal = ref(false)
 const showSearchModal = ref(false)
-const showMembersModal = ref(false)
 const editingTask = ref(null)
 const currentTaskForMembers = ref(null)
 const targetColumnId = ref(null)
 const activeMenu = ref(null)
 const panelRef = ref(null)
+const showDatePicker = ref(false)
+const currentTaskForDate = ref(null)
+const tempSelectedDate = ref('')
 
 
 // Текущий пользователь
@@ -302,6 +348,46 @@ const initProjectId = () => {
   }
 }
 
+// Функции для работы с датой
+const closeDatePicker = () => {
+  showDatePicker.value = false
+  currentTaskForDate.value = null
+  tempSelectedDate.value = ''
+}
+
+const setToday = () => {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  tempSelectedDate.value = `${year}-${month}-${day}`
+}
+
+const clearDate = () => {
+  if (currentTaskForDate.value) {
+    delete currentTaskForDate.value.deadline
+  }
+  closeDatePicker()
+}
+
+// Функция сохранения даты
+const saveDate = async () => {
+  if (currentTaskForDate.value && tempSelectedDate.value) {
+    currentTaskForDate.value.deadline = tempSelectedDate.value
+
+    // Используем updateTaskDB вместо updateTaskDeadline
+    await updateTaskDB({
+      id: currentTaskForDate.value.id,
+      deadline: tempSelectedDate.value
+    })
+
+    // Обновляем задачи в канбане
+    if (mobileKanbanRef.value && mobileKanbanRef.value.loadTasks) {
+      await mobileKanbanRef.value.loadTasks()
+    }
+  }
+  closeDatePicker()
+}
 
 // Проверка выбран ли участник для удаления
 const isMemberSelectedToRemove = (member) => {
@@ -688,6 +774,14 @@ const handleUpdateTask = async (task) => {
 const openAddMembersModal = (task) => {
   currentTaskForMembers.value = task
   showMemberModal.value = true
+}
+
+// Открытие календаря для задачи
+const handleOpenDatePicker = (task) => {
+  console.log('📅 Обработка открытия календаря для задачи:', task.title)
+  currentTaskForDate.value = task
+  tempSelectedDate.value = task.deadline || ''
+  showDatePicker.value = true
 }
 
 const closeMemberModal = () => {

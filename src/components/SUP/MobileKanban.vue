@@ -1,14 +1,14 @@
 <template>
-  <div class="flex flex-col h-full bg-gray-50">
+  <div class="h-full flex flex-col bg-gray-50 overflow-hidden">
     <!-- Название канбан-доски (как на рисунке 2) -->
-    <div class="bg-white px-6 pt-4">
+    <div class="bg-white px-6 pt-20 pb-2">
       <h2 class="text-4xl font-bold text-gray-900">
         {{ boardName || 'Канбан-доска' }}
       </h2>
     </div>
 
     <!-- Вкладки -->
-    <div class="flex bg-white border-b border-gray-200 sticky top-0 z-10 px-2">
+    <div class="flex bg-white border-b border-gray-200">
       <button
         v-for="tab in tabs"
         :key="tab.id"
@@ -17,28 +17,61 @@
         :class="activeTab === tab.id ? 'text-blue-600' : 'text-gray-500'"
       >
         {{ tab.title }}
-        <span class="ml-1 text-sm">{{ getTasksByStatus(tab.id).length }}</span>
+        <span class="ml-0.5 text-sm">{{ getTasksByStatus(tab.id).length }}</span>
         <div
           v-if="activeTab === tab.id"
-          class="absolute bottom-0 left-4 right-4 h-0.5 bg-blue-600"
+          class="absolute bottom-0 left-5 right-4 h-0.5 bg-blue-600"
         ></div>
       </button>
     </div>
 
     <!-- Список задач -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-3 pb-24">
+    <div class="flex-1 overflow-y-auto p-4 space-y-3">
       <div
         v-for="task in getTasksByStatus(activeTab)"
         :key="task.id"
         class="bg-white rounded-2xl p-4 shadow-sm"
       >
+      <div class="flex justify-between items-start gap-2">
         <div>
           <h4 class="font-semibold text-gray-800 text-base">{{ task.title }}</h4>
           <p v-if="task.tag" class="text-xs text-gray-400 mt-0.5">{{ task.tag }}</p>
         </div>
 
+        <!-- Кнопка с тремя точками (контекстное меню) -->
+         <div class="relative flex-shrink-0">
+          <button
+            @click.stop="toggleContextMenu(task)"
+            class="cursor-pointer p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+            </svg>
+          </button>
+
+        <!-- Контекстное меню -->
+        <div
+          v-if="activeContextMenu === task.id"
+          class="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 w-32"
+        >
+          <button
+            @click="editTask(task)"
+            class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Редактировать
+          </button>
+          <button
+            @click="deleteTask(task, activeTab)"
+            class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50"
+          >
+            Удалить
+          </button>
+        </div>
+        </div>
+      </div>
+
         <div class="mt-3">
-          <div class="flex justify-between text-xs text-gray-500 mb-1">
+          <div class="flex justify-between text-xs text-gray-500 mb-2">
             <span>Прогресс</span>
             <span class="font-medium text-gray-700">{{ calcProgress(task) }}%</span>
           </div>
@@ -51,15 +84,53 @@
           </div>
         </div>
 
-        <div class="flex justify-between items-center mt-3 pt-1">
-          <span class="text-xs text-gray-500">
-            {{ task.deadline ? formatDateForDisplay(task.deadline) : 'Нет даты' }}
-          </span>
+        <div class="flex justify-between items-center mt-4 pt-1">
+            <!-- Группа: кнопка "+" + аватары (слева) -->
+          <div class="flex items-center gap-1">
+            <button
+              @click.stop="openAddMemberToTask(task)"
+              class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center text-lg"
+            >
+              <p class="text-[20px] pb-1">+</p>
+            </button>
+
+          <!-- Участники задачи -->
+            <div class="flex items-center -space-x-4">
+              <!-- Аватары участников -->
+              <div
+                v-for="member in task.members || []"
+                :key="member.id"
+                class="w-8 h-8 rounded-full overflow-hidden border-2 border-white"
+                :style="{ backgroundColor: member.color || '#e5e7eb' }"
+                :title="member.name"
+              >
+                <img
+                  v-if="member.avatar"
+                  :src="member.avatar"
+                  class="w-full h-full object-cover hover:scale-105"
+                  :alt="member.name"
+                />
+                <div
+                  v-else
+                  class="w-full h-full flex items-center justify-center text-xs text-white"
+                >
+                  {{ member.name.charAt(0) }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+           <!-- Кнопка календаря с датой -->
           <button
-            @click.stop="openAddMemberToTask(task)"
-            class="w-6 h-6 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center text-lg"
+            @click.stop="openDatePicker(task)"
+            class="cursor-pointer flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+            :class="task.deadline ? 'text-gray-700' : 'text-gray-400'"
           >
-            +
+            <img src="/src/assets/images/calendar.svg" alt="" class="w-4 h-4 mr-1">
+            <span v-if="task.deadline" class="font-medium">
+              {{ formatDateForDisplay(task.deadline) }}
+            </span>
+            <span v-else>Дедлайн</span>
           </button>
         </div>
       </div>
@@ -85,13 +156,16 @@
 <script setup>
 import { ref, watch, computed  } from 'vue'
 import { fetchTasks, deleteTaskDB } from '@/services/taskService'
+import Task from './Task.vue'
 
 const props = defineProps({
   projectId: { type: String, default: null },
-  projectName: { type: String, default: null }  // 👈 добавляем projectName
+  projectName: { type: String, default: null }
 })
 
-const emit = defineEmits(['open-create-task', 'open-edit-task', 'open-add-members'])
+const emit = defineEmits(['open-create-task', 'open-edit-task', 'open-add-members', 'open-date-picker'])
+
+
 
 // Название доски (берём из props или дефолтное)
 const boardName = computed(() => {
@@ -105,6 +179,9 @@ const columns = ref([
 ])
 
 const activeTab = ref(1)
+// Состояние для контекстного меню
+const activeContextMenu = ref(null)
+
 const tabs = ref([
   { id: 1, title: 'Беклог' },
   { id: 2, title: 'Прогресс' },
@@ -134,8 +211,43 @@ const loadTasks = async () => {
 }
 
 const openCreateTask = (columnId) => emit('open-create-task', columnId)
-const editTask = (task) => emit('open-edit-task', task)
+// Редактирование задачи
+const editTask = (task) => {
+  emit('open-edit-task', task)
+  closeContextMenu()
+}
 const openAddMemberToTask = (task) => emit('open-add-members', task)
+
+// Удаление задачи
+const deleteTask = async (task, columnId) => {
+  if (!confirm(`Удалить задачу "${task.title}"?`)) return
+
+  try {
+    const { error } = await deleteTaskDB(task.id)
+    if (error) throw error
+
+    const column = columns.value.find(c => c.id === columnId)
+    if (column) {
+      column.tasks = column.tasks.filter(t => t.id !== task.id)
+    }
+    closeContextMenu()
+  } catch (err) {
+    console.error('Ошибка удаления:', err)
+  }
+}
+
+const closeContextMenu = () => {
+  activeContextMenu.value = null
+}
+
+// Контекстное меню
+const toggleContextMenu = (task) => {
+  if (activeContextMenu.value === task.id) {
+    activeContextMenu.value = null
+  } else {
+    activeContextMenu.value = task.id
+  }
+}
 
 const calcProgress = (task) => {
   if (!task.checklist?.length) return 0
@@ -147,6 +259,12 @@ const getProgressColor = (progress) => {
   if (progress < 30) return 'bg-red-500'
   if (progress < 70) return 'bg-yellow-500'
   return 'bg-green-500'
+}
+
+// Открытие календаря для задачи
+const openDatePicker = (task) => {
+  console.log('📅 Открываем календарь для задачи:', task.title)
+  emit('open-date-picker', task)  // 👈 просто передаём задачу родителю
 }
 
 const formatDateForDisplay = (dateString) => {

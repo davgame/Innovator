@@ -113,10 +113,10 @@
             <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
 
-                 <!-- Просмотр -->
+            <!-- Просмотр -->
             <p
               v-if="editingTaskId !== element.id"
-              class="text-xl font-medium cursor-text hover:bg-gray-100 rounded px-1"
+              class="text-xl font-medium cursor-text hover:bg-gray-100 rounded"
               @click="startEditTitle(element)"
             >
               {{ element.title }}
