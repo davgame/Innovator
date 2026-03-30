@@ -192,7 +192,7 @@
         </div>
 
         <!-- Навигация по центру -->
-        <nav class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[55px] md:text-[55px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
+        <nav class="flex flex-col justify-start items-start w-full pl-12 pr-4 text-[58px] md:text-[55px] md:pr-[35px] lg:text-[85px] lg:mr-[30px] lg:max-w-none"
         >
           <router-link
             to="/"
@@ -204,7 +204,7 @@
           <router-link to="/sup" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">канбан</router-link>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
-          <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</router-link>
+          <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">контакты</router-link>
 
           <div class="flex justify-end w-full lg:hidden mt-5">
             <a

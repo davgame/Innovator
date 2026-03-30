@@ -14,10 +14,10 @@
         <button class="primary rounded-[12px] w-30 h-11 font-medium cursor-pointer" @click="save">Сохранить</button>
         <button class=" border border-[#000000]/15 rounded-[12px] w-30 font-medium text-[#454545] hover:bg-[#F9F9F9] cursor-pointer" @click="close">Отмена</button>
       </div>
-      <div class="w-full h-px bg-[#D3D3D3]/80 lg:mb-4"></div>
+      <div class="w-full h-px bg-[#D3D3D3]/80"></div>
 
       <!-- Body -->
-      <h1 class="lg:text-[25px] text-[20px] font-bold lg:pb-4 py-6">Редактировать задачу</h1>
+      <h1 class="lg:text-[25px] text-[20px] font-bold lg:my-5 my-6">Редактировать задачу</h1>
 
       <!-- Название задачи с крестиком ВНУТРИ -->
       <div class="relative">
@@ -63,14 +63,19 @@
 
         <div
           v-for="(item, i) in checklist"
-          :key="item.id"
+          :key="item.id || i"
           class="flex items-center gap-2 mb-4 border border-[#CBCBCB] w-full h-13 rounded-[13px] focus-within:border-[#4286F7] focus-within:border-2 transition-all duration-200 px-3"
         >
-          <input
-            type="checkbox"
-            v-model="item.done"
-            class="w-4 h-4 rounded-[12px] accent-[#4286F7]"
-          />
+          <!-- Кастомный чекбокс с v-model -->
+          <div
+            class="w-5 h-5 rounded-[6px] border flex items-center justify-center cursor-pointer flex-shrink-0"
+            :class="item.done ? 'bg-[#4286F7] border-[#4286F7]' : 'border-[#CBCBCB]'"
+            @click="toggleCheckbox(i)"
+          >
+            <svg v-if="item.done" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
 
           <input
             v-model="item.text"
@@ -163,6 +168,10 @@ const reset = () => {
   status.value = 1
   tag.value = 'Frontend'
   checklist.value = []
+}
+
+const toggleCheckbox = (index) => {
+  checklist.value[index].done = !checklist.value[index].done
 }
 
 /* Следим за пропсом taskData */

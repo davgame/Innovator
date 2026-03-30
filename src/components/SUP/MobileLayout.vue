@@ -24,7 +24,6 @@
     />
 
     <div class="flex-shrink-0">
-      <!-- Верхняя шапка (Header_sup) -->
       <Header_sup />
     </div>
 
@@ -333,6 +332,7 @@ const currentTaskForDate = ref(null)
 const tempSelectedDate = ref('')
 
 
+
 // Текущий пользователь
 const currentUserId = computed(() => authStore.user?.id)
 
@@ -450,31 +450,52 @@ const closeMembersPage = () => {
   showMembersPage.value = false
 }
 
-// Поиск пользователей
+// Поиск пользователей для добавления
 const searchUsersToAdd = async () => {
   const query = memberSearchQuery.value.trim()
+  console.log('🔍 searchUsersToAdd вызван, запрос:', query)
+
   if (!query || query.length < 2) {
+    console.log('⚠️ Запрос слишком короткий, очищаем результаты')
     memberSearchResults.value = []
     return
   }
 
   try {
+    console.log('📋 Текущие участники проекта:', projectMembers.value)
+
+    // Получаем ID уже существующих участников
     const existingIds = projectMembers.value.map(m => m.id)
+    console.log('📋 Существующие ID:', existingIds)
+
     let dbQuery = supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
       .ilike('full_name', `%${query}%`)
       .limit(10)
 
+    // Исключаем уже добавленных
     if (existingIds.length > 0) {
       dbQuery = dbQuery.not('id', 'in', `(${existingIds.join(',')})`)
+      console.log('🔍 Исключаем ID:', existingIds)
     }
 
     const { data, error } = await dbQuery
-    if (error) throw error
+
+    if (error) {
+      console.error('❌ Ошибка Supabase:', error)
+      throw error
+    }
+
+    console.log('✅ Найдено пользователей:', data?.length)
+    console.log('📋 Данные из БД:', data)
+
     memberSearchResults.value = data || []
+    console.log('🔍 Результаты поиска (после присвоения):', memberSearchResults.value)
+    console.log('🔍 Длина результатов:', memberSearchResults.value.length)
+
   } catch (err) {
-    console.error('Ошибка поиска:', err)
+    console.error('❌ Ошибка поиска:', err)
     memberSearchResults.value = []
   }
 }
@@ -790,23 +811,37 @@ const closeMemberModal = () => {
 }
 
 const handleMembersConfirm = async (users) => {
+  console.log('📝 handleMembersConfirm вызван, users:', users)
+
   if (currentTaskForMembers.value) {
     const updatedMembers = users.map(u => ({
       id: u.id,
       name: u.name,
-      avatar: u.avatar_url,
+      avatar: u.avatar_url || u.avatar,
+      avatar_url: u.avatar_url,
       color: getRandomColor()
     }))
 
-    currentTaskForMembers.value.members = updatedMembers
+    console.log('🔄 Сохраняем участников:', updatedMembers)
 
-    await updateTaskDB({
+    const { error } = await updateTaskDB({
       id: currentTaskForMembers.value.id,
       members: updatedMembers
     })
 
-    if (mobileKanbanRef.value && mobileKanbanRef.value.loadTasks) {
-      await mobileKanbanRef.value.loadTasks()
+    if (error) {
+      console.error('❌ Ошибка сохранения:', error)
+    } else {
+      console.log('✅ Участники сохранены, перезагружаем задачи...')
+
+      // 👇 ВАЖНО: проверяем, что mobileKanbanRef существует
+      if (mobileKanbanRef.value) {
+        console.log('🔄 Вызываем loadTasks()')
+        await mobileKanbanRef.value.loadTasks()
+        console.log('✅ loadTasks() выполнен')
+      } else {
+        console.log('⚠️ mobileKanbanRef.value не существует!')
+      }
     }
   }
   closeMemberModal()
@@ -848,27 +883,25 @@ watch(() => props.projectId, (newId) => {
 
 // Дебаунс для поиска
 watch(memberSearchQuery, (newValue) => {
-  if (memberSearchTimer.value) clearTimeout(memberSearchTimer.value)
-  if (!newValue.trim() || newValue.length < 2) {
-    memberSearchResults.value = []
-    return
-  }
-  memberSearchTimer.value = setTimeout(searchUsersToAdd, 500)
-})
+  console.log('👀 memberSearchQuery изменился:', newValue)
 
-// Дебаунс для поиска
-watch(memberSearchQuery, (newValue) => {
-  if (memberSearchTimer.value) {  // 👈 используем .value
+  if (memberSearchTimer.value) {
     clearTimeout(memberSearchTimer.value)
   }
-  if (!newValue.trim()) {
+
+  if (!newValue.trim() || newValue.length < 2) {
+    console.log('⚠️ Очищаем результаты (запрос слишком короткий)')
     memberSearchResults.value = []
     return
   }
+
+  console.log('⏳ Запускаем таймаут поиска...')
   memberSearchTimer.value = setTimeout(() => {
+    console.log('🔍 Вызываем searchUsersToAdd')
     searchUsersToAdd()
   }, 500)
-})
+}, { immediate: true }) // 👈 Добавьте immediate: true для отладки
+
 </script>
 
 <style scoped>

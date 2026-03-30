@@ -89,7 +89,7 @@
           <div class="flex items-center gap-1">
             <button
               @click.stop="openAddMemberToTask(task)"
-              class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center text-lg"
+              class="w-8 h-8 rounded-full border border-[#F2F2F2] text-gray-500 hover:bg-gray-200 flex items-center justify-center text-lg"
             >
               <p class="text-[20px] pb-1">+</p>
             </button>
@@ -194,19 +194,35 @@ const getTasksByStatus = (statusId) => {
 }
 
 const loadTasks = async () => {
-  if (!props.projectId || props.projectId === 'undefined') return
+  if (!props.projectId || props.projectId === 'undefined') {
+    console.log('⚠️ loadTasks: нет projectId')
+    return
+  }
+
+  console.log('📡 loadTasks: загружаем задачи для проекта', props.projectId)
 
   try {
     const { data: tasks, error } = await fetchTasks(Number(props.projectId))
     if (error) throw error
 
+    console.log('📋 Загружено задач:', tasks?.length)
+
+    // 👉 Выводим участников для проверки
+    tasks?.forEach(task => {
+      console.log(`   Задача "${task.title}": участники =`, task.members?.map(m => m.name) || [])
+    })
+
     columns.value.forEach(col => (col.tasks = []))
     tasks?.forEach(task => {
       const column = columns.value.find(c => c.id === task.status)
-      if (column) column.tasks.push(task)
+      if (column) {
+        column.tasks.push(task)
+      }
     })
+
+    console.log('✅ loadTasks завершён')
   } catch (err) {
-    console.error('Ошибка loadTasks:', err)
+    console.error('❌ Ошибка loadTasks:', err)
   }
 }
 

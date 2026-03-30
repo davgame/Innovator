@@ -90,24 +90,36 @@ export const useAuthStore = defineStore('auth', {
         return
       }
 
-      console.log('🔄 Обновление статуса на:', status, 'для пользователя:', this.user.id)
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          status,
-          last_seen: new Date().toISOString()
-        })
-        .eq('id', this.user.id)
-
-      if (error) {
-        console.error('❌ Ошибка обновления статуса:', error)
-      } else {
-        console.log('✅ Статус обновлен на:', status)
-        if (this.profile) {
-          this.profile.status = status
-          this.profile.last_seen = new Date().toISOString()
+      // Пропускаем, если пользователь не авторизован
+      try {
+        // Проверяем, есть ли активная сессия
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          console.log('⚠️ Нет активной сессии, пропускаем обновление статуса')
+          return
         }
+
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            status,
+            last_seen: new Date().toISOString()
+          })
+          .eq('id', this.user.id)
+          .timeout(3000) // таймаут 3 секунды
+
+        if (error) {
+          console.error('❌ Ошибка обновления статуса:', error)
+        } else {
+          console.log('✅ Статус обновлен на:', status)
+          if (this.profile) {
+            this.profile.status = status
+            this.profile.last_seen = new Date().toISOString()
+          }
+        }
+      } catch (err) {
+        // Просто логируем, но не выбрасываем ошибку
+        console.warn('⚠️ Ошибка при обновлении статуса:', err.message)
       }
     },
 
@@ -124,187 +136,187 @@ export const useAuthStore = defineStore('auth', {
     }
   },
 
-    // При входе
-    async signIn(email, password) {
-      this.loading = true
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email, password
-      })
+  // При входе
+  async signIn(email, password) {
+    this.loading = true
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email, password
+    })
 
-      if (!error && data.user) {
-        this.user = data.user
-        await this.fetchProfile(data.user.id)
+    if (!error && data.user) {
+      this.user = data.user
+      await this.fetchProfile(data.user.id)
 
-        // 👇 ВАЖНО: обновляем статус в БД
-        await this.updateUserStatus('online')
+      // 👇 ВАЖНО: обновляем статус в БД
+      await this.updateUserStatus('online')
 
-        // 👇 ДОПОЛНИТЕЛЬНО: принудительно обновляем профиль
-        await this.fetchProfile(data.user.id)
+      // 👇 ДОПОЛНИТЕЛЬНО: принудительно обновляем профиль
+      await this.fetchProfile(data.user.id)
 
-        console.log('✅ Статус установлен: online для пользователя:', data.user.id)
-      }
-
-      this.loading = false
-      return { data, error }
-    },
-
-
-    // auth.js
-    async updateLastSeen() {
-      if (!this.user?.id) return
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          last_seen: new Date().toISOString(),
-          status: 'online'
-        })
-        .eq('id', this.user.id)
-
-      if (error) {
-        console.error('Ошибка обновления last_seen:', error)
-      }
-    },
-
-    async signOut() {
-  try {
-    console.log('1️⃣ Выход, пользователь:', this.user?.id)
-
-    // 👇 СНАЧАЛА обновляем статус
-    if (this.user?.id) {
-      await supabase
-        .from('profiles')
-        .update({
-          status: 'offline',
-          last_seen: new Date().toISOString()
-        })
-        .eq('id', this.user.id)
+      console.log('✅ Статус установлен: online для пользователя:', data.user.id)
     }
 
-    // 👇 ПОТОМ выходим
-    await supabase.auth.signOut()
+    this.loading = false
+    return { data, error }
+  },
 
-    // 👇 Очищаем локальное состояние
-    this.user = null
-    this.profile = null
 
-    console.log('✅ Выход выполнен')
+  // auth.js
+  async updateLastSeen() {
+    if (!this.user?.id) return
 
-  } catch (error) {
-    console.error('❌ Ошибка:', error)
-  }
-},
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        last_seen: new Date().toISOString(),
+        status: 'online'
+      })
+      .eq('id', this.user.id)
 
-    // В auth.js - замените функцию uploadResume
-    async uploadResume(file, userId) {
-      try {
-        this.loading = true
+    if (error) {
+      console.error('Ошибка обновления last_seen:', error)
+    }
+  },
 
-        console.log('📡 Загружаю резюме:', file.name, 'для пользователя:', userId)
+  async signOut() {
+    try {
+      console.log('1️⃣ Выход, пользователь:', this.user?.id)
 
-        if (!file) throw new Error('Файл не передан')
-        if (!userId) throw new Error('ID пользователя не передан')
-
-        const fileExt = file.name.split('.').pop()
-        const fileName = `resume_${Date.now()}.${fileExt}`
-        const filePath = `${userId}/${fileName}`
-
-        console.log('📁 Путь для сохранения:', filePath)
-
-        // Загружаем файл
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('resumes')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true
-          })
-
-        if (uploadError) {
-          console.error('❌ Ошибка загрузки в storage:', uploadError)
-          throw uploadError
-        }
-
-        console.log('✅ Файл загружен в storage:', uploadData)
-
-        // Получаем публичный URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('resumes')
-          .getPublicUrl(filePath)
-
-        console.log('🔗 Публичный URL:', publicUrl)
-
-         // 👇 ВОТ СЮДА ВСТАВЬТЕ ПРОВЕРКУ СЕССИИ
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('🔍 Сессия:', session);
-
-        if (!session) {
-          console.error('❌ Нет активной сессии');
-          throw new Error('Пользователь не авторизован');
-        }
-
-        // 👇 ПРОВЕРЯЕМ, ЧТО ПОЛЯ СУЩЕСТВУЮТ
-        console.log('📝 Обновляю профиль userId:', userId)
-        console.log('📝 Данные для обновления:', {
-          resume_url: publicUrl,
-          resume_name: file.name,
-          resume_size: file.size
-        })
-
-        // Обновляем профиль
-        const { data: updateData, error: updateError } = await supabase
+      // 👇 СНАЧАЛА обновляем статус
+      if (this.user?.id) {
+        await supabase
           .from('profiles')
           .update({
-            resume_url: publicUrl,
-            resume_name: file.name,
-            resume_size: file.size,
-            updated_at: new Date().toISOString()
+            status: 'offline',
+            last_seen: new Date().toISOString()
           })
-          .eq('id', userId)
-          .select()  // 👈 добавляем .select() чтобы увидеть результат
-
-        if (updateError) {
-          console.error('❌ Ошибка обновления профиля:', updateError)
-          console.error('❌ Детали ошибки:', JSON.stringify(updateError, null, 2))
-          throw updateError
-        }
-
-        console.log('✅ Профиль обновлен, результат:', updateData)
-
-        return { success: true, url: publicUrl }
-      } catch (error) {
-        console.error('❌ Ошибка загрузки резюме:', error)
-        return {
-          success: false,
-          error: error.message || 'Неизвестная ошибка'
-        }
-      } finally {
-        this.loading = false
+          .eq('id', this.user.id)
       }
-    },
 
-    // 👇 ПОЛУЧИТЬ ИНФОРМАЦИЮ О РЕЗЮМЕ
-    async getResumeInfo(userId) {
-      try {
-        console.log('📡 getResumeInfo запрос для:', userId);
+      // 👇 ПОТОМ выходим
+      await supabase.auth.signOut()
 
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('resume_url, resume_name, resume_size')
-          .eq('id', userId)
-          .maybeSingle();
+      // 👇 Очищаем локальное состояние
+      this.user = null
+      this.profile = null
 
-        if (error) {
-          console.error('❌ Ошибка:', error);
-          return null;
-        }
+      console.log('✅ Выход выполнен')
 
-        console.log('✅ getResumeInfo ответ:', data);
-        return data;
-      } catch (error) {
+    } catch (error) {
+      console.error('❌ Ошибка:', error)
+    }
+  },
+
+  // В auth.js - замените функцию uploadResume
+  async uploadResume(file, userId) {
+    try {
+      this.loading = true
+
+      console.log('📡 Загружаю резюме:', file.name, 'для пользователя:', userId)
+
+      if (!file) throw new Error('Файл не передан')
+      if (!userId) throw new Error('ID пользователя не передан')
+
+      const fileExt = file.name.split('.').pop()
+      const fileName = `resume_${Date.now()}.${fileExt}`
+      const filePath = `${userId}/${fileName}`
+
+      console.log('📁 Путь для сохранения:', filePath)
+
+      // Загружаем файл
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (uploadError) {
+        console.error('❌ Ошибка загрузки в storage:', uploadError)
+        throw uploadError
+      }
+
+      console.log('✅ Файл загружен в storage:', uploadData)
+
+      // Получаем публичный URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath)
+
+      console.log('🔗 Публичный URL:', publicUrl)
+
+        // 👇 ВОТ СЮДА ВСТАВЬТЕ ПРОВЕРКУ СЕССИИ
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 Сессия:', session);
+
+      if (!session) {
+        console.error('❌ Нет активной сессии');
+        throw new Error('Пользователь не авторизован');
+      }
+
+      // 👇 ПРОВЕРЯЕМ, ЧТО ПОЛЯ СУЩЕСТВУЮТ
+      console.log('📝 Обновляю профиль userId:', userId)
+      console.log('📝 Данные для обновления:', {
+        resume_url: publicUrl,
+        resume_name: file.name,
+        resume_size: file.size
+      })
+
+      // Обновляем профиль
+      const { data: updateData, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          resume_url: publicUrl,
+          resume_name: file.name,
+          resume_size: file.size,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select()  // 👈 добавляем .select() чтобы увидеть результат
+
+      if (updateError) {
+        console.error('❌ Ошибка обновления профиля:', updateError)
+        console.error('❌ Детали ошибки:', JSON.stringify(updateError, null, 2))
+        throw updateError
+      }
+
+      console.log('✅ Профиль обновлен, результат:', updateData)
+
+      return { success: true, url: publicUrl }
+    } catch (error) {
+      console.error('❌ Ошибка загрузки резюме:', error)
+      return {
+        success: false,
+        error: error.message || 'Неизвестная ошибка'
+      }
+    } finally {
+      this.loading = false
+    }
+  },
+
+  // 👇 ПОЛУЧИТЬ ИНФОРМАЦИЮ О РЕЗЮМЕ
+  async getResumeInfo(userId) {
+    try {
+      console.log('📡 getResumeInfo запрос для:', userId);
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('resume_url, resume_name, resume_size')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
         console.error('❌ Ошибка:', error);
         return null;
       }
-    },
+
+      console.log('✅ getResumeInfo ответ:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Ошибка:', error);
+      return null;
+    }
+  },
 
     // 👇 УДАЛИТЬ РЕЗЮМЕ
     async deleteResume(userId) {

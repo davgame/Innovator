@@ -15,10 +15,10 @@
         <button class=" border border-[#000000]/15 rounded-[12px] w-30 font-medium text-[#454545] hover:bg-[#F9F9F9] cursor-pointer" @click="close">Отмена</button>
 
       </div>
-      <div class="w-full h-px bg-[#D3D3D3]/80 mb-4"></div>
+      <div class="w-full h-px bg-[#D3D3D3]/80 lg:my-6 my-6"></div>
 
       <!-- Body -->
-      <h1 class="text-[25px] font-bold pb-4">Новая задача</h1>
+      <h1 class="lg:text-[25px] text-[25px] font-bold lg:pb-4">Новая задача</h1>
 
       <!-- Название задачи с крестиком ВНУТРИ -->
       <div class="relative">
@@ -39,7 +39,7 @@
       <div class="flex mt-5 gap-4 w-full mb-4">
       <div class="flex-1">
           <label>Статус</label>
-          <select v-model="status" class=" w-43 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
+          <select v-model="status" class=" w-full h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
           background-position: right 0.5rem center; background-size: 1.5rem;">
             <option :value="1">Беклог</option>
             <option :value="2">В работе</option>
@@ -49,7 +49,7 @@
 
         <div class="flex-1">
           <label>Тег</label>
-          <select v-model="tag" class="w-44 h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
+          <select v-model="tag" class="w-full h-12 border border-[#CBCBCB] rounded-[11px] pl-3 focus:border-[#4286F7] focus:border-2 focus:outline-none transition-all duration-200 mt-2 appearance-none" style="background-image: url('/src/assets/images/caret-down.svg'); background-repeat: no-repeat;
           background-position: right 0.5rem center; background-size: 1.5rem;">
             <option>Frontend</option>
             <option>Backend</option>
