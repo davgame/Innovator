@@ -25,8 +25,15 @@
       </button>
     </div>
 
+    <div class="flex justify-center my-7">
+    <button class="text-[#C0C0C0] text-[25px] border border-[#D7D7D7] bg-[#D9D9D9]/11 w-81 h-12 rounded-[15px] cursor-pointer"
+        @click="openCreateTask(activeTab)">
+      <p class="text-15">+</p>
+    </button>
+    </div>
+
     <!-- Список задач -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-3">
+    <div class="flex-1 overflow-y-auto px-4 space-y-7">
       <div
         v-for="task in getTasksByStatus(activeTab)"
         :key="task.id"
@@ -142,12 +149,6 @@
           </svg>
         </div>
         <p class="text-gray-400 text-sm">Нет задач в этой категории</p>
-        <button
-          @click="openCreateTask(activeTab)"
-          class="mt-3 text-blue-500 text-sm font-medium"
-        >
-          + Создать задачу
-        </button>
       </div>
     </div>
   </div>

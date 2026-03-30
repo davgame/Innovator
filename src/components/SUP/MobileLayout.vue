@@ -116,22 +116,66 @@
     <!-- Модалка поиска -->
     <Transition name="modal-slide">
       <div v-if="showSearchModal" class="fixed inset-0 z-50 bg-white flex flex-col">
-        <div class="flex items-center justify-between p-4 py-5 border-b border-gray-200">
-          <h2 class="text-[24px] font-semibold">Поиск</h2>
-            <button
-              @click="closeSearchModal"
-              class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
-            >
-              <span class="text-3xl leading-none py-[2px] mb-[4px]">×</span>
-            </button>
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 class="text-[18px] font-semibold">Поиск пользователей</h2>
+          <button
+            @click="closeSearchModal"
+            class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
+          >
+            ✕
+          </button>
         </div>
-        <div class="flex-1 overflow-y-auto p-4">
+
+        <!-- Поле поиска -->
+        <div class="p-4 border-b border-gray-200">
           <input
+            v-model="searchUsersQuery"
+            @input="onSearchInput"
             type="text"
-            placeholder="Поиск проектов..."
-            class="w-full p-3 border border-gray-300 rounded-[12px]"
+            placeholder="Введите имя пользователя..."
+            class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
           />
-          <div class="mt-4 text-gray-500 text-center">Результаты поиска</div>
+        </div>
+
+        <!-- Результаты -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+          <!-- Индикатор загрузки -->
+          <div v-if="searchUsersLoading" class="text-center py-8 text-gray-500">
+            <div class="inline-block w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <p class="mt-2">Загрузка...</p>
+          </div>
+
+          <!-- Список пользователей -->
+          <div
+            v-for="user in searchUsersResults"
+            :key="user.id"
+            class="flex items-center gap-3 py-2 rounded-[14px] hover:bg-[#F6F8FA] cursor-pointer transition-colors border-b border-gray-100 last:border-0"
+            @click="goToUserProfile(user.id)"
+          >
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-[#CFD9FF] flex-shrink-0">
+              <img
+                v-if="user.avatar_url"
+                :src="user.avatar_url"
+                class="w-full h-full object-cover"
+                @error="(e) => { e.target.src = '/src/assets/images/Emodzi.svg'; e.target.classList.add('p-1.5') }"
+              />
+              <img
+                v-else
+                src="/src/assets/images/Emodzi.svg"
+                class="w-full h-full object-cover p-1.5"
+              />
+            </div>
+            <div class="flex-1">
+              <p class="text-[14px] font-medium">{{ user.full_name || 'Пользователь' }}</p>
+            </div>
+          </div>
+
+          <!-- Пустое состояние -->
+          <div v-if="!searchUsersLoading && searchUsersResults.length === 0" class="text-center py-8">
+            <div class="text-gray-400">
+              {{ searchUsersQuery ? 'Пользователи не найдены' : 'Нет пользователей' }}
+            </div>
+          </div>
         </div>
       </div>
     </Transition>
@@ -332,6 +376,13 @@ const currentTaskForDate = ref(null)
 const tempSelectedDate = ref('')
 
 
+// Переменные для поиска пользователей
+const searchUsersQuery = ref('')
+const searchUsersResults = ref([])
+const searchUsersLoading = ref(false)
+const searchUsersTimer = ref(null)
+const allUsers = ref([])  // 👈 Кэш всех пользователей
+
 
 // Текущий пользователь
 const currentUserId = computed(() => authStore.user?.id)
@@ -368,6 +419,103 @@ const clearDate = () => {
     delete currentTaskForDate.value.deadline
   }
   closeDatePicker()
+}
+
+// Поиск пользователей
+const searchUsers = async () => {
+  const query = searchUsersQuery.value.trim()
+
+  if (!query || query.length < 2) {
+    searchUsersResults.value = []
+    return
+  }
+
+  searchUsersLoading.value = true
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .ilike('full_name', `%${query}%`)
+      .limit(20)
+
+    if (error) throw error
+    searchUsersResults.value = data || []
+    console.log('🔍 Результаты поиска:', searchUsersResults.value)
+  } catch (err) {
+    console.error('Ошибка поиска:', err)
+    searchUsersResults.value = []
+  } finally {
+    searchUsersLoading.value = false
+  }
+}
+
+// Загрузить всех пользователей (один раз)
+const loadAllUsers = async () => {
+  console.log('📡 loadAllUsers вызван')
+  console.log('📊 allUsers.value.length:', allUsers.value.length)
+
+  if (allUsers.value.length > 0) {
+    console.log('⚠️ Пользователи уже загружены, пропускаем')
+    searchUsersResults.value = allUsers.value
+    return
+  }
+
+  searchUsersLoading.value = true
+  console.log('⏳ Начинаем загрузку пользователей...')
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .order('full_name')
+      .limit(100)
+
+    if (error) {
+      console.error('❌ Ошибка Supabase:', error)
+      throw error
+    }
+
+    console.log('✅ Получено данных:', data?.length)
+    console.log('📋 Первые 3 пользователя:', data?.slice(0, 3))
+
+    allUsers.value = data || []
+    searchUsersResults.value = allUsers.value
+    console.log('👥 Загружено пользователей:', allUsers.value.length)
+  } catch (err) {
+    console.error('❌ Ошибка загрузки пользователей:', err)
+    allUsers.value = []
+    searchUsersResults.value = []
+  } finally {
+    searchUsersLoading.value = false
+  }
+}
+
+// Обработка ввода в поиск (с дебаунсом)
+const onSearchInput = () => {
+  if (searchUsersTimer.value) {
+    clearTimeout(searchUsersTimer.value)
+  }
+  searchUsersTimer.value = setTimeout(() => {
+    filterUsers()
+  }, 300)
+}
+
+// Фильтрация пользователей по запросу
+const filterUsers = () => {
+  const query = searchUsersQuery.value.trim().toLowerCase()
+
+  if (!query) {
+    // Если запрос пустой, показываем всех
+    searchUsersResults.value = allUsers.value
+    return
+  }
+
+  // Фильтруем по имени
+  const filtered = allUsers.value.filter(user =>
+    user.full_name?.toLowerCase().includes(query)
+  )
+  searchUsersResults.value = filtered
 }
 
 // Функция сохранения даты
@@ -611,16 +759,19 @@ const handleProjectSelected = (project) => {
 }
 
 // Модалка поиска
-const openSearchModal = () => {
+const openSearchModal = async () => {
   activeMenu.value = 'search'
+  searchUsersQuery.value = ''
   showSearchModal.value = true
+
+  await loadAllUsers()  // 👈 теперь await работает
 }
 
 const closeSearchModal = () => {
   activeMenu.value = null
+  searchUsersQuery.value = ''
   showSearchModal.value = false
 }
-
 
 
 // Добавить/убрать пользователя для добавления
@@ -872,6 +1023,26 @@ watch(() => route.params.projectId, async (newId) => {
     currentProjectId.value = newId
   }
 })
+
+// Дебаунс для поиска
+watch(searchUsersQuery, (newValue) => {
+  if (searchUsersTimer.value) {
+    clearTimeout(searchUsersTimer.value)
+  }
+  if (!newValue.trim() || newValue.length < 2) {
+    searchUsersResults.value = []
+    return
+  }
+  searchUsersTimer.value = setTimeout(() => {
+    searchUsers()
+  }, 500)
+})
+
+// Переход на профиль пользователя
+const goToUserProfile = (userId) => {
+  closeSearchModal()
+  router.push(`/profile/${userId}`)
+}
 
 // Следим за пропсом projectId
 watch(() => props.projectId, (newId) => {
