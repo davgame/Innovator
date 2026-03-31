@@ -45,9 +45,11 @@
           <p class="text-xs text-gray-400">{{ project.category }}</p>
         </div>
         <div class="text-gray-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <button @click.stop="toggleContextMenu(project)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
+          </button>
         </div>
       </div>
     </div>
@@ -55,15 +57,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted  } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
-const emit = defineEmits(['project-selected'])
+const emit = defineEmits(['project-selected', 'project-deleted', 'project-renamed'])
 const authStore = useAuthStore()
 
 const projects = ref([])
 const loading = ref(false)
+const activeContextMenu = ref(null)
 
 const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316']
 
@@ -149,6 +152,38 @@ const loadProjects = async () => {
   }
 }
 
+// Контекстное меню
+const toggleContextMenu = (project) => {
+  if (activeContextMenu.value === project.id) {
+    activeContextMenu.value = null
+  } else {
+    activeContextMenu.value = project.id
+  }
+}
+
+const closeContextMenu = () => {
+  activeContextMenu.value = null
+}
+
+// Переименовать проект
+const renameProject = (project) => {
+  const newName = prompt('Введите новое название проекта:', project.name)
+  if (newName && newName.trim()) {
+    // TODO: реализовать переименование в БД
+    console.log('Переименовать проект:', project.id, 'в', newName)
+  }
+  closeContextMenu()
+}
+
+// Удалить проект
+const deleteProject = (project) => {
+  if (confirm(`Вы уверены, что хотите удалить проект "${project.name}"?`)) {
+    // TODO: реализовать удаление из БД
+    console.log('Удалить проект:', project.id)
+  }
+  closeContextMenu()
+}
+
 const selectProject = (project) => {
   console.log('📌 PanelMobile: выбран проект:', project.name, 'ID:', project.id)
   emit('project-selected', project)
@@ -190,10 +225,30 @@ const createProject = async () => {
   }
 }
 
+// Закрытие меню при клике вне
+const handleClickOutside = (event) => {
+  if (activeContextMenu.value) {
+    const target = event.target
+    if (!target.closest('.relative')) {
+      closeContextMenu()
+    }
+  }
+}
+
+onMounted(() => {
+  console.log('📌 PanelMobile mounted')
+  loadProjects()
+  document.addEventListener('click', handleClickOutside)
+})
+
 onMounted(() => {
   console.log('📌 PanelMobile mounted, authStore.user:', authStore.user)
   console.log('📌 authStore.user.id:', authStore.user?.id)
   loadProjects()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 defineExpose({ loadProjects })
