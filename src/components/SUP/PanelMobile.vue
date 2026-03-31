@@ -37,22 +37,70 @@
         <div
           class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-medium text-lg"
           :style="{ backgroundColor: project.color }"
+          @click="selectProject(project)"
         >
           {{ project.icon }}
         </div>
-        <div class="flex-1">
+        <div class="flex-1" @click="selectProject(project)">
           <p class="font-medium text-gray-800">{{ project.name }}</p>
           <p class="text-xs text-gray-400">{{ project.category }}</p>
         </div>
-        <div class="text-gray-400">
-          <button @click.stop="toggleContextMenu(project)">
+
+        <!-- Кнопка с тремя точками (только для владельца) -->
+        <div class="relative" v-if="project.isOwner" @click.stop>
+          <button
+            @click.stop="toggleContextMenu(project)"
+            class="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            :class="{ 'bg-gray-100': activeContextMenu === project.id }">
+
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
           </svg>
           </button>
+
+          <!-- Контекстное меню -->
+          <div
+            v-if="activeContextMenu === project.id"
+            class="absolute right-0 top-8 z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]"
+          >
+            <button
+              @click="openRenameModal(project)"
+              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Переименовать
+            </button>
+            <button
+              @click="openDeleteModal(project)"
+              class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-50 flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Удалить
+            </button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Модалка подтверждения удаления -->
+    <ConfirmDelete
+      :show="showDeleteModal"
+      :project="deletingProject"
+      @close="closeDeleteModal"
+      @deleted="handleProjectDeleted"
+    />
+
+    <!-- Модалка переименования -->
+    <ConfirmRename
+      :show="showRenameModal"
+      :project="renamingProject"
+      @close="closeRenameModal"
+      @confirm="handleRenameConfirm"
+    />
   </div>
 </template>
 
@@ -60,6 +108,8 @@
 import { ref, onMounted, onUnmounted  } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import ConfirmDelete from './ConfirmDelete.vue'
+import ConfirmRename from './ConfirmRename.vue'
 
 const emit = defineEmits(['project-selected', 'project-deleted', 'project-renamed'])
 const authStore = useAuthStore()
@@ -67,10 +117,15 @@ const authStore = useAuthStore()
 const projects = ref([])
 const loading = ref(false)
 const activeContextMenu = ref(null)
+const deletingProject = ref(null)
+const showDeleteModal = ref(false)
+const showRenameModal = ref(false)
+const renamingProject = ref(null)
 
 const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316']
 
 const getColor = (id) => colors[(id || 0) % colors.length]
+
 
 const loadProjects = async () => {
   if (!authStore.user?.id) {
@@ -109,7 +164,6 @@ const loadProjects = async () => {
     console.log('✅ project_members:', memberLinks?.length || 0, memberLinks)
 
     const memberIds = memberLinks?.map(m => m.project_id) || []
-    console.log('📋 ID проектов участника:', memberIds)
 
     let memberProjects = []
     if (memberIds.length > 0) {
@@ -124,7 +178,6 @@ const loadProjects = async () => {
         throw error
       }
       memberProjects = data || []
-      console.log('✅ Проекты участника:', memberProjects.length, memberProjects)
     }
 
     // Объединяем и убираем дубликаты
@@ -139,11 +192,11 @@ const loadProjects = async () => {
       name: p.name,
       category: p.description || 'Проект',
       color: getColor(p.id),
-      icon: p.name.charAt(0).toUpperCase()
+      icon: p.name.charAt(0).toUpperCase(),
+      isOwner: p.created_by === authStore.user.id
     }))
 
     console.log('✅ PanelMobile: итого проектов:', projects.value.length)
-    console.log('📋 Список проектов:', projects.value.map(p => ({ id: p.id, name: p.name })))
   } catch (err) {
     console.error('❌ Ошибка загрузки проектов:', err)
     projects.value = []
@@ -165,27 +218,73 @@ const closeContextMenu = () => {
   activeContextMenu.value = null
 }
 
-// Переименовать проект
-const renameProject = (project) => {
-  const newName = prompt('Введите новое название проекта:', project.name)
-  if (newName && newName.trim()) {
-    // TODO: реализовать переименование в БД
-    console.log('Переименовать проект:', project.id, 'в', newName)
+// Открыть модалку удаления
+const openDeleteModal = (project) => {
+  console.log('🔴 openDeleteModal вызван')
+  console.log('🔴 project:', project)
+  console.log('🔴 project.isOwner:', project?.isOwner)
+
+  if (!project.isOwner) {
+    console.log('❌ Не владелец, удаление невозможно')
+    alert('Только владелец проекта может его удалить')
+    return
   }
+
+  console.log('✅ Владелец, открываем модалку')
+  deletingProject.value = project
+  showDeleteModal.value = true
+  console.log('showDeleteModal.value:', showDeleteModal.value)
+  console.log('deletingProject.value:', deletingProject.value)
   closeContextMenu()
 }
 
-// Удалить проект
-const deleteProject = (project) => {
-  if (confirm(`Вы уверены, что хотите удалить проект "${project.name}"?`)) {
-    // TODO: реализовать удаление из БД
-    console.log('Удалить проект:', project.id)
+// Закрыть модалку удаления
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  deletingProject.value = null
+}
+
+// Обработчик успешного удаления
+const handleProjectDeleted = (deletedProjectId) => {
+  // Удаляем из локального списка
+  projects.value = projects.value.filter(p => p.id !== deletedProjectId)
+
+  // Если удалили выбранный проект, уведомляем родителя
+  emit('project-deleted', deletedProjectId)
+  console.log('✅ Проект удалён из списка')
+}
+
+// Переименовать проект
+const renameProject = async (project) => {
+  const newName = prompt('Введите новое название проекта:', project.name)
+  if (newName && newName.trim()) {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ name: newName.trim() })
+        .eq('id', project.id)
+
+      if (error) throw error
+
+      // Обновляем локально
+      const index = projects.value.findIndex(p => p.id === project.id)
+      if (index !== -1) {
+        projects.value[index].name = newName.trim()
+      }
+
+      emit('project-renamed', { id: project.id, name: newName.trim() })
+      console.log('✅ Проект переименован')
+    } catch (err) {
+      console.error('Ошибка переименования:', err)
+      alert('Не удалось переименовать проект')
+    }
   }
   closeContextMenu()
 }
 
 const selectProject = (project) => {
   console.log('📌 PanelMobile: выбран проект:', project.name, 'ID:', project.id)
+  closeContextMenu()
   emit('project-selected', project)
 }
 
@@ -208,14 +307,13 @@ const createProject = async () => {
 
     if (error) throw error
 
-    console.log('✅ Проект создан:', data)
-
     const newProject = {
       id: data.id,
       name: data.name,
       category: 'Новый проект',
       color: getColor(data.id),
-      icon: data.name.charAt(0).toUpperCase()
+      icon: data.name.charAt(0).toUpperCase(),
+      isOwner: true
     }
 
     projects.value.unshift(newProject)
@@ -223,6 +321,52 @@ const createProject = async () => {
   } catch (err) {
     console.error('❌ Ошибка создания проекта:', err)
   }
+}
+
+// ========== ПЕРЕИМЕНОВАНИЕ ==========
+const openRenameModal = (project) => {
+  console.log('✏️ openRenameModal вызван для проекта:', project.name)
+
+  if (!project.isOwner) {
+    alert('Только владелец проекта может его переименовать')
+    return
+  }
+
+  renamingProject.value = project
+  showRenameModal.value = true
+  closeContextMenu()
+}
+
+const closeRenameModal = () => {
+  showRenameModal.value = false
+  renamingProject.value = null
+}
+
+const handleRenameConfirm = async ({ id, name }) => {
+  console.log('✏️ Переименовываем проект:', id, 'в', name)
+
+  try {
+    const { error } = await supabase
+      .from('projects')
+      .update({ name })
+      .eq('id', id)
+
+    if (error) throw error
+
+    // Обновляем локально
+    const projectIndex = projects.value.findIndex(p => p.id === id)
+    if (projectIndex !== -1) {
+      projects.value[projectIndex].name = name
+    }
+
+    emit('project-renamed', { id, name })
+    console.log('✅ Проект переименован')
+  } catch (err) {
+    console.error('❌ Ошибка переименования:', err)
+    alert('Не удалось переименовать проект')
+  }
+
+  closeRenameModal()
 }
 
 // Закрытие меню при клике вне
@@ -239,12 +383,6 @@ onMounted(() => {
   console.log('📌 PanelMobile mounted')
   loadProjects()
   document.addEventListener('click', handleClickOutside)
-})
-
-onMounted(() => {
-  console.log('📌 PanelMobile mounted, authStore.user:', authStore.user)
-  console.log('📌 authStore.user.id:', authStore.user?.id)
-  loadProjects()
 })
 
 onUnmounted(() => {

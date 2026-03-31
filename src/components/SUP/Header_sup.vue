@@ -10,10 +10,13 @@
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
         </div>
       </div>
-        <!-- 🔍 ПОИСК (всегда виден, по центру) -->
+
+      <!-- 🔍 ПОИСК (всегда виден, по центру) -->
       <div class="flex items-center lg:gap-4">
+        <template v-if="!isMobile">
         <SearchUsers />
 
+          <!-- Аватар пользователя -->
         <RouterLink
           v-if="authStore.profile"
           to="/profile"
@@ -24,7 +27,7 @@
           <img
             v-if="authStore.profile?.avatar_url"
             :src="authStore.profile.avatar_url + '?v=' + avatarVersion"
-            class="lg:block hidden w-[42px] h-[42px] rounded-full object-cover"
+            class="lg:block w-[42px] h-[42px] rounded-full object-cover"
             alt="Avatar"
           />
           <!-- Если нет аватара - показываем картинку-эмодзи в синем круге -->
@@ -38,24 +41,71 @@
               alt="Default avatar"
             />
           </div>
-
         </RouterLink>
+
           <!-- Если нет профиля - показываем кнопки -->
-        <template v-else>
+          <template v-else>
+            <RouterLink
+              to="/authorization?tab=auth"
+              @click="isOpen = false"
+              class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+            >
+              Войти
+            </RouterLink>
+            <RouterLink
+                to="/register?tab=register"
+                class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+              >
+                Регистрация
+            </RouterLink>
+        </template>
+      </template>
+
+        <!-- Иначе показываем обычный поиск -->
+        <template v-else-if="isMobile && isKanbanPage">
+          <div class="flex items-center gap-4 ml-auto pr-4">
           <RouterLink
+            v-if="authStore.profile"
+            to="/profile"
+            class="flex items-center gap-2"
+            @click="isOpen = false"
+          >
+            <img
+              v-if="authStore.profile?.avatar_url"
+              :src="authStore.profile.avatar_url + '?v=' + avatarVersion"
+              class="w-[42px] h-[42px] rounded-full object-cove"
+              alt="Avatar"
+            />
+
+            <div
+              v-else
+              class="w-[42px] h-[42px] rounded-full flex items-center justify-center"
+            >
+              <img
+                src="/src/assets/images/Emodzi.svg"
+                class="w-[30px] h-[30px] object-contain"
+                alt="Default avatar"
+              />
+            </div>
+          </RouterLink>
+          <RouterLink
+            v-else
             to="/authorization?tab=auth"
             @click="isOpen = false"
-            class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+            class="desktop-button text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
           >
             Войти
           </RouterLink>
-          <RouterLink
-            to="/register?tab=register"
-            class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
-          >
-            Регистрация
-          </RouterLink>
+          </div>
         </template>
+
+
+        <!-- На мобильных (не на канбан-доске) показываем поиск -->
+        <template v-else-if="isMobile && !isKanbanPage">
+          <SearchUsers />
+        </template>
+
+        <!-- Бургер-меню (для мобильных) -->
         <button
         @click="isOpen = !isOpen"
         type="button"
@@ -275,18 +325,26 @@
 </style>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { ref, watch, computed } from 'vue'
+import { RouterLink, useRouter, useRoute} from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import SearchUsers from '../Home/SearchUsers.vue'
+import { useBreakpoint } from './useBreakpoint'
 
 const authStore = useAuthStore()
-const avatarVersion = ref(Date.now()) // 👈 для сброса кэша
+const avatarVersion = ref(Date.now())
 const router = useRouter()
 const isOpen = ref(false)
+const route = useRoute()
+const { isMobile } = useBreakpoint(768)
 
 // Флаг для предотвращения повторных навигаций
 let isNavigating = false
+
+// Проверяем, находимся ли мы на странице канбан-доски
+const isKanbanPage = computed(() => {
+  return route.path.includes('/sup/project/') || route.path === '/sup'
+})
 
 const goToPage = (path) => {
   // Если уже идет навигация - игнорируем

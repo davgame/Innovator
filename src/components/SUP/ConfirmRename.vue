@@ -17,14 +17,14 @@
         <div class="flex justify-end gap-4 mt-4">
           <button
             @click="close"
-            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100"
+            class="cursor-pointer px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100"
           >
             Отмена
           </button>
 
           <button
             @click="confirm"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             Сохранить
           </button>

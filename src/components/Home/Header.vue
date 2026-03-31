@@ -9,9 +9,9 @@
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
         </div>
       </div>
-        <!-- 🔍 ПОИСК (всегда виден, по центру) -->
+
       <div class="flex items-center lg:gap-4">
-                <!-- Мобильный поиск (показывается только на мобилках) -->
+        <!-- Мобильный поиск (показывается только на мобилках) -->
         <MobileSearch />
 
         <!-- Десктопный поиск (показывается только на десктопе) -->
@@ -50,13 +50,13 @@
           <RouterLink
             to="/authorization?tab=auth"
             @click="isOpen = false"
-            class="desktop-button mr-[3px] text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
+            class="desktop-button text-black focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[12px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-[#9A9A9A]/20 hover:bg-gray-100"
           >
             Войти
           </RouterLink>
           <RouterLink
             to="/register?tab=register"
-            class="desktop-button mr-[15px] text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+            class="desktop-button text-white bg-[#4286F7] hover:bg-[#222222] focus:ring-4 focus:ring-blue-300 font-rubik border-[#9A9A9A]/20 font-medium rounded-[12px] text-sm px-5 py-[11px] focus:outline-none"
           >
             Регистрация
           </RouterLink>
@@ -138,14 +138,14 @@
             <RouterLink
               to="/authorization?tab=auth"
               @click="isOpen = false"
-              class="desktop-button mr-[3px] text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
+              class="desktop-button text-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[12px] border-1 text-sm px-[35px] py-2.5 focus:outline-none border-white"
             >
               Войти
             </RouterLink>
             <RouterLink
               to="/authorization?tab=register"
               @click="isOpen = false"
-              class="desktop-button mr-[15px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[10px] text-sm px-5 py-2.5 focus:outline-none"
+              class="desktop-button text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-rubik font-medium rounded-[12px] text-sm px-5 py-[11px] focus:outline-none"
             >
               Регистрация
             </RouterLink>
@@ -201,7 +201,7 @@
           >
             главная
           </router-link>
-          <router-link to="/sup" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">канбан</router-link>
+          <button to="/sup" @click="checkAuthAndNavigate('/sup')" class="hover:text-[#FFBA26] ml-auto mb-2">канбан</button>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
           <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">контакты</router-link>
@@ -321,6 +321,18 @@ const goToPage = (path) => {
     isNavigating = false
   }, 350) // 350ms совпадает с длительностью анимации slide-menu
 }
+
+
+// 👇 ДОБАВЛЯЕМ ФУНКЦИЮ ПРОВЕРКИ АВТОРИЗАЦИИ
+const checkAuthAndNavigate = (path) => {
+  if (authStore.isAuthenticated) {
+    router.push(path)
+  } else {
+    router.push('/authorization?tab=auth')
+  }
+  isOpen.value = false
+}
+
 
 // 👇 Следим за изменениями в sessionStorage
 watch(() => sessionStorage.getItem('avatarUpdated'), (newVal) => {

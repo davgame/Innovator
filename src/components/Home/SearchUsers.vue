@@ -3,7 +3,7 @@
     <!-- Иконка поиска (всегда видна) -->
     <button
       @click="toggleSearch"
-      class="p-2 lg:mr-1 mr-4 text-gray-400 hover:bg-gray-100 transition-colors border rounded-lg border-[#9A9A9A]/20 w-10 h-10 lg:cursor-pointer"
+      class="flex items-center justify-center lg:mr-0 mr-4 text-gray-400 hover:bg-gray-100 transition-colors border rounded-[9px] border-[#9A9A9A]/20 w-11 h-[42px] lg:cursor-pointer"
     >
       <img src="/src/assets/images/search.svg" class="w-[21px] h-[21px]" alt="Поиск">
     </button>
@@ -69,12 +69,6 @@
             >
             </img>
           </div>
-
-          <!-- Информация -->
-          <!-- <div>
-            <div class="font-medium">{{ user.full_name || 'Пользователь' }}</div>
-            <div class="text-sm text-gray-500">{{ user.email }}</div>
-          </div> -->
 
           <div>
             <div class="flex items-center gap-1">
@@ -152,7 +146,7 @@ const toggleSearch = () => {
 // Закрыть поиск
 const closeSearch = () => {
   showSearchInput.value = false
-  loading.value = false  // 👈 добавить
+  loading.value = false
   clearSearch()
 }
 
@@ -161,7 +155,7 @@ const clearSearch = () => {
   searchQuery.value = ''
   searchResults.value = []
   showResults.value = false
-  loading.value = false  // 👈 добавить
+  loading.value = false
 }
 
 // Дебаунс функция

@@ -106,7 +106,7 @@
         </div>
         <div class="flex-1 overflow-y-auto">
           <PanelMobile
-            ref="panelMobileRef"
+            ref="panelRef"
             @project-selected="handleProjectSelected"
           />
         </div>
@@ -321,7 +321,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, nextTick} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import { supabase } from '@/lib/supabase'
@@ -906,20 +906,20 @@ const checkProjectOwner = async () => {
 }
 
 // Модалка проектов
-const openProjectsModal = () => {
+const openProjectsModal = async () => {
   console.log('🔵 Открываем модалку проектов')
   activeMenu.value = 'projects'
   showProjectsModal.value = true
 
+  await nextTick()  // 👈 ждём следующего тика
+
   // Принудительно вызываем загрузку проектов в Panel
-  setTimeout(() => {
-    if (panelRef.value && panelRef.value.loadProjects) {
-      console.log('🔄 Принудительно загружаем проекты в Panel')
-      panelRef.value.loadProjects()
-    } else {
-      console.log('⚠️ Panel не имеет метода loadProjects или ещё не загружен')
-    }
-  }, 100)
+  if (panelRef.value && panelRef.value.loadProjects) {
+    console.log('🔄 Принудительно загружаем проекты в Panel')
+    await panelRef.value.loadProjects()  // 👈 добавили await
+  } else {
+    console.log('⚠️ Panel не имеет метода loadProjects или ещё не загружен')
+  }
 }
 
 const closeProjectsModal = () => {
