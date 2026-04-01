@@ -118,12 +118,12 @@
       <div v-if="showSearchModal" class="fixed inset-0 z-50 bg-white flex flex-col">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 class="text-[18px] font-semibold">Поиск пользователей</h2>
-          <button
-            @click="closeSearchModal"
-            class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
-          >
-            ✕
-          </button>
+        <button
+          @click="closeSearchModal"
+          class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
+        >
+          <span class="text-3xl leading-none py-[2px] mb-[4px]">×</span>
+        </button>
         </div>
 
         <!-- Поле поиска -->
@@ -133,7 +133,7 @@
             @input="onSearchInput"
             type="text"
             placeholder="Введите имя пользователя..."
-            class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
+            class="w-full border border-[#CBCBCB] rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:border-[#4286F7]"
           />
         </div>
 
@@ -188,12 +188,12 @@
           <h2 class="text-[18px] font-semibold">
             {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
           </h2>
-          <button
-            @click="closeMembersPage"
-            class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400"
-          >
-            ✕
-          </button>
+        <button
+          @click="closeMembersPage"
+          class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
+        >
+          <span class="text-3xl leading-none py-[2px] mb-[4px]">×</span>
+        </button>
         </div>
 
         <!-- Search -->
@@ -204,7 +204,7 @@
             type="text"
             :disabled="!isProjectOwner"
             placeholder="Начните ввод..."
-            class="w-full border border-[#CBCBCB] rounded-[12px] px-4 py-2 text-sm focus:outline-none focus:border-[#4286F7]"
+            class="w-full border border-[#CBCBCB] rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:border-[#4286F7]"
             :class="{ 'bg-gray-100 cursor-not-allowed': !isProjectOwner }"
           />
         </div>
@@ -735,10 +735,6 @@ const loadProjectMembers = async () => {
 
 // Обработка выбора проекта из панели
 const handleProjectSelected = (project) => {
-  console.log('📌 ПРОЕКТ ВЫБРАН В МОБИЛЬНОМ ЛЕЙАУТЕ:', project)
-  console.log('📌 ID проекта:', project.id)
-  console.log('📌 Имя проекта:', project.name)
-
   // Обновляем текущий проект
   currentProject.value = project
 

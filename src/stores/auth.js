@@ -106,20 +106,18 @@ export const useAuthStore = defineStore('auth', {
             last_seen: new Date().toISOString()
           })
           .eq('id', this.user.id)
-          .timeout(3000) // таймаут 3 секунды
-
-        if (error) {
-          console.error('❌ Ошибка обновления статуса:', error)
-        } else {
-          console.log('✅ Статус обновлен на:', status)
-          if (this.profile) {
-            this.profile.status = status
-            this.profile.last_seen = new Date().toISOString()
+          if (error) {
+            console.error('❌ Ошибка обновления статуса:', error)
+          } else {
+            console.log('✅ Статус обновлен на:', status)
+            if (this.profile) {
+              this.profile.status = status
+              this.profile.last_seen = new Date().toISOString()
+            }
           }
-        }
-      } catch (err) {
-        // Просто логируем, но не выбрасываем ошибку
-        console.warn('⚠️ Ошибка при обновлении статуса:', err.message)
+        } catch (err) {
+          // Просто логируем, но не выбрасываем ошибку
+          console.warn('⚠️ Ошибка при обновлении статуса:', err.message)
       }
     },
 

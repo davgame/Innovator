@@ -22,12 +22,12 @@
     >
       <!-- Шапка -->
       <div class="flex items-center justify-between p-4 border-b border-gray-200">
-        <h2 class="text-lg font-semibold">Поиск</h2>
+        <h2 class="text-[18px] font-semibold">Поиск пользователей</h2>
         <button
           @click="closeModal"
-          class="p-2 text-gray-400 hover:text-gray-600 rounded-full"
+          class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
         >
-          ✕
+          <span class="text-3xl leading-none py-[2px] mb-[4px]">×</span>
         </button>
       </div>
 
@@ -44,7 +44,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Поиск инноватора"
-            class="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            class="w-full pl-10 pr-10 px-4 py-3 border border-gray-300 rounded-[14px] focus:outline-none focus:border-blue-500"
             @input="debouncedSearch"
             @keyup.enter="searchUsers"
             autofocus

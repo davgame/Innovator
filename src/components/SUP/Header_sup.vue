@@ -252,14 +252,17 @@
           <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto">контакты</router-link>
 
           <div class="flex justify-end w-full lg:hidden mt-5">
-            <a
-              href="#"
+            <RouterLink
+              v-if="!authStore.isAuthenticated"
+              to="/authorization?tab=register"
               class="w-[240px] h-[64px] text-[#4286F7] bg-white focus:ring-4 focus:ring-blue-300 font-medium rounded-[20px] text-center text-[27px] px-5 py-2.5 focus:outline-none"
             >
               Регистрация
-            </a>
+            </RouterLink>
           </div>
-          <div class="flex justify-end w-full space-x-8 mt-10 lg:hidde">
+
+          <div class="flex justify-end w-full space-x-8 lg:hidde"
+              :class="!authStore.isAuthenticated ? 'mt-10' : 'mt-1'">
             <a href="#" target="_blank">
               <img src="/src/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
             </a>
