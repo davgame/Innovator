@@ -201,7 +201,7 @@
           >
             главная
           </router-link>
-          <button to="/sup" @click="checkAuthAndNavigate('/sup')" class="hover:text-[#FFBA26] ml-auto mb-2">канбан</button>
+          <button to="/sup" @click="checkAuthAndNavigate('/sup')" class="cursor-pointer hover:text-[#FFBA26] ml-auto mb-2">канбан</button>
           <a href="#" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">отклики</a>
           <router-link to="/faq" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">faq</router-link>
           <router-link to="/contact" @click="isOpen = false" class="hover:text-[#FFBA26] ml-auto mb-2">контакты</router-link>
