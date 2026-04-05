@@ -96,7 +96,7 @@
     <Transition name="modal-slide">
       <div v-if="showProjectsModal" class="fixed inset-0 z-50 bg-white flex flex-col">
         <div class="flex items-center justify-between p-4 py-5 border-b border-gray-200">
-          <h2 class="text-[24px] font-semibold">Проекты</h2>
+          <h2 class="text-[20px] font-semibold">Проекты</h2>
         <button
           @click="closeProjectsModal"
           class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
@@ -117,7 +117,7 @@
     <Transition name="modal-slide">
       <div v-if="showSearchModal" class="fixed inset-0 z-50 bg-white flex flex-col">
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 class="text-[18px] font-semibold">Поиск пользователей</h2>
+          <h2 class="text-[20px] font-semibold">Поиск пользователей</h2>
         <button
           @click="closeSearchModal"
           class="cursor-pointer w-9 h-9 flex items-center justify-center border border-[#9A9A9A]/20 rounded-[9px] text-[#374151]"
@@ -185,7 +185,7 @@
       <div v-if="showMembersPage" class="fixed inset-0 z-50 bg-white flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 class="text-[18px] font-semibold">
+          <h2 class="text-[20px] font-semibold">
             {{ isProjectOwner ? 'Добавить участника' : 'Участники проекта' }}
           </h2>
         <button
@@ -302,7 +302,7 @@
         <div v-if="isProjectOwner" class="p-4 border-t border-gray-200">
           <button
             @click="handleMemberConfirm"
-            class="w-full py-2 bg-[#222222] hover:bg-[#4286F7] text-white rounded-lg transition-colors"
+            class="w-full py-2 bg-[#222222] hover:bg-[#4286F7] text-white rounded-xl transition-colors"
           >
             Готово
           </button>

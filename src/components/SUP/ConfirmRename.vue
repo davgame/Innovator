@@ -1,9 +1,9 @@
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
-      <div class="fixed inset-0 bg-[#D3D3D3]/80" @click="close"></div>
+      <div class="fixed inset-0 bg-black/50" @click="close"></div>
 
-      <div class="relative bg-white rounded-xl p-6 w-96">
+      <div class="relative bg-white rounded-2xl p-6 lg:w-96 w-80">
         <h3 class="text-lg font-semibold mb-4">Переименовать проект</h3>
 
         <input
@@ -17,14 +17,14 @@
         <div class="flex justify-end gap-4 mt-4">
           <button
             @click="close"
-            class="cursor-pointer px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100"
+            class="cursor-pointer px-4 py-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100"
           >
             Отмена
           </button>
 
           <button
             @click="confirm"
-            class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600"
           >
             Сохранить
           </button>

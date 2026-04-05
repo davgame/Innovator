@@ -23,9 +23,9 @@
       >
         <input
           ref="searchInputRef"
-          v-model="searchQuery"
+          v-model="searchQuery" 
           type="text"
-          placeholder="Поиск инноватора"
+          placeholder="Поиск Инноватора"
           class="w-64 py-2 px-1 outline-none bg-transparent text-gray-700 placeholder-gray-400"
           @input="debouncedSearch"
           @focus="showResults = true"

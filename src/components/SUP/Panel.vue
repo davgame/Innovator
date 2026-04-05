@@ -286,41 +286,63 @@ const toggleMenu = (projectId) => {
 const loadProjects = async () => {
   loading.value = true
   try {
-    if (!authStore.user) return
+    if (!authStore.user) {
+      console.log('❌ Нет пользователя')
+      return
+    }
 
     const userId = authStore.user.id
     console.log('👤 ID пользователя:', userId)
 
     // 1. Получаем все проекты, где пользователь участник
+    console.log('📡 Запрос 1: project_members')
     const { data: memberProjects, error: memberError } = await supabase
       .from('project_members')
       .select('project_id')
       .eq('user_id', userId)
 
-    if (memberError) throw memberError
+    if (memberError) {
+      console.error('❌ Ошибка memberProjects:', memberError)
+      console.error('❌ Детали ошибки:', JSON.stringify(memberError, null, 2))
+      throw memberError
+    }
+
+    console.log('✅ memberProjects:', memberProjects)
 
     const memberProjectIds = memberProjects?.map(m => m.project_id) || []
     console.log('📋 project_ids из project_members:', memberProjectIds)
 
     // 2. Получаем проекты, где пользователь владелец
+    console.log('📡 Запрос 2: projects (владелец)')
     const { data: ownedProjects, error: ownedError } = await supabase
       .from('projects')
       .select('*')
       .eq('created_by', userId)
 
-    if (ownedError) throw ownedError
+    if (ownedError) {
+      console.error('❌ Ошибка ownedProjects:', ownedError)
+      console.error('❌ Детали ошибки:', JSON.stringify(ownedError, null, 2))
+      throw ownedError
+    }
+
+    console.log('✅ ownedProjects:', ownedProjects)
 
     // 3. Получаем проекты, где пользователь участник
     let memberProjectsData = []
     if (memberProjectIds.length > 0) {
+      console.log('📡 Запрос 3: projects (участник), IDs:', memberProjectIds)
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .in('id', memberProjectIds)
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Ошибка memberProjectsData:', error)
+        console.error('❌ Детали ошибки:', JSON.stringify(error, null, 2))
+        throw error
+      }
       memberProjectsData = data || []
-      console.log('📁 Проекты участника:', memberProjectsData)
+      console.log('✅ memberProjectsData:', memberProjectsData)
     }
 
     // 4. Объединяем и убираем дубликаты
@@ -330,6 +352,7 @@ const loadProjects = async () => {
     )
 
     console.log('✅ Всего проектов:', uniqueProjects.length)
+    console.log('📋 Детали проектов:', uniqueProjects)
 
     // 5. Преобразуем для отображения
     projects.value = uniqueProjects.map(p => ({
@@ -349,7 +372,8 @@ const loadProjects = async () => {
     }
 
   } catch (error) {
-    console.error('❌ Ошибка:', error)
+    console.error('❌ Ошибка загрузки проектов:', error)
+    console.error('❌ Полный объект ошибки:', JSON.stringify(error, null, 2))
     projects.value = []
   } finally {
     loading.value = false
