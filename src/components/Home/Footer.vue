@@ -12,7 +12,7 @@
           <div class="flex items-start gap-3 mb-8">
             <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
-          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
+          <img src="@/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
           <div class="text-left">
             <h1 class="text-[17px] font-rubik text-white font-bold">Инноваторы</h1>
             <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
@@ -50,13 +50,13 @@
 
           <div class="flex gap-6 mb-6">
             <a href="#" target="_blank">
-              <img src="/src/assets/images/vk.png" alt="VK" class="w-10 h-10"/>
+              <img src="@/assets/images/vk.png" alt="VK" class="w-10 h-10"/>
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/tg.png" alt="Telegram" class="w-10 h-10"/>
+              <img src="@/assets/images/tg.png" alt="Telegram" class="w-10 h-10"/>
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/whatsApp.png" alt="whatsApp" class="w-10 h-10" />
+              <img src="@/assets/images/whatsapp.png" alt="whatsApp" class="w-10 h-10" />
             </a>
           </div>
 
@@ -74,7 +74,7 @@
 
           <div class="flex gap-4 items-start">
             <div>
-              <img src="/src/assets/images/ФОНД.png" alt="Innova" class="w-[150px] h-auto" />
+              <img src="@/assets/images/ФОНД.png" alt="Innova" class="w-[150px] h-auto" />
             </div>
           </div>
         </div>
