@@ -149,7 +149,7 @@
             <ContextMenu
               v-if="activeContextMenu === element.id"
               @edit="editTask(element)"
-              @delete="deleteTask(element, column.id)"
+              @delete="() => deleteTask(element, column.id)"
             />
 
             <div class="flex justify-between items-center mt-2 mb-2">
@@ -295,10 +295,10 @@ import Task from './Task.vue'
 import { useBreakpoint } from './useBreakpoint'
 import MobileKanban from './MobileKanban.vue'
 import Edit_task from './Edit_task.vue'
-import { supabase } from '@/lib/supabase'  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
+import { supabase } from '@/lib/supabase'
 import {
   fetchTasks,
-  createTaskDB,      // ← добавляем
+  createTaskDB,
   updateTaskDB,
   deleteTaskDB,
   updateTaskStatus,
@@ -361,24 +361,27 @@ watch(
 )
 
 const deleteTask = async (task, columnId) => {
-  if (!confirm(`Удалить задачу "${task.title}"?`)) return
+  // Закрываем меню
+  activeContextMenu.value = null
 
   try {
-    const { error } = await deleteTaskDB(task.id)
-    if (error) {
-      console.error('❌ Ошибка при удалении задачи:', error)
-      return
+    // Удаляем задачу из БД
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', task.id)
+
+    if (error) throw error
+
+    // Удаляем задачу из локального состояния
+    const column = columns.value.find(col => col.id === columnId)
+    if (column) {
+      column.tasks = column.tasks.filter(t => t.id !== task.id)
     }
 
-    // Обновляем локальный state
-    const column = columns.value.find(c => c.id === columnId)
-    if (!column) return
-    column.tasks = column.tasks.filter(t => t.id !== task.id)
-
-    closeContextMenu()
-    console.log(`✅ Задача "${task.title}" удалена`)
-  } catch (err) {
-    console.error('❌ Ошибка deleteTask:', err)
+  } catch (error) {
+    console.error('Ошибка удаления задачи:', error)
+    alert('Не удалось удалить задачу')
   }
 }
 
