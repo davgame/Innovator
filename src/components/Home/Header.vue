@@ -180,13 +180,13 @@
           </p>
           <div class="flex space-x-8 mt-36">
             <a href="#" target="_blank">
-              <img src="/src/assets/images/vk.png" alt="VK" class="w-12 h-12" />
+              <img src="@/assets/images/vk.png" alt="VK" class="w-12 h-12" />
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
+              <img src="@/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/whatsapp.png" alt="whatsapp" class="w-12 h-12" />
+              <img src="@/assets/images/whatsapp.png" alt="whatsapp" class="w-12 h-12" />
             </a>
           </div>
         </div>
