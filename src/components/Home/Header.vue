@@ -231,7 +231,7 @@
             </a>
             <a href="#" target="_blank">
               <img
-                src="/src/assets/images/whatsApp.png"
+                src="@/assets/images/whatsapp.png"
                 alt="whatsApp"
                 class="w-10 h-10 block lg:hidden"
               />
