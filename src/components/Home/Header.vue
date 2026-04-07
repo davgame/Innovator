@@ -220,11 +220,11 @@
           <div class="flex justify-end w-full space-x-8 lg:hidde"
               :class="!authStore.isAuthenticated ? 'mt-10' : 'mt-1'">
             <a href="#" target="_blank">
-              <img src="/src/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
+              <img src="@/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
             </a>
             <a href="#" target="_blank">
               <img
-                src="/src/assets/images/tg.png"
+                src="@/assets/images/tg.png"
                 alt="Telegram"
                 class="w-10 h-10 block lg:hidden"
               />
