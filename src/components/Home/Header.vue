@@ -3,7 +3,7 @@
     <div class="flex fixed top-0 left-0 w-full bg-white shadow-2xs z-50 items-center justify-between px-6 py-4 sm:px-6 md:px-[100px] lg:px-[80px]">
       <!--Логотип-->
       <div href="#" class="flex items-start space-x-3 w-1/2">
-        <img src="/src/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto"/>
+        <img src="@/assets/images/Logo_menu1.png" alt="Innova" class="w-[42px] h-auto"/>
         <div class="text-left">
           <h1 class="text-[17px] font-rubik text-black font-bold">Инноваторы</h1>
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
@@ -38,7 +38,7 @@
             class="lg:flex hidden w-[42px] h-[42px] rounded-full bg-[#CFD9FF] items-center justify-center"
           >
             <img
-              src="/src/assets/images/Emodzi.svg"
+              src="@/assets/images/Emodzi.svg"
               class="w-[30px] h-[30px] object-contain"
               alt="Default avatar"
             />
@@ -100,7 +100,7 @@
 
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
-          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
+          <img src="@/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
           <div class="text-left">
             <h1 class="text-[17px] font-rubik text-white font-bold">Инноваторы</h1>
             <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
@@ -127,7 +127,7 @@
             class="lg:flex w-[42px] h-[42px] rounded-full bg-[#CFD9FF] flex items-center justify-center"
           >
             <img
-              src="/src/assets/images/Emodzi.svg"
+              src="@/assets/images/Emodzi.svg"
               class="lg:w-[30px] lg:h-[30px] w-[26px] h-[26px] object-contain"
               alt="Default avatar"
             />

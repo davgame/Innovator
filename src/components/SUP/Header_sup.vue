@@ -4,7 +4,7 @@
 
         <!--Логотип-->
       <div class="flex items-start space-x-3 mr-auto">
-        <img src="/src/assets/images/SUP_Logo.svg" alt="Innova" class="w-[42px] h-auto"/>
+        <img src="@/assets/images/SUP_Logo.svg" alt="Innova" class="w-[42px] h-auto"/>
         <div class="text-left">
           <h1 class="text-[17px] font-rubik text-black font-bold">Инноваторы</h1>
           <p class="text-[13px] mt-[-4px] font-rubik text-black font-medium">Краснодар</p>
@@ -36,7 +36,7 @@
             class="lg:flex hidden w-[42px] h-[42px] rounded-full bg-[#CFD9FF] items-center justify-center"
           >
             <img
-              src="/src/assets/images/Emodzi.svg"
+              src="@/assets/images/Emodzi.svg"
               class="w-[30px] h-[30px] object-contain"
               alt="Default avatar"
             />
@@ -82,7 +82,7 @@
               class="w-[42px] h-[42px] rounded-full flex items-center justify-center"
             >
               <img
-                src="/src/assets/images/Emodzi.svg"
+                src="@/assets/images/Emodzi.svg"
                 class="w-[30px] h-[30px] object-contain"
                 alt="Default avatar"
               />
