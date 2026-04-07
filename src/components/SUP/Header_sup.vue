@@ -145,7 +145,7 @@
 
         <!--Логотип-->
         <div href="#" class="flex items-sart space-x-3 w-1/2">
-          <img src="/src/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
+          <img src="@/assets/images/Logo_menu2.png" alt="Innova" class="w-[42px] h-auto" />
           <div class="text-left">
             <h1 class="text-[17px] font-rubik text-white font-bold">Инноваторы</h1>
             <p class="text-[13px] mt-[-4px] font-rubik text-white font-medium">Краснодар</p>
@@ -172,7 +172,7 @@
             class="lg:flex w-[42px] h-[42px] rounded-full bg-[#CFD9FF] flex items-center justify-center"
           >
             <img
-              src="/src/assets/images/Emodzi.svg"
+              src="@/assets/images/Emodzi.svg"
               class="lg:w-[30px] lg:h-[30px] w-[26px] h-[26px] object-contain"
               alt="Default avatar"
             />
@@ -225,13 +225,13 @@
           </p>
           <div class="flex space-x-8 mt-36">
             <a href="#" target="_blank">
-              <img src="/src/assets/images/vk.png" alt="VK" class="w-12 h-12" />
+              <img src="@/assets/images/vk.png" alt="VK" class="w-12 h-12" />
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
+              <img src="@/assets/images/tg.png" alt="Telegram" class="w-12 h-12" />
             </a>
             <a href="#" target="_blank">
-              <img src="/src/assets/images/whatsapp.png" alt="whatsapp" class="w-12 h-12" />
+              <img src="@/assets/images/whatsapp.png" alt="whatsapp" class="w-12 h-12" />
             </a>
           </div>
         </div>
@@ -264,18 +264,18 @@
           <div class="flex justify-end w-full space-x-8 lg:hidde"
               :class="!authStore.isAuthenticated ? 'mt-10' : 'mt-1'">
             <a href="#" target="_blank">
-              <img src="/src/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
+              <img src="@/assets/images/vk.png" alt="VK" class="w-10 h-10 block lg:hidden" />
             </a>
             <a href="#" target="_blank">
               <img
-                src="/src/assets/images/tg.png"
+                src="@/assets/images/tg.png"
                 alt="Telegram"
                 class="w-10 h-10 block lg:hidden"
               />
             </a>
             <a href="#" target="_blank">
               <img
-                src="/src/assets/images/whatsApp.png"
+                src="@/assets/images/whatsApp.png"
                 alt="whatsApp"
                 class="w-10 h-10 block lg:hidden"
               />
