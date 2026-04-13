@@ -117,6 +117,7 @@
         @update:organization="handleOrganizationUpdate"
       />
       <ProfileCompetencies
+        :key="competenciesRefreshKey"
         :edit-mode="true"
         :initial-competencies="editedProfile.competencies"
         @update:competencies="updateCompetencies"
@@ -162,7 +163,7 @@
 
 <script setup>
 import Header from '@/components/Home/Header.vue';
-import { ref, watch, onMounted, computed, reactive, watchEffect  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
+import { ref, watch, onMounted, computed, watchEffect  } from 'vue'  // 👈 добавь ref, onMounted, onUnmounted
 import { useRouter } from 'vue-router'  // 👈 добавь этот импорт
 import { useAuthStore } from '@/stores/auth'
 import User_organization from './User_organization.vue';
@@ -183,16 +184,11 @@ const authStore = useAuthStore()
 const isOnline = ref(false)
 const selectedImage = ref(null)      // для файла изображения
 const showEditModal = ref(false)     // для модального окна
-const avatarPreview = ref('')
 const router = useRouter()  // 👈 добавь эту строку
 const showExitModal = ref(false)
 const isSaving = ref(false)
 const profileRoleKey = ref(0)
-
-// Состояние
-const saving = ref(false)
-
-// После объявления editedProfile
+const competenciesRefreshKey = ref(0)
 
 console.log('authStore.profile?.full_name:', authStore.profile?.full_name)
 
@@ -212,7 +208,7 @@ const editedProfile = ref({
   avatar_url: authStore.profile?.avatar_url || null,
   organization_id: authStore.profile?.organization_id,
   organization: null,
-  competencies: ['React.JS', 'REST API', 'TailwindCSS', 'HTML', 'CSS', 'Figma'],
+  competencies: [],
   role: 'Активист',
   resume: {
     name: 'Anisimov_CV.PDF',
@@ -229,30 +225,14 @@ console.log('editedProfile.full_name:', editedProfile.full_name)
 const originalProfile = ref(JSON.parse(JSON.stringify(editedProfile)))
 
 const updateCompetencies = (comps) => {
-  editedProfile.competencies = comps
+  editedProfile.value.competencies = [...comps]  // 👈 создаем новый массив для реактивности
+  competenciesRefreshKey.value++
 }
 
 
 const handleCancel = () => {
   console.log('Отмена редактирования')
   router.back()
-}
-
-const handleSave = async () => {
-  console.log('💾 Сохраняем профиль...')
-  isSaving.value = true
-
-  try {
-    // Ваша логика сохранения в БД
-    // ...
-
-    console.log('✅ Профиль сохранен')
-    router.back()
-  } catch (error) {
-    console.error('❌ Ошибка сохранения:', error)
-  } finally {
-    isSaving.value = false
-  }
 }
 
 // computed свойство для отслеживания изменений
@@ -262,13 +242,19 @@ const hasChanges = computed(() => {
     return false
   }
 
+    // Сравниваем компетенции (массивы)
+  const competenciesChanged = JSON.stringify(editedProfile.value.competencies || []) !==
+                              JSON.stringify(originalProfile.value.competencies || [])
+
   const changed =
     editedProfile.value.full_name !== originalProfile.value.full_name ||
     editedProfile.value.organization_id !== originalProfile.value.organization_id ||
-    editedProfile.value.role_id !== originalProfile.value.role_id
+    editedProfile.value.role_id !== originalProfile.value.role_id ||
+    competenciesChanged
 
   console.log('📊 Сравнение:', {
     changed,
+    competenciesChanged,  // 👈 ДОБАВЬТЕ ДЛЯ ОТЛАДКИ
     newName: editedProfile.value.full_name,
     oldName: originalProfile.value.full_name,
     newOrg: editedProfile.value.organization_id,
@@ -276,11 +262,6 @@ const hasChanges = computed(() => {
   })
 
   return changed
-})
-
-watchEffect(() => {
-  console.log('📊 isSaving:', isSaving.value)
-  console.log('📊 hasChanges:', hasChanges.value)
 })
 
 const saveProfile = async () => {
@@ -297,7 +278,7 @@ const saveProfile = async () => {
     }
   }
 
-  isSaving.value = true  // 👈 используйте isSaving (не saving)
+  isSaving.value = true
   try {
     console.log('✅ Сохраняем с ID:', authStore.user.id)
 
@@ -306,13 +287,26 @@ const saveProfile = async () => {
       .update({
         full_name: editedProfile.value.full_name,
         organization_id: editedProfile.value.organization_id,
-        role_id: editedProfile.value.role_id
+        role_id: editedProfile.value.role_id,
+        competencies: editedProfile.value.competencies || []
       })
       .eq('id', authStore.user.id)
 
     if (error) throw error
 
     console.log('✅ Профиль сохранен')
+
+    await authStore.refreshUser()
+
+    // 👇 ДОПОЛНИТЕЛЬНО обновляем профиль в store напрямую
+    if (authStore.profile) {
+      authStore.profile.competencies = [...(editedProfile.value.competencies || [])]
+      console.log('🔄 Store обновлен:', authStore.profile.competencies)
+    }
+
+    // 👇 ВАЖНО: Обновляем originalProfile для корректного сравнения
+    originalProfile.value = JSON.parse(JSON.stringify(editedProfile.value))
+
     await authStore.refreshUser()
     router.back()
   } catch (error) {
@@ -336,22 +330,6 @@ const handleOrganizationUpdate = (org) => {
   profileRoleKey.value++
 }
 
-// При загрузке профиля
-onMounted(async () => {
-  await authStore.refreshUser()
-
-  if (authStore.profile) {
-    // Для ref
-    editedProfile.value = {
-      full_name: authStore.profile.full_name || '',
-      organization_id: authStore.profile.organization_id || null,
-      role_id: authStore.profile.role_id || null
-    }
-
-    originalProfile.value = JSON.parse(JSON.stringify(editedProfile.value))
-  }
-})
-
 const handleLogout = async () => {
   console.log('🚪 Выход из аккаунта')
   try {
@@ -370,38 +348,11 @@ const handleLogout = async () => {
   }
 }
 
-// Следим за изменениями профиля
-watch(() => authStore.profile, (newProfile) => {
-  console.log('Profile changed:', newProfile?.full_name)
-
-  if (newProfile?.full_name) {
-    if (!editedProfile.full_name) {
-      editedProfile.full_name = newProfile.full_name
-    }
-  }
-}, { immediate: true })
-
-// После создания editedProfile
-watch(() => authStore.profile, (newProfile) => {
-  if (newProfile?.full_name) {
-    editedProfile.full_name = newProfile.full_name
-    editedProfile.avatar_url = newProfile.avatar_url
-    editedProfile.organization_id = newProfile.organization_id
-  }
-}, { immediate: true })
-
-// 1. Получаем доступ к store
-
 // 2. Смотрим профиль
 console.log(authStore.profile)
 
 // 3. Смотрим конкретно имя
 console.log('Full name:', authStore.profile?.full_name)
-
-// Открыть модальное окно
-const openExitModal = () => {
-  showExitModal.value = true
-}
 
 // Функция обновления статуса
 const updateOnlineStatus = () => {
@@ -409,27 +360,51 @@ const updateOnlineStatus = () => {
   console.log('Status updated:', isOnline.value, 'from profile:', authStore.profile?.status)
 }
 
-// Следим за изменениями профиля
-watch(() => authStore.profile, (newProfile) => {
-  console.log('Profile changed:', newProfile)
-  updateOnlineStatus()
-}, { deep: true, immediate: true })
-
-// Следим за изменениями статуса
-watch(() => authStore.profile?.status, (newStatus) => {
-  console.log('Status changed to:', newStatus)
-  isOnline.value = newStatus === 'online'
-})
-
-onMounted(() => {
-  updateOnlineStatus()
-})
-
 // Метод для закрытия модалки
 const closeEditModal = () => {
   showEditModal.value = false
   selectedImage.value = null
 }
+
+// ============ ЕДИНСТВЕННЫЙ onMounted ============
+onMounted(async () => {
+  console.log('🔍 EditProfile mounted')
+
+  // Загружаем пользователя
+  await authStore.refreshUser()
+
+  if (authStore.user?.id && authStore.profile) {
+    // Полностью заполняем editedProfile
+    editedProfile.value = {
+      full_name: authStore.profile.full_name || '',
+      avatar_url: authStore.profile.avatar_url || null,
+      organization_id: authStore.profile.organization_id || null,
+      organization: null,
+      competencies: authStore.profile.competencies || [],  // 👈 пустой массив если нет
+      role_id: authStore.profile.role_id || null,
+      role: null,
+      resume: {
+        name: authStore.profile.resume_name || '',
+        size: authStore.profile.resume_size || '',
+        url: authStore.profile.resume_url || null
+      }
+    }
+
+    // Сохраняем оригинал для сравнения
+    originalProfile.value = JSON.parse(JSON.stringify(editedProfile.value))
+
+    console.log('📝 Профиль загружен:', {
+      name: editedProfile.value.full_name,
+      competenciesCount: editedProfile.value.competencies?.length || 0,
+      competencies: editedProfile.value.competencies
+    })
+  } else {
+    console.error('❌ Не удалось загрузить профиль')
+    router.push('/authorization')
+  }
+
+  updateOnlineStatus()
+})
 
 // Состояние для контекстного меню
 const showContextMenu = ref(false)
@@ -438,10 +413,6 @@ const showContextMenu = ref(false)
 const handleEditPhoto = () => {
   showContextMenu.value = false
   triggerImageInput()
-}
-
-const closeContextMenu = () => {
-  showContextMenu.value = false
 }
 
 // Метод для открытия проводника
@@ -486,15 +457,32 @@ const dataURLtoFile = (dataurl, filename) => {
   return new File([u8arr], filename, { type: mime })
 }
 
-// Следим за изменениями аватара
-watch(() => authStore.profile?.avatar_url, (newUrl, oldUrl) => {
-  console.log('Avatar URL changed from', oldUrl, 'to', newUrl)
-}, { immediate: true })
-
-// Также следим за всем профилем
+// WATCH 1: Следим за изменениями профиля и обновляем статус
 watch(() => authStore.profile, (newProfile) => {
-  console.log('Profile updated:', newProfile)
-}, { deep: true })
+  if (newProfile) {
+    // Обновляем статус онлайн
+    updateOnlineStatus()
+
+    console.log('📊 Profile updated in store:', {
+      full_name: newProfile.full_name,
+      status: newProfile.status,
+      competenciesCount: newProfile.competencies?.length
+    })
+  }
+}, { deep: true, immediate: true })
+
+// WATCH 2: Синхронизируем editedProfile только если данные еще не загружены
+watch(() => authStore.profile, (newProfile) => {
+  // Обновляем только если editedProfile еще пустой (первоначальная загрузка)
+  if (newProfile && !editedProfile.value.full_name) {
+    console.log('🔄 Initial sync from store to editedProfile')
+    editedProfile.value.full_name = newProfile.full_name
+    editedProfile.value.avatar_url = newProfile.avatar_url
+    editedProfile.value.organization_id = newProfile.organization_id
+    editedProfile.value.competencies = newProfile.competencies || []
+    editedProfile.value.role_id = newProfile.role_id
+  }
+}, { immediate: true })
 
 
 const saveAvatar = async (imageDataUrl) => {
@@ -520,27 +508,6 @@ const saveAvatar = async (imageDataUrl) => {
 
   showEditModal.value = false
 }
-
-onMounted(async () => {
-  console.log('🔍 EditProfile mounted')
-  console.log('👤 authStore.user:', authStore.user)
-  console.log('📊 authStore.profile:', authStore.profile)
-
-  if (!authStore.user?.id) {
-    console.log('⏳ Пользователь не авторизован, пробуем загрузить...')
-    await authStore.refreshUser()
-  }
-
-  if (authStore.user?.id) {
-    console.log('✅ Пользователь загружен, ID:', authStore.user.id)
-    editedProfile.full_name = authStore.profile?.full_name || ''
-    editedProfile.avatar_url = authStore.profile?.avatar_url || null
-    editedProfile.organization_id = authStore.profile?.organization_id
-  } else {
-    console.error('❌ Не удалось получить ID пользователя')
-    router.push('/authorization')
-  }
-})
 
 // Обновленная функция загрузки (возвращает URL)
 const uploadAvatarToStorage = async (imageDataUrl, userId) => {
@@ -587,14 +554,6 @@ const uploadAvatarToStorage = async (imageDataUrl, userId) => {
     return null
   }
 }
-
-// Также добавь watch для отслеживания изменений в store
-watch(() => authStore.profile?.avatar_url, (newUrl) => {
-  if (newUrl) {
-    avatarPreview.value = newUrl
-    console.log('Avatar URL updated in store:', newUrl)
-  }
-})
 
 // Форматирование времени последнего визита
 const formatLastSeen = (timestamp) => {
@@ -655,23 +614,11 @@ const handleDeletePhoto = () => {
   showDeleteModal.value = true
 }
 
-const updateOrganization = (org) => {
-  console.log('🏢 Обновление организации:', org)
-  editedProfile.organization_id = org.id
-  editedProfile.organization = org
-  // Сбрасываем роль при смене организации
-  editedProfile.role_id = null
-  editedProfile.role = null
-}
-
-
-
 const updateRole = (role) => {
   editedProfile.value.role_id = role.id
   editedProfile.value.role = role
 }
 
-// 👇 ДОБАВЬТЕ ЭТУ ФУНКЦИЮ
 const updateResume = (resumeData) => {
   console.log('📄 Обновление резюме:', resumeData)
   editedProfile.resume = resumeData
@@ -730,35 +677,9 @@ const confirmDeletePhoto = async () => {
     console.error('❌ Полный объект ошибки:', JSON.stringify(error, null, 2))
   }
 }
-// Следим за изменениями
-watch(() => authStore.profile, (newProfile) => {
-  console.log('Profile changed:', newProfile)
-
-  if (newProfile && !editedProfile.full_name) {
-    console.log('Setting full_name to:', newProfile.full_name)
-    editedProfile.full_name = newProfile.full_name
-  }
-}, { immediate: true })  // 👈 опции должны быть здесь
 
 // После создания editedProfile
 console.log('🔥 editedProfile.full_name:', editedProfile.full_name)
 console.log('🔥 authStore.profile?.full_name:', authStore.profile?.full_name)
-
-// При монтировании
-onMounted(async () => {
-  console.log('🔍 EditProfile mounted')
-
-  // Принудительно загружаем пользователя
-  await authStore.refreshUser()
-
-  console.log('✅ После refreshUser:', authStore.user)
-
-  if (authStore.user?.id) {
-    editedProfile.full_name = authStore.profile?.full_name || ''
-    editedProfile.organization_id = authStore.profile?.organization_id
-  } else {
-    console.error('❌ Не удалось загрузить пользователя')
-  }
-})
 
 </script>

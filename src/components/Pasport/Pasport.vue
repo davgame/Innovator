@@ -200,7 +200,7 @@
             <h3 class="text-lg font-semibold text-gray-800">Выберите теги</h3>
             <button
               @click="closeModal"
-              class="text-gray-400 hover:text-gray-600 text-2xl"
+              class=" cursor-pointer text-gray-400 hover:text-gray-600 text-2xl"
             >
               ×
             </button>
@@ -265,13 +265,13 @@
           <div class="border-t px-6 py-4 flex justify-end gap-3">
             <button
               @click="closeModal"
-              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              class="cursor-pointer px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
             >
               Отмена
             </button>
             <button
               @click="applyTags"
-              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              class="cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               Применить ({{ tempSelectedTags.length }})
             </button>

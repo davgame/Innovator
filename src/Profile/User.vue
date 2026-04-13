@@ -129,7 +129,9 @@
       :initial-organization-id="authStore.profile?.organization_id"
       @loaded="displayOrganization = $event"
   />
-      <ProfileCompetencies/>
+      <ProfileCompetencies
+        :initial-competencies="authStore.profile?.competencies || []"
+      />
       <ProfileRole
         :edit-mode="false"
         :organization-id="authStore.profile?.organization_id"
@@ -177,11 +179,12 @@ import Edit_img from './Edit_img.vue';
 import { supabase } from '@/lib/supabase' // 👈 убедись что импортирован
 import Delete_Modal from './Delete_Modal.vue';
 import Exit_modal from './Exit_modal.vue';
+// 👇 Добавьте принудительное обновление при возврате на страницу
+const competenciesKey = ref(0)
 
 
 const imageInput = ref(null)
 const authStore = useAuthStore()
-// 👇 Объявляем ВСЕ ref переменные
 const isOnline = ref(false)
 const selectedImage = ref(null)      // для файла изображения
 const showEditModal = ref(false)     // для модального окна
@@ -223,6 +226,15 @@ const openExitModal = () => {
 const updateOnlineStatus = () => {
   isOnline.value = authStore.profile?.status === 'online'
   console.log('Status updated:', isOnline.value, 'from profile:', authStore.profile?.status)
+}
+
+
+// 👇 Обновляем данные при показе страницы
+const refreshProfile = async () => {
+  console.log('🔄 Refreshing profile data...')
+  await authStore.refreshUser()
+  competenciesKey.value++ // Принудительно обновляем компонент компетенций
+  console.log('📊 Updated competencies:', authStore.profile?.competencies)
 }
 
 // Следим за изменениями профиля
