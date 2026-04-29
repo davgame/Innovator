@@ -101,10 +101,10 @@ const showPassword = ref(false)
 const isLoading = ref(false)
 const errorMessage = ref('')
 const router = useRouter()
-// 👇 Объявляем переменные для ошибок
+//Объявляем переменные для ошибок
 const emailError = ref('')
-const passwordError = ref('')  // 👈 добавить эту строку
-const serverError = ref('')  // 👈 ошибка от сервера
+const passwordError = ref('')  // добавить эту строку
+const serverError = ref('')  // ошибка от сервера
 // 2. ПОТОМ получаем store
 const authStore = useAuthStore()
 
@@ -124,7 +124,7 @@ const handleLogin = async () => {
       password.value
     )
     if (error) {
-      // 👇 Обработка ошибки от сервера
+      // Обработка ошибки от сервера
       if (error.message === 'Invalid login credentials') {
         serverError.value = 'Неверный email или пароль'
       } else {
