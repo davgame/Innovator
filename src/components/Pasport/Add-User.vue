@@ -47,7 +47,14 @@
           :key="user.id"
           class="flex items-center gap-3 p-2 rounded-[14px] hover:bg-[#F6F8FA]"
         >
-          <img :src="user.avatar_url" class="w-9 h-9 rounded-full object-cover" />
+          <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex items-center justify-center flex-shrink-0">
+          <img
+            :src="user.avatar_url || defaultAvatar"
+            class="w-full h-full object-cover"
+            :class="{ 'p-1.5 object-contain': !user.avatar_url }"
+            @error="handleImageError"
+          />
+        </div>
           <div class="flex-1">
             <p class="text-[14px] font-medium">{{ user.full_name }}</p>
             <p class="text-[12px] text-[#6C727C]">Участник</p>
@@ -131,7 +138,14 @@
                  bg-[#F6F8FA] px-1 py-1 rounded-full"
           @click="toggleUser(user)"
         >
-          <img :src="user.avatar_url" class="w-7 h-7 rounded-full" />
+          <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex items-center justify-center flex-shrink-0">
+          <img
+            :src="user.avatar_url || defaultAvatar"
+            class="w-full h-full object-cover"
+            :class="{ 'p-1.5 object-contain': !user.avatar_url }"
+            @error="handleImageError"
+          />
+        </div>
           <span class="text-[13px]">{{ user.name }}</span>
 
           <!-- Checkbox -->
@@ -185,19 +199,23 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/stores/auth'  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
+import { useAuthStore } from '@/stores/auth'
+import defaultAvatar from '@/assets/images/Emodzi.svg'
 
+const handleImageError = (event) => {
+  event.target.src = defaultAvatar
+}
 
 const emit = defineEmits(['close', 'confirm'])
-const authStore = useAuthStore()  // 👈 ДОБАВЬТЕ ЭТУ СТРОЧКУ
+const authStore = useAuthStore()
 const searchQuery = ref('')
 const selectedUsers = ref([])
-const avatarVersion = ref(Date.now())  // 👈 ДОБАВЬТЕ
-const projectMembers = ref([])  // 👈 Участники проекта для режима task
+const avatarVersion = ref(Date.now())
+const projectMembers = ref([])
 const searchResults = ref([])
 const isLoading = ref(false)
-const currentUserId = computed(() => authStore.user?.id)  // 👈 ДОБАВЬТЕ
-const isOwner = ref(false)  // 👈 ДОБАВЬТЕ
+const currentUserId = computed(() => authStore.user?.id)
+const isOwner = ref(false)
 
 // Поиск пользователей в БД
 let searchTimer = null
@@ -213,7 +231,7 @@ watch(
       loadProjectMembers()
     }
   },
-  { deep: true }  // 👈 ДОБАВЬТЕ deep: true
+  { deep: true }
 )
 
 const searchUsers = async () => {
@@ -285,7 +303,6 @@ const props = defineProps({
   }
 })
 
-// 👇 ДОБАВЬТЕ ЭТУ ФУНКЦИЮ
 const checkOwnership = async () => {
   if (!props.projectId || !currentUserId.value) return false
 

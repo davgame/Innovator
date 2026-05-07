@@ -26,7 +26,14 @@
           :key="user.id"
           class="flex items-center gap-3 bg-white rounded-xl px-3 py-2"
         >
-          <img :src="user.avatar" class="w-8 h-8 rounded-full" />
+          <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex items-center justify-center flex-shrink-0">
+  <img
+    :src="user.avatar_url || defaultAvatar"
+    class="w-full h-full object-cover"
+    :class="{ 'p-1.5 object-contain': !user.avatar_url }"
+    @error="handleImageError"
+  />
+</div>
           <div class="flex-1">
             <p class="text-sm font-medium">{{ user.name }}</p>
             <p class="text-xs text-gray-400">{{ user.role }}</p>
@@ -71,6 +78,11 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import Header from '../Home/Header.vue'
 import AddUser from './Add-User.vue'
+import defaultAvatar from '@/assets/images/Emodzi.svg'
+
+const handleImageError = (event) => {
+  event.target.src = defaultAvatar
+}
 
 const route = useRoute()
 const router = useRouter()
