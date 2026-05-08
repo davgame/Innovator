@@ -184,12 +184,16 @@
                     class="w-full h-full object-cover hover:scale-105"
                     :alt="member.name"
                   />
-                  <div
-                    v-else
-                    class="w-full h-full flex items-center justify-center text-xs text-white"
-                  >
-                    {{ member.name.charAt(0) }}
-                  </div>
+                <div
+                  v-else
+                  class="w-full h-full flex items-center justify-center bg-[#CFD9FF]"
+                >
+                  <img
+                    :src="defaultAvatar"
+                    class="w-[20px] h-[20px] object-contain"
+                    alt="avatar"
+                  />
+                </div>
                 </div>
 
                 <!-- Кнопка добавления участника -->
@@ -295,6 +299,7 @@ import Task from './Task.vue'
 import { useBreakpoint } from './useBreakpoint'
 import MobileKanban from './MobileKanban.vue'
 import Edit_task from './Edit_task.vue'
+import defaultAvatar from '@/assets/images/Emodzi.svg'
 import { supabase } from '@/lib/supabase'
 import {
   fetchTasks,

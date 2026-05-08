@@ -119,9 +119,13 @@
                 />
                 <div
                   v-else
-                  class="w-full h-full flex items-center justify-center text-xs text-white"
+                  class="w-full h-full flex items-center justify-center bg-[#CFD9FF]"
                 >
-                  {{ member.name.charAt(0) }}
+                  <img
+                    :src="defaultAvatar"
+                    class="w-[22px] h-[22px] object-contain"
+                    alt="avatar"
+                  />
                 </div>
               </div>
             </div>
@@ -158,6 +162,7 @@
 import { ref, watch, computed  } from 'vue'
 import { fetchTasks, deleteTaskDB } from '@/services/taskService'
 import Task from './Task.vue'
+import defaultAvatar from '@/assets/images/Emodzi.svg'
 
 const props = defineProps({
   projectId: { type: String, default: null },

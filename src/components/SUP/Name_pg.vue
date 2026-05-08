@@ -23,9 +23,16 @@
               class="w-full h-full object-cover"
               @error="handleImageError"
             />
-            <div v-else class="w-full h-full flex items-center justify-center text-white text-sm font-medium">
-              {{ user.name?.charAt(0) || '?' }}
-            </div>
+              <div
+                v-else
+                class="w-full h-full flex items-center justify-center bg-[#CFD9FF]"
+              >
+                <img
+                  :src="defaultAvatar"
+                  class="w-[24px] h-[24px] object-contain"
+                  alt="avatar"
+                />
+              </div>
           </div>
 
           <!-- Кнопка добавления участника -->
@@ -63,6 +70,7 @@ import { ref, onMounted, watch, computed  } from 'vue'
 import { useRoute } from 'vue-router'
 import AddUser from '../Pasport/Add-User.vue'
 import { supabase } from '@/lib/supabase'
+import defaultAvatar from '@/assets/images/Emodzi.svg'
 
 const props = defineProps({
   project: {
