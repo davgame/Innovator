@@ -21,7 +21,7 @@ onMounted(async () => {
   authStore = useAuthStore()
   await authStore.init()
 
-  // 👇 Добавляем отслеживание активности
+  //Отслеживание активности
   window.addEventListener('mousemove', updateActivity)
   window.addEventListener('keydown', updateActivity)
   window.addEventListener('click', updateActivity)
@@ -30,7 +30,7 @@ onMounted(async () => {
   // Обновляем каждые 5 минут
   activityTimer = setInterval(updateActivity, 5 * 60 * 1000)
 
-  // 👇 Добавляем обработчик закрытия вкладки (ПРАВИЛЬНО)
+  //Обработчик закрытия вкладки (ПРАВИЛЬНО)
   window.addEventListener('beforeunload', () => {
     if (authStore?.user?.id) {
       navigator.sendBeacon(

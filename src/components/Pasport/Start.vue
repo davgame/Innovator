@@ -45,7 +45,7 @@
           alt="Smart Mood"
         />
       </div>
-      <span class="font-medium">{{ smartMood ? 'Smart Mood' : 'Smart Mood' }}</span>
+      <span class="font-medium">{{ smartMood ? 'Эврика' : 'Эврика' }}</span>
     </button>
 
       <!-- Кнопка запроса -->
