@@ -74,7 +74,7 @@
 
           <div class="flex gap-4 items-start">
             <div>
-              <img src="@/assets/images/ФОНД.png" alt="Innova" class="w-[150px] h-auto" />
+              <img src="@/assets/images/W.svg" alt="Innova" class="w-[110px] h-auto" />
             </div>
           </div>
         </div>
