@@ -27,12 +27,12 @@
           class="flex items-center gap-3 bg-white rounded-xl px-3 py-2"
         >
           <div class="w-9 h-9 rounded-full overflow-hidden bg-[#CFD9FF] flex items-center justify-center flex-shrink-0">
-  <img
-    :src="user.avatar_url || defaultAvatar"
-    class="w-full h-full object-cover"
-    :class="{ 'p-1.5 object-contain': !user.avatar_url }"
-    @error="handleImageError"
-  />
+        <img
+          :src="user.avatar_url || defaultAvatar"
+          class="w-full h-full object-cover"
+          :class="{ 'p-1.5 object-contain': !user.avatar_url }"
+          @error="handleImageError"
+        />
 </div>
           <div class="flex-1">
             <p class="text-sm font-medium">{{ user.name }}</p>
@@ -42,7 +42,7 @@
         </div>
       </div>
     </div>
-    <button @click="showModal = true" class="btn-more border-1 border-[#222222] hover:border-[#4286F7] text-[#222222] hover:text-[#4286F7] font-medium lg:mb-58 mb-52 py-1 lg:px-51 px-35 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
+    <button @click="showModal = true" class="btn-more border-1 border-[#222222] hover:border-[#4286F7] text-[#222222] hover:text-[#4286F7] font-medium lg:mb-58 mb-72 py-1 lg:px-51 px-35 text-[20px] rounded-[18px] fixed bottom-10 left-1/2 transform -translate-x-1/2 z-40 transition-colors duration-300 cursor-pointer">
       +
     </button>
     <!-- Модальное окно (компонент Add-User.vue) -->
@@ -189,7 +189,7 @@ const loadProjectMembers = async () => {
     selectedUsers.value = data.map(m => ({
       id: m.user_id,
       name: m.profiles?.full_name || 'Пользователь',
-      avatar: m.profiles?.avatar_url || null,
+      avatar_url: m.profiles.avatar_url,  // ✅ avatar_url вместо avatar
       role: m.role || 'Участник',
       joined_at: m.joined_at
     }))
@@ -328,7 +328,7 @@ onMounted(async () => {
       selectedUsers.value = data.map(m => ({
         id: m.profiles.id,
         name: m.profiles.full_name,
-        avatar: m.profiles.avatar_url,
+        avatar_url: m.profiles?.avatar_url || null,  // ✅ avatar_url
         role: m.role || 'Участник'
       }))
       console.log('👥 Загружено участников:', selectedUsers.value.length)
