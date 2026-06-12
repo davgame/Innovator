@@ -328,10 +328,10 @@ onMounted(async () => {
       selectedUsers.value = data.map(m => ({
         id: m.profiles.id,
         name: m.profiles.full_name,
-        avatar_url: m.profiles?.avatar_url || null,  // ✅ avatar_url
+        avatar_url: m.profiles?.avatar_url || null,
         role: m.role || 'Участник'
       }))
-      console.log('👥 Загружено участников:', selectedUsers.value.length)
+      console.log('Загружено участников:', selectedUsers.value.length)
     }
   }
 })
