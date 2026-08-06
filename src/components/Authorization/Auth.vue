@@ -50,14 +50,14 @@
           <!-- Пароль скрыт -->
           <img
             v-if="!showPassword"
-            src="/images/View-off.svg"
+            src="/src/assets/images/View-off.svg"
             alt="Скрыть пароль"
             class="w-auto h-auto"
           />
           <!-- Пароль показан -->
           <img
             v-else
-            src="/images/View.svg"
+            src="/src/assets/images/View.svg"
             alt="Показать пароль"
             class="w-auto h-auto"
           />

@@ -181,11 +181,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// User_organization.vue - добавьте лог
-const selectOrganization = (org) => {
-  console.log('🔍 Выбрана организация из User_organization:', org); // ДОЛЖНО БЫТЬ 3 для КубГУ
-  emit('update:organization', org);
-}
 
 // ProfileRole.vue - добавьте лог
 watch(() => props.organizationId, async (newId) => {
