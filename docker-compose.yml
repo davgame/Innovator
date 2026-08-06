@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my-vue-app
+    ports:
+      - "8080:80"          # Локальный порт : порт в контейнере
+    restart: unless-stopped  # Автоматический перезапуск
+    environment:
+      - NODE_ENV=production
+    # volumes:
+    #   - ./dist:/usr/share/nginx/html  # (опционально) для горячей замены
