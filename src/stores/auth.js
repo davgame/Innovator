@@ -23,17 +23,35 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async init() {
-      const { data: { session } } = await supabase.auth.getSession()
+      // Получаем текущую сессию
+      const {
+        data: { session },
+        error
+      } = await supabase.auth.getSession()
+
+      if (error) {
+        console.error('❌ Ошибка получения сессии:', error)
+        return
+      }
 
       if (session?.user) {
         this.user = session.user
+
+        // Загружаем профиль отдельно
         await this.fetchProfile(session.user.id)
       }
 
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      // Слушаем изменения авторизации
+      supabase.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
           this.user = session.user
-          await this.fetchProfile(session.user.id)
+
+          // ВАЖНО: не делать await Supabase-запроса
+          // непосредственно внутри callback
+          setTimeout(() => {
+            this.fetchProfile(session.user.id)
+          }, 0)
+
         } else if (event === 'SIGNED_OUT') {
           this.user = null
           this.profile = null
@@ -84,42 +102,45 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // auth.js - убедитесь, что функция работает
-    async updateUserStatus(status) {
-      if (!this.user?.id) {
-        console.log('⚠️ Нет пользователя для обновления статуса')
+  async updateUserStatus(status) {
+    if (!this.user?.id) {
+      console.log('⚠️ Нет пользователя для обновления статуса')
+      return
+    }
+
+    try {
+      const lastSeen = new Date().toISOString()
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          status,
+          last_seen: lastSeen
+        })
+        .eq('id', this.user.id)
+
+      if (error) {
+        console.error('❌ Ошибка обновления статуса:', error)
         return
       }
 
-      // Пропускаем, если пользователь не авторизован
-      try {
-        // Проверяем, есть ли активная сессия
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-          console.log('⚠️ Нет активной сессии, пропускаем обновление статуса')
-          return
-        }
+      console.log(
+        `✅ Статус установлен: ${status} для пользователя:`,
+        this.user.id
+      )
 
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            status,
-            last_seen: new Date().toISOString()
-          })
-          .eq('id', this.user.id)
-          if (error) {
-            console.error('❌ Ошибка обновления статуса:', error)
-          } else {
-            console.log('✅ Статус обновлен на:', status)
-            if (this.profile) {
-              this.profile.status = status
-              this.profile.last_seen = new Date().toISOString()
-            }
-          }
-        } catch (err) {
-          // Просто логируем, но не выбрасываем ошибку
-          console.warn('⚠️ Ошибка при обновлении статуса:', err.message)
+      if (this.profile) {
+        this.profile.status = status
+        this.profile.last_seen = lastSeen
       }
-    },
+
+    } catch (err) {
+      console.warn(
+        '⚠️ Ошибка при обновлении статуса:',
+        err.message
+      )
+    }
+  },
 
   // В actions
   async refreshUser() {
@@ -137,25 +158,42 @@ export const useAuthStore = defineStore('auth', {
   // При входе
   async signIn(email, password) {
     this.loading = true
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email, password
-    })
 
-    if (!error && data.user) {
-      this.user = data.user
-      await this.fetchProfile(data.user.id)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
 
-      // 👇 ВАЖНО: обновляем статус в БД
-      await this.updateUserStatus('online')
+      if (error) {
+        return { data, error }
+      }
 
-      // 👇 ДОПОЛНИТЕЛЬНО: принудительно обновляем профиль
-      await this.fetchProfile(data.user.id)
+      if (data.user) {
+        this.user = data.user
 
-      console.log('✅ Статус установлен: online для пользователя:', data.user.id)
+        await this.fetchProfile(data.user.id)
+
+        await this.updateUserStatus('online')
+
+        console.log(
+          '✅ Статус установлен: online для пользователя:',
+          data.user.id
+        )
+      }
+
+      return { data, error }
+
+    } catch (err) {
+      console.error('❌ Ошибка входа:', err)
+      return {
+        data: null,
+        error: err
+      }
+
+    } finally {
+      this.loading = false
     }
-
-    this.loading = false
-    return { data, error }
   },
 
 
