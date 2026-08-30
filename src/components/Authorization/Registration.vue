@@ -37,7 +37,7 @@
       </div>
 
       <!-- Email -->
-      <label class="block text-gray-600 mb-2">Email</label>
+      <label class="block text-gray-600 mb-2">Почта</label>
       <div
         class="relative mb-6" :class="{ 'mb-12': emailError }"
       >
@@ -47,7 +47,7 @@
         <input
           v-model="email"
           type="email"
-          placeholder="Kervis@gmail.com"
+          placeholder="Email"
           class="w-full pl-13 pr-4 py-4 rounded-2xl border focus:outline-none focus:ring-2 transition-all"
           :class="[
             emailError
@@ -78,7 +78,7 @@
         />
         <button type="button" class="absolute inset-y-0 right-4 text-gray-400 cursor-pointer"
                 @click="showPassword = !showPassword">
-          <img :src="showPassword ? '/src/assets/images/View.svg' : '/src/assets/images/View-off.svg'"
+          <img :src="showPassword ? '/images/View.svg' : '/images/View-off.svg'"
                alt="Toggle password" class="w-auto h-auto"/>
         </button>
       </div>

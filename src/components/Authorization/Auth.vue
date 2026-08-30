@@ -1,6 +1,6 @@
 <template>
       <!-- Email -->
-      <label class="block text-gray-600 mb-2">Email</label>
+      <label class="block text-gray-600 mb-2">Почта</label>
       <div class="relative " :class="{ 'mb-12': emailError, 'mb-6': !emailError }">
         <span class="absolute inset-y-0 left-4 flex items-center text-gray-400">
           <img src="/src/assets/images/Messenger.svg" alt="Innova" class="w-auto h-auto"/>
@@ -8,7 +8,7 @@
         <input
           v-model="email"
           type="email"
-          placeholder="Kervis@gmail.com"
+          placeholder="Email"
           class="w-full pl-13 pr-4 py-4 rounded-2xl border border-gray-300
                  focus:outline-none focus:ring-2 focus:ring-blue-500"
           :class="[
