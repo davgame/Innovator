@@ -15,6 +15,10 @@ RUN npm ci
 # Копируем все исходники
 COPY . .
 
+# Переменные для Vite (вшиваются в сборку)
+ENV VITE_SUPABASE_URL=https://инноваторы.tech
+ENV VITE_SUPABASE_ANON_KEY=sb_publishable_L7e1QC6qK062gNkGoQa3yK_sTSec_Xz
+
 # Собираем проект (создает папку dist)
 RUN npm run build
 
